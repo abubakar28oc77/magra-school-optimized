@@ -45,5 +45,10 @@ cd "F:\3. Website-2026\New folder\magra-school-management-main\magra-school-mana
 npm run dev
 ```
 
+### পদ্ধতি ৩: GitHub Pages অনলাইন লাইভ লিংক (মোবাইল ও পিসি যেকোনো জায়গা থেকে)
+গিটহাব রিপোজিটরিতে কোড পুশ সম্পন্ন হয়েছে:  
+🔗 **গিটহাব রেপো:** `https://github.com/abubakar28oc77/magra-school-optimized`  
+🌐 **অনলাইন লাইভ ওয়েবসাইট লিংক:** `https://abubakar28oc77.github.io/magra-school-optimized/`  
+
 ---
 *আপনার এন্ট্রি করা ২৫৭ জন শিক্ষার্থী, ১০ম শ্রেণির পরীক্ষার ফলাফল এবং সকল সিস্টেম ডেটা ১০০% নিরাপদ ও সুরক্ষিত।*
