@@ -1,42 +1,30 @@
 @echo off
-title Magra School Management
+title Magra School Management Local Server
 cd /d "%~dp0"
 
 echo ======================================================
 echo   Magra Pals Union High School Management
-echo   Starting Optimized School System...
+echo   Starting Optimized Local Server...
 echo ======================================================
 
 set "NODE_CMD=node"
-if exist "C:\Program Files\nodejs\node.exe" set "NODE_CMD=C:\Program Files\nodejs\node.exe"
-
-:: 1. Start local server in a minimized background window
-start /min "MagraServer" "%NODE_CMD%" serve.js
-
-:: 2. Wait 1.5 seconds for server to start
-ping 127.0.0.1 -n 3 >nul
-
-:: 3. Launch Google Chrome directly or default browser
-if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
-    start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" "http://localhost:4173"
-    goto finish
-)
-if exist "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" (
-    start "" "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" "http://localhost:4173"
-    goto finish
-)
-if exist "%LocalAppData%\Google\Chrome\Application\chrome.exe" (
-    start "" "%LocalAppData%\Google\Chrome\Application\chrome.exe" "http://localhost:4173"
-    goto finish
+where node >nul 2>nul
+if %errorlevel% neq 0 (
+    if exist "C:\Program Files\nodejs\node.exe" (
+        set "NODE_CMD=C:\Program Files\nodejs\node.exe"
+    ) else (
+        echo [ERROR] Node.js is not found on your PC.
+        echo Please open the online link instead:
+        echo https://abubakar28oc77.github.io/magra-school-optimized/
+        pause
+        exit /b 1
+    )
 )
 
-start "" "http://localhost:4173"
+start "" http://localhost:4173
 
-:finish
 echo.
-echo ======================================================
-echo   Magra School Management is now running!
-echo   Browser opened at: http://localhost:4173
-echo ======================================================
-timeout /t 3 >nul
-exit
+echo Server is running at http://localhost:4173
+echo Keep this window open while using the app.
+echo.
+"%NODE_CMD%" serve.js

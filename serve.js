@@ -1,12 +1,12 @@
-import http from 'node:http';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const DIST_DIR = path.join(__dirname, 'frontend', 'dist');
 const PORT = 4173;
+// Both root dist files and frontend/dist files
+const DIST_DIR = fs.existsSync(path.join(__dirname, 'assets')) 
+  ? __dirname 
+  : path.join(__dirname, 'frontend', 'dist');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
