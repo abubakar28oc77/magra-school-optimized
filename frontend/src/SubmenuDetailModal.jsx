@@ -1,0 +1,7019 @@
+import {
+  getStoredClassRoutines,
+  getStoredExamRoutines,
+  getStoredSyllabuses,
+  getStoredDigitalLearning,
+  getStoredNotes,
+  saveStoredNotes,
+  getStoredQuestions,
+  getStoredAssignments,
+  getStoredOnlineExams,
+  AI_TEACHER_ASSISTANT_PRESETS
+} from './studentGuideDataStore';
+
+function parseEmployeeIdNum(raw) {
+  if (!raw) return 999999;
+  const s = String(raw).trim();
+  const bnMap = { '০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9' };
+  const converted = s.replace(/[০-৯]/g, d => bnMap[d] || d);
+  const digits = converted.replace(/\D/g, '');
+  if (digits) {
+    const n = parseInt(digits, 10);
+    if (!isNaN(n)) return n;
+  }
+  return 999999;
+}
+
+function sortPeopleByEmployeeId(list = []) {
+  if (!Array.isArray(list)) return [];
+  return [...list].sort((a, b) => {
+    const na = parseEmployeeIdNum(a?.employee_id || a?.id);
+    const nb = parseEmployeeIdNum(b?.employee_id || b?.id);
+    if (na !== nb) return na - nb;
+    return String(a?.employee_id || a?.name_bn || '').localeCompare(String(b?.employee_id || b?.name_bn || ''), undefined, { numeric: true });
+  });
+}
+
+function getStudentGroupPriority(s) {
+  if (!s) return 99;
+  const g = [
+    s.department,
+    s.group_name,
+    s.group,
+    s.section,
+    s.student_id,
+    s.id
+  ].filter(Boolean).map(x => String(x).toLowerCase()).join(' ');
+
+  if (g.includes('বিজ্ঞান') || g.includes('science') || g.includes('sci')) return 1;
+  if (g.includes('মানবিক') || g.includes('humanities') || g.includes('hum') || g.includes('arts')) return 2;
+  if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) return 3;
+  return 4;
+}
+
+function sortStudentsList(list) {
+  if (!Array.isArray(list)) return [];
+  const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+  const parseNum = (val) => {
+    if (!val) return 99999;
+    const str = String(val).trim();
+    const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+    const m = converted.match(/\d+/);
+    return m ? parseInt(m[0], 10) : 99999;
+  };
+
+  return [...list].sort((a, b) => {
+    const ca = parseNum(a.class_name);
+    const cb = parseNum(b.class_name);
+    if (ca !== cb) return ca - cb;
+
+    if (ca === 9 || ca === 10 || String(a.class_name).includes('9') || String(a.class_name).includes('10') || String(a.class_name).includes('৯') || String(a.class_name).includes('১০')) {
+      const pa = getStudentGroupPriority(a);
+      const pb = getStudentGroupPriority(b);
+      if (pa !== pb) return pa - pb;
+    }
+
+    const ra = parseNum(a.roll_no);
+    const rb = parseNum(b.roll_no);
+    if (ra !== rb) return ra - rb;
+
+    return String(a.student_id || a.name_bn || '').localeCompare(String(b.student_id || b.name_bn || ''));
+  });
+}
+
+import React, { useState, useEffect } from 'react';
+import {
+  MOCK_SCHOOL,
+  MOCK_COMMITTEE,
+  MOCK_ADHOC_COMMITTEE,
+  MOCK_TEACHERS,
+  MOCK_STAFF,
+  MOCK_STUDENTS,
+  MOCK_SCHOLARSHIPS,
+  MOCK_SSC_RESULTS,
+  MOCK_NOTICES,
+  MOCK_BOOKS,
+  MOCK_SUBJECTS,
+  MOCK_ROUTINES,
+  PHOTO_PRESIDENT,
+  PHOTO_HEAD_TEACHER,
+  PHOTO_ASST_HEAD_TEACHER,
+  PHOTO_ICT_TEACHER,
+  PHOTO_OFFICE_ASSISTANT,
+  PHOTO_STUDENT_MALE_1,
+  getStudentPhoto,
+  getTeacherPhoto,
+  getLeadershipData
+} from './mockData';
+import { requestApi } from './apiClient';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
+import schoolLogo from '../public/school-logo.png';
+import { RoutinePanel } from './RoutinePanel';
+import { 
+  getStoredAdmissionResults,
+  getStoredHalfYearlyResults,
+  getStoredAnnualResults,
+  getStoredPreTestResults,
+  getStoredTestResults,
+  getStoredPublicExamResults,
+  normalizePublicExamRecord,
+  calculateRecordTotals,
+  PUBLIC_EXAM_DEPARTMENTS
+} from './examResultsDataStore';
+import { getStoredInstitutionData, DEFAULT_INSTITUTION_DATA } from './defaultInstitutionData';
+import { getStoredReligiousEventsData, DEFAULT_RELIGIOUS_EVENTS } from './religiousEventsData';
+import { SEED_BOOKS, BOOK_CATEGORIES, LIBRARIAN_TEACHER } from './libraryData';
+import { PublicAttendancePortal } from './PublicAttendancePortal';
+import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
+import { SportsCultureModernSection } from './SportsCultureModernSection';
+import NoticeMasterModalSection from './NoticeMasterModalSection';
+import GalleryMasterModalSection from './GalleryMasterModalSection';
+import EServiceCenterModalSection from './EServiceCenterModalSection';
+import { getStoredFormerPersonnelData } from './formerPersonnelData';
+import { 
+  getStoredGovtScholarships, 
+  getStoredStipendStudents, 
+  getStoredMeritoriousStudents, 
+  getStoredFormerMeritorious, 
+  getStoredClassSeats 
+} from './studentDataStore';
+
+function PublicExamResultsView() {
+  const [pubList, setPubList] = useState(() => getStoredPublicExamResults());
+  const [selectedYear, setSelectedYear] = useState(() => (pubList[0]?.year || '২০২৫'));
+
+  useEffect(() => {
+    setPubList(getStoredPublicExamResults());
+  }, []);
+
+  const activeRecord = pubList.find(r => r.year === selectedYear) || pubList[0];
+  const norm = activeRecord ? normalizePublicExamRecord(activeRecord) : null;
+  const totals = norm ? calculateRecordTotals(norm) : null;
+
+  const handlePrint = () => {
+    if (!norm || !totals) return;
+    const printWindow = window.open('', '_blank', 'width=1000,height=900');
+    if (!printWindow) {
+      alert('পপআপ উইন্ডো ব্লক হয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন করুন।');
+      return;
+    }
+
+    const deptRowsHtml = [
+      { name: 'বিজ্ঞান বিভাগ', icon: '🔬', stats: totals.science, color: '#047857' },
+      { name: 'মানবিক বিভাগ', icon: '📚', stats: totals.humanities, color: '#0284c7' },
+      { name: 'ব্যবসায় শিক্ষা শাখা', icon: '💼', stats: totals.business, color: '#b45309' }
+    ].map(d => `
+      <tr>
+        <td style="padding:8px 10px;border:1px solid #0f172a;font-weight:700;color:${d.color};">${d.icon} ${d.name}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;font-weight:700;">${d.stats.candidates}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#0369a1;font-weight:800;">${d.stats.gpa5}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa4}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa3_5}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa3}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa2}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa1}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#dc2626;font-weight:700;">${d.stats.failed}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#047857;font-weight:800;">${d.stats.passed}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;font-weight:800;">${d.stats.pass_rate}</td>
+      </tr>
+    `).join('');
+
+    const totalRowHtml = `
+      <tr style="background:#f1f5f9;font-weight:900;">
+        <td style="padding:9px 10px;border:1px solid #0f172a;">📊 সর্বমোট (Grand Total)</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.candidates}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#0369a1;">${totals.total.gpa5}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa4}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa3_5}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa3}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa2}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa1}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#dc2626;">${totals.total.failed}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#047857;">${totals.total.passed}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#0f172a;">${totals.total.pass_rate}</td>
+      </tr>
+    `;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${norm.exam_name} (${norm.year}) — বিভাগভিত্তিক ফলাফল বিবরণী</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
+          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', Arial, sans-serif; color: #0f172a; margin: 0; padding: 10px; font-size: 13px; line-height: 1.5; background: #fff; }
+          ${SCHOOL_PAD_STYLES}
+          .meta-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: 700; margin: 12px 0 16px 0; border-bottom: 1px dotted #cbd5e1; padding-bottom: 6px; }
+          .order-title { text-align: center; margin: 10px 0 4px 0; font-size: 18px; font-weight: 900; color: #0f172a; }
+          .order-sub { text-align: center; margin: 0 0 14px 0; font-size: 13px; color: #475569; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th { background: #f8fafc; font-weight: 800; border: 1px solid #0f172a; padding: 7px 5px; font-size: 12px; }
+          .footer-signs { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 12px; font-weight: 700; }
+          .sign-line { border-top: 1px dashed #0f172a; padding-top: 5px; width: 180px; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div class="meta-row">
+          <span>স্মারক নং: মপাউউবি/এসএসসি/${norm.year}/০১</span>
+          <span>তারিখ: ....................</span>
+        </div>
+        <div class="order-title">পাবলিক পরীক্ষা (এসএসসি) বিভাগভিত্তিক ফলাফল বিবরণী</div>
+        <div class="order-sub">পরীক্ষা: <b>${norm.exam_name}</b> | শিক্ষাবর্ষ: <b>${norm.year}</b> | শিক্ষা বোর্ড: <b>${norm.board}</b></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left;">বিভাগ / শাখা</th>
+              <th>মোট পরীক্ষার্থী</th>
+              <th>GPA 5.00<br>(A+)</th>
+              <th>GPA 4.00-4.99<br>(A)</th>
+              <th>GPA 3.50-3.99<br>(A-)</th>
+              <th>GPA 3.00-3.49<br>(B)</th>
+              <th>GPA 2.00-2.99<br>(C)</th>
+              <th>GPA 1.00-1.99<br>(D)</th>
+              <th style="color:#dc2626;">মোট ফেল<br>(F)</th>
+              <th style="color:#047857;">মোট উত্তীর্ণ</th>
+              <th>পাশের হার (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${deptRowsHtml}
+            ${totalRowHtml}
+          </tbody>
+        </table>
+
+        <div class="footer-signs">
+          <div><div class="sign-line">পরীক্ষা নিয়ন্ত্রক / সদস্য সচিব</div></div>
+          <div><div class="sign-line">প্রধান শিক্ষক</div></div>
+          <div><div class="sign-line">সভাপতি (ম্যানেজিং / এডহক কমিটি)</div></div>
+        </div>
+        <script>
+          window.onload = function() { setTimeout(function(){ window.print(); }, 250); };
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  return (
+    <div className="submenu-content">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+        <div className="modal-hero-badge" style={{ margin: 0, background: '#f0fdfa', color: '#0f766e', border: '1px solid #99f6e4' }}>
+          🏛️ পাবলিক পরীক্ষার (এসএসসি) বিভাগভিত্তিক ফলাফল ও পরিসংখ্যান
+        </div>
+        {norm && (
+          <button
+            type="button"
+            onClick={handlePrint}
+            style={{
+              background: '#0284c7',
+              color: '#ffffff',
+              border: 'none',
+              padding: '7px 16px',
+              borderRadius: '6px',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+            }}
+          >
+            🖨️ অফিসিয়াল প্যাডে প্রিন্ট (A4 Portrait)
+          </button>
+        )}
+      </div>
+
+      {/* Year Selection Tabs */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px', alignItems: 'center' }}>
+        <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>📅 শিক্ষাবর্ষ নির্বাচন করুন:</span>
+        {pubList.map(item => {
+          const isSelected = item.year === selectedYear;
+          return (
+            <button
+              key={item.id || item.year}
+              type="button"
+              onClick={() => setSelectedYear(item.year)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: isSelected ? '2px solid #0f766e' : '1px solid #cbd5e1',
+                background: isSelected ? '#0f766e' : '#ffffff',
+                color: isSelected ? '#ffffff' : '#334155',
+                fontWeight: isSelected ? 800 : 600,
+                fontSize: '12.5px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              🎓 {item.year} শিক্ষাবর্ষ ({item.exam_name})
+            </button>
+          );
+        })}
+      </div>
+
+      {norm && totals && (
+        <>
+          {/* Summary Stat Cards */}
+          <div className="info-stats-grid" style={{ marginBottom: '16px' }}>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #0284c7' }}>
+              <b>{totals.total.candidates} জন</b>
+              <span>মোট পরীক্ষার্থী ({norm.year})</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #0f766e' }}>
+              <b>{totals.total.gpa5} জন</b>
+              <span>GPA 5.00 (A+) {norm.golden_gpa5 ? `• গোল্ডেন: ${norm.golden_gpa5} জন` : ''}</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #16a34a' }}>
+              <b>{totals.total.passed} জন</b>
+              <span>সর্বমোট উত্তীর্ণ</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #b45309' }}>
+              <b>{totals.total.pass_rate}</b>
+              <span>সামগ্রিক পাশের হার ({norm.board})</span>
+            </div>
+          </div>
+
+          {/* Department Breakdown Table */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+              padding: '10px 14px',
+              borderRadius: '8px 8px 0 0',
+              border: '1px solid #cbd5e1',
+              borderBottom: 'none',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '6px'
+            }}>
+              <span style={{ fontWeight: 800, fontSize: '13.5px', color: '#0f172a' }}>
+                📋 {norm.exam_name} ({norm.year}) — বিজ্ঞান, মানবিক ও ব্যবসায় শিক্ষা শাখা ভিত্তিক পূর্ণাঙ্গ ফলাফল বিবরণী
+              </span>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                বোর্ড: {norm.board}
+              </span>
+            </div>
+            <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '0 0 8px 8px' }}>
+              <table className="modal-table" style={{ margin: 0, minWidth: '850px' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ textAlign: 'left', minWidth: '160px' }}>বিভাগ / শাখা</th>
+                    <th style={{ textAlign: 'center' }}>মোট পরীক্ষার্থী</th>
+                    <th style={{ textAlign: 'center', color: '#0369a1' }}>GPA 5.00<br />(A+)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 4.00-4.99<br />(A)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 3.50-3.99<br />(A-)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 3.00-3.49<br />(B)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 2.00-2.99<br />(C)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 1.00-1.99<br />(D)</th>
+                    <th style={{ textAlign: 'center', color: '#dc2626' }}>মোট ফেল<br />(F)</th>
+                    <th style={{ textAlign: 'center', color: '#047857' }}>মোট উত্তীর্ণ</th>
+                    <th style={{ textAlign: 'center' }}>পাশের হার (%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Science */}
+                  <tr>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>🔬 বিজ্ঞান বিভাগ</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{totals.science.candidates} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#0369a1' }}>{totals.science.gpa5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa4} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa3_5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa3} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa2} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa1} জন</td>
+                    <td style={{ textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>{totals.science.failed} জন</td>
+                    <td style={{ textAlign: 'center', color: '#047857', fontWeight: 800 }}>{totals.science.passed} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800 }}>
+                      <span className="status-green">{totals.science.pass_rate}</span>
+                    </td>
+                  </tr>
+
+                  {/* Humanities */}
+                  <tr>
+                    <td style={{ fontWeight: 700, color: '#0284c7' }}>📚 মানবিক বিভাগ</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{totals.humanities.candidates} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#0369a1' }}>{totals.humanities.gpa5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa4} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa3_5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa3} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa2} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa1} জন</td>
+                    <td style={{ textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>{totals.humanities.failed} জন</td>
+                    <td style={{ textAlign: 'center', color: '#047857', fontWeight: 800 }}>{totals.humanities.passed} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800 }}>
+                      <span className="status-green">{totals.humanities.pass_rate}</span>
+                    </td>
+                  </tr>
+
+                  {/* Business Studies */}
+                  <tr>
+                    <td style={{ fontWeight: 700, color: '#b45309' }}>💼 ব্যবসায় শিক্ষা শাখা</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{totals.business.candidates} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#0369a1' }}>{totals.business.gpa5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa4} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa3_5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa3} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa2} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa1} জন</td>
+                    <td style={{ textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>{totals.business.failed} জন</td>
+                    <td style={{ textAlign: 'center', color: '#047857', fontWeight: 800 }}>{totals.business.passed} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800 }}>
+                      <span className="status-green">{totals.business.pass_rate}</span>
+                    </td>
+                  </tr>
+
+                  {/* Grand Total */}
+                  <tr style={{ background: '#f8fafc', fontWeight: 900 }}>
+                    <td style={{ fontWeight: 900, color: '#0f172a' }}>📊 সর্বমোট (Grand Total)</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900 }}>{totals.total.candidates} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900, color: '#0369a1' }}>{totals.total.gpa5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa4} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa3_5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa3} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa2} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa1} জন</td>
+                    <td style={{ textAlign: 'center', color: '#dc2626', fontWeight: 900 }}>{totals.total.failed} জন</td>
+                    <td style={{ textAlign: 'center', color: '#047857', fontWeight: 900 }}>{totals.total.passed} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900 }}>
+                      <span className="status-green" style={{ fontSize: '12.5px', padding: '3px 8px' }}>
+                        {totals.total.pass_rate}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Historical Summary Table for all years */}
+      <div style={{ marginTop: '20px' }}>
+        <div style={{ fontWeight: 800, fontSize: '13px', color: '#334155', marginBottom: '8px' }}>
+          🏛️ বিগত বছরসমূহের পাবলিক পরীক্ষা (এসএসসি) সংক্ষিপ্ত তুলনামূলক চিত্র:
+        </div>
+        <table className="modal-table">
+          <thead>
+            <tr>
+              <th>শিক্ষাবর্ষ</th>
+              <th>পরীক্ষার নাম</th>
+              <th>মোট পরীক্ষার্থী</th>
+              <th>মোট উত্তীর্ণ</th>
+              <th>GPA 5.00 (A+)</th>
+              <th>পাশের হার</th>
+              <th>শিক্ষা বোর্ড</th>
+              <th>অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pubList.map(item => {
+              const itemNorm = normalizePublicExamRecord(item);
+              const itemTotals = calculateRecordTotals(itemNorm);
+              return (
+                <tr key={item.id || item.year} style={{ background: item.year === selectedYear ? '#f0fdfa' : undefined }}>
+                  <td style={{ fontWeight: 800 }}>{item.year}</td>
+                  <td><b>{item.exam_name}</b></td>
+                  <td>{itemTotals.total.candidates} জন</td>
+                  <td style={{ color: '#047857', fontWeight: 700 }}>{itemTotals.total.passed} জন</td>
+                  <td>
+                    <b style={{ color: '#0369a1' }}>{itemTotals.total.gpa5} জন</b>
+                    {item.golden_gpa5 && <small style={{ display: 'block', color: '#b45309' }}>গোল্ডেন: {item.golden_gpa5} জন</small>}
+                  </td>
+                  <td><span className="status-green">{itemTotals.total.pass_rate}</span></td>
+                  <td>{item.board}</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedYear(item.year)}
+                      style={{
+                        padding: '3px 10px',
+                        borderRadius: '4px',
+                        border: '1px solid #0f766e',
+                        background: item.year === selectedYear ? '#0f766e' : '#fff',
+                        color: item.year === selectedYear ? '#fff' : '#0f766e',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {item.year === selectedYear ? '✓ নির্বাচিত' : 'বিস্তারিত দেখুন'}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
+  const cleanTitle = (title || '')
+    .replace(/\s*\((?:নতুন\s*(?:অ্যালবাম|এলবাম)\s*তৈরির\s*সুবিধা\s*সহ|নতুন\s*(?:অ্যালবাম|এলবাম)\s*তৈরি\s*সহ)\)/gi, '')
+    .trim() || title;
+
+  const isResultFeatureEnabled = (key) => {
+    try {
+      const raw = localStorage.getItem('magra_db_features');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          const parentPub = list.find(f => f && f.feature_key === 'public.nav.results');
+          if (parentPub && parentPub.enabled === false) return false;
+          const parentAdm = list.find(f => f && f.feature_key === 'admin.results');
+          if (parentAdm && parentAdm.enabled === false) return false;
+
+          if (key) {
+            const specific = list.find(f => f && f.feature_key === key);
+            if (specific && specific.enabled === false) return false;
+          }
+        }
+      }
+    } catch {}
+    return true;
+  };
+
+  const renderUnpublishedNotice = () => (
+    <div className="submenu-content" style={{ textAlign: 'center', padding: '40px 16px' }}>
+      <div style={{
+        maxWidth: '560px',
+        margin: '20px auto',
+        background: '#fffbeb',
+        border: '1.5px solid #fde68a',
+        borderRadius: '16px',
+        padding: '36px 28px',
+        boxShadow: '0 4px 16px rgba(245,158,11,0.08)'
+      }}>
+        <div style={{ fontSize: '56px', marginBottom: '12px' }}>🔒</div>
+        <h3 style={{ color: '#92400e', fontSize: '20px', fontWeight: 800, margin: '0 0 10px 0' }}>
+          ফলাফল এখনও প্রকাশিত হয়নি
+        </h3>
+        <p style={{ color: '#78350f', fontSize: '14.5px', lineHeight: 1.65, margin: '0 0 20px 0' }}>
+          <b>{cleanTitle}</b>-এর মূল্যায়ন ও ফলাফল প্রস্তুতকরণ কার্যক্রম বর্তমানে প্রক্রিয়াধীন রয়েছে। প্রতিষ্ঠান কর্তৃপক্ষ ও পরীক্ষা পরিচালনা কমিটি কর্তৃক চূড়ান্ত ফলাফল অনুমোদনের পর ভিউপেজে সকলের জন্য প্রকাশ করা হবে।
+        </p>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: '#fef3c7',
+          color: '#b45309',
+          padding: '8px 20px',
+          borderRadius: '24px',
+          fontWeight: 700,
+          fontSize: '13px',
+          border: '1px solid #fcd34d'
+        }}>
+          ⏳ ফলাফল প্রকাশের জন্য অনুগ্রহ করে অপেক্ষা করুন
+        </div>
+      </div>
+    </div>
+  );
+
+  if (menuKey && (menuKey.includes('attendance') || menuKey.includes('উপস্থিতি'))) {
+    return <PublicAttendancePortal isOpen={true} onClose={onClose} />;
+  }
+  const [filterClass, setFilterClass] = useState('all');
+  const [classFilter, setClassFilter] = useState('all');
+  const [filterGroup, setFilterGroup] = useState('all');
+  const [filterReligion, setFilterReligion] = useState('all');
+  const [filterGender, setFilterGender] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTeacherId, setSelectedTeacherId] = useState('all');
+  const [libraryCategory, setLibraryCategory] = useState('all');
+  const [examScore, setExamScore] = useState(null);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [committeeCategoryTab, setCommitteeCategoryTab] = useState(null);
+  const [donorTab, setDonorTab] = useState('life'); // 'life' or 'one_time'
+  const [donorSearch, setDonorSearch] = useState('');
+  const [donorViewMode, setDonorViewMode] = useState('cards'); // 'cards' or 'table'
+  const [instData, setInstData] = useState(getStoredInstitutionData);
+
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      if (e?.detail) setInstData(e.detail);
+      else setInstData(getStoredInstitutionData());
+    };
+    window.addEventListener('magra_institution_change', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('magra_institution_change', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  // Bengali helpers
+  const toBn = (n) => (n === null || n === undefined || n === '') ? '০' : String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  const formatTk = (n) => `৳ ${toBn(Number(n) || 0)}`;
+
+  // Admission tab state
+  const initialTab = menuKey?.includes('docs') ? 'docs' : menuKey?.includes('rules') ? 'rules' : menuKey?.includes('tracking') ? 'tracking' : 'apply';
+  const [admTab, setAdmTab] = useState(initialTab);
+
+  const emptyAdm = {
+    academic_year: '2026',
+    applied_class: '৬',
+    department: 'বিজ্ঞান',
+    applicant_name_bn: '',
+    applicant_name_en: '',
+    date_of_birth: '',
+    gender: 'পুরুষ',
+    religion: 'ইসলাম',
+    blood_group: 'A+',
+    birth_registration_no: '',
+    father_name: '',
+    father_nid: '',
+    father_phone: '',
+    father_profession: '',
+    mother_name: '',
+    mother_nid: '',
+    mother_phone: '',
+    mother_profession: '',
+    guardian_name: '',
+    guardian_relation: 'পিতা',
+    guardian_phone: '',
+    address: '',
+    previous_school: '',
+    previous_gpa: '',
+    quota: 'সাধারণ',
+    // Scanned documents
+    scanned_photo: '',
+    scanned_birth_cert: '',
+    scanned_tc: '',
+    scanned_nid: '',
+    // Online Fee Payment
+    payment_amount: 1400,
+    payment_method: 'bkash',
+    payment_trx_id: '',
+    payment_sender_mobile: '',
+    payment_verified: false,
+    notes: ''
+  };
+
+  const [admForm, setAdmForm] = useState(emptyAdm);
+  const [admReceipt, setAdmReceipt] = useState(null);
+  const [admSubmitting, setAdmSubmitting] = useState(false);
+  const [admMsg, setAdmMsg] = useState('');
+  const [trackingId, setTrackingId] = useState('');
+  const [trackingResult, setTrackingResult] = useState(null);
+  const [trackingMsg, setTrackingMsg] = useState('');
+
+  // Auto calculate total fee based on class and department
+  useEffect(() => {
+    let fee = 1400; // 6, 7, 8: 200 form + 1200 session/admission
+    if (['9', '10'].includes(String(admForm.applied_class))) {
+      if (admForm.department === 'বিজ্ঞান') fee = 1700; // 200 + 1500
+      else fee = 1600; // 200 + 1400
+    }
+    setAdmForm(prev => ({ ...prev, payment_amount: fee }));
+  }, [admForm.applied_class, admForm.department]);
+
+  useEffect(() => {
+    if (menuKey?.includes('docs')) setAdmTab('docs');
+    else if (menuKey?.includes('rules')) setAdmTab('rules');
+    else if (menuKey?.includes('tracking')) setAdmTab('tracking');
+    else if (menuKey?.includes('apply') || menuKey?.startsWith('public.nav.admission')) setAdmTab('apply');
+  }, [menuKey]);
+
+  // File Upload Helper to convert file to DataURL
+  const handleFileUpload = (field, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      setAdmForm(prev => ({ ...prev, [field]: uploadEvent.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Quick 1-click Demo Data Filler for ease of testing
+  const handleFillDemoData = () => {
+    setAdmForm({
+      academic_year: '2026',
+      applied_class: '৬',
+      department: 'সাধারণ',
+      applicant_name_bn: 'তানভীর আহমেদ',
+      applicant_name_en: 'Tanvir Ahmed',
+      date_of_birth: '2014-03-15',
+      gender: 'পুরুষ',
+      religion: 'ইসলাম',
+      blood_group: 'B+',
+      birth_registration_no: '20149315610004521',
+      father_name: 'মোঃ রফিকুল ইসলাম',
+      father_nid: '19829315610001234',
+      father_phone: '01712-345678',
+      father_profession: 'ব্যবসায়ী',
+      mother_name: 'রোকেয়া বেগম',
+      mother_nid: '19859315610005678',
+      mother_phone: '01715-987654',
+      mother_profession: 'গৃহিণী',
+      guardian_name: 'মোঃ রফিকুল ইসলাম',
+      guardian_relation: 'পিতা',
+      guardian_phone: '01712-345678',
+      address: 'গ্রাম: মগড়া উত্তর পাড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল',
+      previous_school: 'মগড়া সরকারি প্রাথমিক বিদ্যালয়',
+      previous_gpa: '৫.০০',
+      quota: 'সাধারণ',
+      scanned_photo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23047857"/><text x="50" y="55" font-family="Arial" font-size="28" fill="%23ffffff" text-anchor="middle" dominant-baseline="middle">ছবি</text></svg>',
+      scanned_birth_cert: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23e0f2fe"/><text x="50" y="55" font-size="14" fill="%230369a1" text-anchor="middle">জন্মসনদ</text></svg>',
+      scanned_tc: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23fef3c7"/><text x="50" y="55" font-size="14" fill="%2392400e" text-anchor="middle">টিসি/মার্কশিট</text></svg>',
+      scanned_nid: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23dcfce7"/><text x="50" y="55" font-size="14" fill="%23166534" text-anchor="middle">পিতা এনআইডি</text></svg>',
+      payment_amount: 1400,
+      payment_method: 'bkash',
+      payment_trx_id: 'BK92837461',
+      payment_sender_mobile: '01712-345678',
+      payment_verified: true,
+      notes: 'কোনো শারীরিক প্রতিবন্ধিতা নেই। ক্রীড়ায় পারদর্শী।'
+    });
+    setAdmMsg('✓ ডেমো শিক্ষার্থীর সকল তথ্য, স্ক্যান কপি ও পেমেন্ট সফলভাবে পূরণ করা হয়েছে।');
+    setTimeout(() => setAdmMsg(''), 3000);
+  };
+
+  const handleAdmSubmit = async (e) => {
+    e.preventDefault();
+    if (!admForm.applicant_name_bn.trim()) {
+      setAdmMsg('অনুগ্রহ করে শিক্ষার্থীর পুরো নাম লিখুন।');
+      return;
+    }
+    if (!admForm.guardian_phone.trim()) {
+      setAdmMsg('অনুগ্রহ করে অভিভাবকের সচল মোবাইল নম্বর প্রদান করুন।');
+      return;
+    }
+    if (!admForm.payment_trx_id.trim()) {
+      setAdmMsg('অনুগ্রহ করে অনলাইন পেমেন্টের Transaction ID (TrxID) প্রদান করুন।');
+      return;
+    }
+    setAdmSubmitting(true);
+    setAdmMsg('');
+    try {
+      const res = await requestApi('/admissions', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...admForm,
+          father_name: admForm.father_name || admForm.guardian_name,
+          application_date: new Date().toISOString().slice(0, 10),
+          status: 'submitted',
+          payment_status: 'paid'
+        })
+      });
+      setAdmReceipt(res);
+      setAdmMsg('অভিনন্দন! আপনার অনলাইন ভর্তি আবেদন ও ফি সফলভাবে গ্রহণ করা হয়েছে।');
+    } catch (err) {
+      setAdmMsg('আবেদন জমাদানে ত্রুটি: ' + err.message);
+    } finally {
+      setAdmSubmitting(false);
+    }
+  };
+
+  const handleTrackingSearch = async (e) => {
+    e.preventDefault();
+    if (!trackingId.trim()) return;
+    setTrackingMsg('');
+    setTrackingResult(null);
+    try {
+      const list = await requestApi('/admissions?q=' + encodeURIComponent(trackingId.trim()));
+      if (Array.isArray(list) && list.length > 0) {
+        setTrackingResult(list[0]);
+      } else {
+        setTrackingMsg('প্রদত্ত আবেদন নম্বর বা মোবাইল নম্বরে কোনো আবেদন পাওয়া যায়নি।');
+      }
+    } catch {
+      setTrackingMsg('তথ্য অনুসন্ধানে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+    }
+  };
+
+  // Notes & Lectures PDF Upload & Management State
+  const [notesList, setNotesList] = useState(getStoredNotes);
+  const [showNoteUploadDrawer, setShowNoteUploadDrawer] = useState(false);
+  const [noteSearchText, setNoteSearchText] = useState('');
+  const [noteSubjectFilter, setNoteSubjectFilter] = useState('all');
+  const [pdfPreviewModal, setPdfPreviewModal] = useState(null);
+  const [noteUploadForm, setNoteUploadForm] = useState({
+    class_name: '১০',
+    subject_name: 'পদার্থবিজ্ঞান',
+    doc_type: 'PDF লেকচার শিট',
+    chapter: '',
+    title_bn: '',
+    author_teacher: '',
+    summary: '',
+    pdf_file_data: '',
+    file_name: '',
+    file_size: '',
+    date_published: new Date().toISOString().slice(0, 10)
+  });
+
+  const handlePdfUploadSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('অনুগ্রহ করে শুধুমাত্র PDF (.pdf) ফাইল সিলেক্ট করুন।');
+      return;
+    }
+
+    const sizeInMB = file.size / (1024 * 1024);
+    if (sizeInMB > 15) {
+      alert('ফাইল সাইজ ১৫ মেগাবাইট (15 MB)-এর বেশি হওয়া যাবে না।');
+      return;
+    }
+
+    const formattedSize = sizeInMB >= 1 
+      ? `${sizeInMB.toFixed(1)} MB` 
+      : `${Math.round(file.size / 1024)} KB`;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      setNoteUploadForm(prev => ({
+        ...prev,
+        pdf_file_data: evt.target.result,
+        file_name: file.name,
+        file_size: formattedSize
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveUploadedNote = (e) => {
+    e.preventDefault();
+    if (!noteUploadForm.title_bn.trim()) {
+      alert('নোটের শিরোনাম দিন।');
+      return;
+    }
+    if (!noteUploadForm.subject_name.trim()) {
+      alert('বিষয় উল্লেখ করুন।');
+      return;
+    }
+
+    const newNote = {
+      ...noteUploadForm,
+      id: 'nt-' + Date.now(),
+      download_count: 0,
+      file_size: noteUploadForm.file_size || 'PDF'
+    };
+
+    const updated = [newNote, ...notesList];
+    setNotesList(updated);
+    saveStoredNotes(updated);
+    setShowNoteUploadDrawer(false);
+    setNoteUploadForm({
+      class_name: '১০',
+      subject_name: 'পদার্থবিজ্ঞান',
+      doc_type: 'PDF লেকচার শিট',
+      chapter: '',
+      title_bn: '',
+      author_teacher: '',
+      summary: '',
+      pdf_file_data: '',
+      file_name: '',
+      file_size: '',
+      date_published: new Date().toISOString().slice(0, 10)
+    });
+    alert('নতুন PDF নোট ও লেকচার শিট সফলভাবে আপলোড ও প্রকাশিত হয়েছে!');
+  };
+
+  const handleDeleteNote = (noteId) => {
+    if (confirm('আপনি কি এই নোটটি মুছে ফেলতে চান?')) {
+      const updated = notesList.filter(n => n.id !== noteId);
+      setNotesList(updated);
+      saveStoredNotes(updated);
+    }
+  };
+
+  const handleDownloadNote = (note) => {
+    if (note.pdf_file_data) {
+      const link = document.createElement('a');
+      link.href = note.pdf_file_data;
+      link.download = note.file_name || `Magra_School_Class${note.class_name}_${note.subject_name}_Note.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      printOrDownloadNoteDoc(note, 'download');
+    }
+
+    const updated = notesList.map(n => n.id === note.id ? { ...n, download_count: (Number(n.download_count) || 0) + 1 } : n);
+    setNotesList(updated);
+    saveStoredNotes(updated);
+  };
+
+  const printOrDownloadNoteDoc = (note, action = 'view') => {
+    if (note.pdf_file_data && action === 'view') {
+      setPdfPreviewModal(note);
+      return;
+    }
+
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+      alert('পপআপ উইন্ডো ব্লক করা রয়েছে। ব্রাউজারের পপআপ পারমিশন এলাউ করুন।');
+      return;
+    }
+
+    const htmlDoc = `
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="UTF-8">
+        <title>${note.title_bn || note.title} - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Segoe UI', Arial, sans-serif; padding: 30px; color: #0f172a; background: #fff; line-height: 1.6; }
+          .header { text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 15px; margin-bottom: 25px; }
+          .header h1 { margin: 0; font-size: 24px; color: #0369a1; }
+          .header p { margin: 3px 0; font-size: 13px; color: #475569; }
+          .badge { display: inline-block; background: #e0f2fe; color: #0369a1; font-weight: bold; padding: 4px 12px; border-radius: 6px; font-size: 13px; margin-top: 6px; }
+          .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13.5px; }
+          .title { font-size: 19px; font-weight: bold; color: #0f172a; margin: 15px 0 10px; border-left: 4px solid #0284c7; padding-left: 12px; }
+          .summary-card { background: #fff; border: 1.5px dashed #0284c7; border-radius: 8px; padding: 18px; font-size: 14px; line-height: 1.8; margin-top: 15px; }
+          .footer-signs { margin-top: 60px; display: flex; justify-content: space-between; padding-top: 20px; }
+          .sign-box { border-top: 1px dashed #64748b; width: 200px; text-align: center; font-size: 12.5px; padding-top: 6px; }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+          <button onclick="window.print()" style="background: #0284c7; color: white; border: none; padding: 9px 18px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button>
+          <button onclick="window.close()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 6px; margin-left: 8px; font-size: 13px; cursor: pointer;">বন্ধ করুন</button>
+        </div>
+
+        <div class="header">
+          <h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+          <p>স্থাপিত: ১৯৩৯ • EIIN: 114290 • কালিহাতী, টাঙ্গাইল</p>
+          <div class="badge">শিক্ষার্থীর ডিজিটাল গাইড • অফিসিয়াল পাঠ্য ও লেকচার শিট</div>
+        </div>
+
+        <div class="meta-grid">
+          <div><b>শ্রেণি:</b> ${note.class_name}ম শ্রেণি</div>
+          <div><b>বিষয়:</b> ${note.subject_name}</div>
+          <div><b>অধ্যায়/পাঠ:</b> ${note.chapter || 'পূর্ণাঙ্গ অধ্যায়'}</div>
+          <div><b>প্রণয়নকারী শিক্ষক:</b> ${note.author_teacher || 'সংশ্লিষ্ট বিষয় শিক্ষক'}</div>
+          <div><b>প্রকাশের তারিখ:</b> ${note.date_published || '২০২৬'}</div>
+          <div><b>ডকুমেন্ট টাইপ:</b> ${note.doc_type || 'PDF লেকচার শিট'}</div>
+        </div>
+
+        <div class="title">${note.title_bn || note.title}</div>
+
+        <div class="summary-card">
+          <h4 style="margin-top: 0; color: #0284c7;">📌 মূল পাঠ ও গুরুত্বপূর্ণ আলোচনা:</h4>
+          <p style="white-space: pre-wrap;">${note.summary || 'এই লেকচার শিটে সংশ্লিষ্ট বিষয়ের সকল গুরুত্বপূর্ণ থিওরি, গাণিতিক সূত্রাবলী ও বিগত বছরের বোর্ড প্রশ্নসমূহের বিস্তারিত সমাধান সংকলিত রয়েছে।'}</p>
+        </div>
+
+        <div class="footer-signs">
+          <div class="sign-box">
+            <b>${note.author_teacher || 'বিষয় শিক্ষক'}</b><br/>
+            সংশ্লিষ্ট বিষয় শিক্ষক
+          </div>
+          <div class="sign-box">
+            <b>প্রধান শিক্ষক</b><br/>
+            মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            ${action === 'download' ? 'setTimeout(function(){ window.print(); }, 400);' : ''}
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWin.document.open();
+    printWin.document.write(htmlDoc);
+    printWin.document.close();
+  };
+
+  const renderContent = () => {
+    // ================= NOTICE MASTER MODULE =================
+    if (
+      menuKey?.startsWith('public.nav.notice') ||
+      title?.includes('নোটিশ') ||
+      title?.includes('ঘোষণা') ||
+      title?.includes('বিজ্ঞপ্তি')
+    ) {
+      return <NoticeMasterModalSection initialSubmenuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // ================= GALLERY MASTER MODULE =================
+    if (
+      menuKey?.startsWith('public.nav.gallery') ||
+      title?.includes('গ্যালারি') ||
+      title?.includes('অ্যালবাম') ||
+      title?.includes('ফটো') ||
+      title?.includes('ভিডিও গ্যালারি') ||
+      title?.includes('টিউটোরিয়াল') ||
+      title?.includes('অনলাইন ক্লাস')
+    ) {
+      return <GalleryMasterModalSection initialSubmenuKey={menuKey} initialTitle={cleanTitle} onClose={onClose} />;
+    }
+
+    // ================= E-SERVICE MASTER MODULE =================
+    if (
+      menuKey?.startsWith('public.nav.eservice') ||
+      title?.includes('ই-সেবা') ||
+      title?.includes('eSIF') ||
+      title?.includes('eFF') ||
+      title?.includes('eTIF') ||
+      title?.includes('সংশোধন') ||
+      title?.includes('অভিযোগ') ||
+      title?.includes('ই-ফাইলিং') ||
+      title?.includes('ডি-নথি') ||
+      title?.includes('সোনালী সেবা') ||
+      title?.includes('ইউনিক আইডি') ||
+      title?.includes('উপবৃত্তি পোর্টাল') ||
+      title?.includes('মাউশি EMIS')
+    ) {
+      return <EServiceCenterModalSection initialSubmenuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // Check if this is a personnel or contact submenu
+    const isPersonnelOrContact =
+      Boolean(
+        menuKey?.startsWith('public.nav.contact') ||
+        menuKey?.startsWith('public.nav.staff') ||
+        title?.includes('শিক্ষক') ||
+        title?.includes('কর্মচারী') ||
+        title?.includes('অফিস সহকারী') ||
+        title?.includes('যোগাযোগ')
+      );
+
+    // Co-curricular & 4 Major Clubs (Literature, Debate, Science, ICT)
+    if (
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.clubs' || 
+        menuKey === 'public.nav.sport.debate' ||
+        menuKey === 'public.nav.sport.science' ||
+        menuKey === 'public.nav.sport.ict' ||
+        menuKey === 'public.nav.sport.literature' ||
+        menuKey?.includes('clubs') ||
+        menuKey === 'public.nav.co_curricular.ict' ||
+        menuKey === 'public.nav.co_curricular.science' ||
+        title?.includes('ভাষা ও সাহিত্য') || 
+        title?.includes('সাহিত্য ক্লাব') || 
+        title?.includes('ক্লাব ও সংগঠন') ||
+        title?.includes('ডিবেট ক্লাব') ||
+        title?.includes('বিতর্ক ক্লাব') ||
+        title?.includes('বিজ্ঞান ক্লাব') ||
+        title?.includes('আইসিটি ক্লাব') ||
+        title?.includes('কোডিং ক্লাব') ||
+        title?.includes('আইসিটি ও কোডিং') ||
+        (title?.includes('ক্লাব') && !title?.includes('শিক্ষক'))
+      )
+    ) {
+      return <LanguageLiteratureClubSection initialTitle={title} menuKey={menuKey} onClose={onClose} />;
+    }
+
+    // 1. Annual Sports (বার্ষিক ক্রীড়া) - Standalone
+    if (
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.sports' || 
+        menuKey === 'public.nav.sport.inter' ||
+        title?.includes('বার্ষিক ক্রীড়া') ||
+        (title?.includes('ক্রীড়া') && !title?.includes('সংস্কৃতি'))
+      )
+    ) {
+      return <SportsCultureModernSection category="sports" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 2. Cultural Programs (সাংস্কৃতিক অনুষ্ঠান) - Standalone
+    if (
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.culture' ||
+        title?.includes('সাংস্কৃতিক') ||
+        (title?.includes('সংস্কৃতি') && !title?.includes('ক্রীড়া'))
+      )
+    ) {
+      return <SportsCultureModernSection category="culture" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 3. Achievements & Awards (অর্জন ও পুরস্কার) - Standalone
+    if (
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.achievements' ||
+        title?.includes('অর্জন') ||
+        title?.includes('পুরস্কার')
+      )
+    ) {
+      return <SportsCultureModernSection category="achievements" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 4. Educational Tour (শিক্ষা সফর) - Standalone
+    if (
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.tour' ||
+        title?.includes('শিক্ষা সফর') ||
+        title?.includes('ট্যুর')
+      )
+    ) {
+      return <SportsCultureModernSection category="tour" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 5. Computer Lab (কম্পিউটার ল্যাব) - Standalone
+    if (
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.lab' || 
+        title?.includes('কম্পিউটার ল্যাব') ||
+        title?.includes('ল্যাব')
+      )
+    ) {
+      return <SportsCultureModernSection category="lab" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 6. Multimedia Classroom (মাল্টিমিডিয়া ক্লাস) - Standalone
+    if (
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.multimedia' || 
+        title?.includes('মাল্টিমিডিয়া')
+      )
+    ) {
+      return <SportsCultureModernSection category="multimedia" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 7. Scouts & Girls Guide (স্কাউট/গার্লস গাইড) - Standalone
+    if (
+      menuKey === 'public.nav.sport.scouts' || 
+      title?.includes('স্কাউট') ||
+      title?.includes('গার্লস গাইড') ||
+      title?.includes('গাইড')
+    ) {
+      return <SportsCultureModernSection category="scouts" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 8. Inter-School Sports (আন্তঃবিদ্যালয় ক্রীড়া) - Standalone
+    if (
+      menuKey === 'public.nav.sport.inter' || 
+      title?.includes('আন্তঃবিদ্যালয়')
+    ) {
+      return <SportsCultureModernSection category="inter_sports" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    
+    // 9. Milad Mahfil (মিলাদ-মাহফিল ও দোয়া মাহফিল) - Live Synchronized
+    if (menuKey === 'public.nav.sport.milad' || title === 'মিলাদ-মাহফিল' || title?.includes('মিলাদ') || title?.includes('মাহফিল')) {
+      const relData = getStoredReligiousEventsData();
+      const m = relData.milad || {};
+      const schedule = m.schedule || [];
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>🕌 {m.title || 'বার্ষিক দোয়া ও মিলাদ মাহফিল'}</span>
+            <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+            </span>
+          </div>
+
+          <p className="lead-text">
+            {m.occasion || 'পবিত্র শবে বরাত ও এসএসসি পরীক্ষার্থীদের শুভকামনায় বার্ষিক দোয়া ও মিলাদ মাহফিল।'}
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: '#ecfdf5', padding: '12px 14px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>📅 তারিখ ও সময়:</span>
+              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>{m.date || '২০২৬-০২-১২'} • {m.time || 'সকাল ১০:০০'}</div>
+            </div>
+            <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+              <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 700 }}>📍 স্থান / ভেন্যু:</span>
+              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#1e40af', marginTop: '2px' }}>{m.venue || 'বিদ্যালয় অডিটোরিয়াম ও মূল প্রাঙ্গণ'}</div>
+            </div>
+            <div style={{ background: '#fefce8', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fef08a' }}>
+              <span style={{ fontSize: '12px', color: '#854d0e', fontWeight: 700 }}>🎤 প্রধান আলোচক / ইমাম:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#854d0e', marginTop: '2px' }}>{m.speaker || 'মাওলানা মোঃ আনোয়ার হোসেন'}</div>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '12px', color: '#475569', fontWeight: 700 }}>👑 প্রধান অতিথি:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{m.chief_guest || 'নেয়ামুল হক খান (সভাপতি)'}</div>
+            </div>
+          </div>
+
+          {/* Program Schedule Table */}
+          <h4 style={{ color: '#047857', marginBottom: '8px', fontSize: '15px', fontWeight: 800 }}>
+            📜 অনুষ্ঠানের কর্মসূচি ও সময়সূচি:
+          </h4>
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '16px' }}>
+            <table className="modal-table" style={{ margin: 0, width: '100%' }}>
+              <thead style={{ background: '#f1f5f9' }}>
+                <tr>
+                  <th style={{ width: '150px', padding: '8px 12px' }}>সময়সূচি</th>
+                  <th style={{ padding: '8px 12px' }}>কর্মসূচির বিষয় ও বিবরণ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((it, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>{it.time}</td>
+                    <td style={{ color: '#334155' }}>{it.item}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Special Dua & Tabarruk */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+            {m.special_dua && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#047857', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🤲 বিশেষ দোয়া ও মুনাজাতের উদ্দেশ্য:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{m.special_dua}</p>
+              </div>
+            )}
+            {m.tabarruk_details && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#0284c7', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🍬 তাবাররুক ও আপ্যায়ন:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{m.tabarruk_details}</p>
+              </div>
+            )}
+          </div>
+
+          {m.committee && (
+            <div style={{ background: '#ecfdf5', padding: '10px 14px', borderRadius: '8px', fontSize: '12.5px', color: '#065f46' }}>
+              <b>আহ্বায়ক ও সমন্বয়ক:</b> {m.committee}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 10. Puja & Vani Archana (পূজা ও ধর্মীয় উৎসব) - Live Synchronized
+    if (menuKey === 'public.nav.sport.puja' || title === 'পূজা' || title?.includes('পূজা') || title?.includes('পুজা') || title?.includes('বাণী অর্চনা')) {
+      const relData = getStoredReligiousEventsData();
+      const p = relData.puja || {};
+      const schedule = p.schedule || [];
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>🪔 {p.title || 'শ্রী শ্রী সরস্বতী পূজা ও বাণী অর্চনা'}</span>
+            <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+            </span>
+          </div>
+
+          <p className="lead-text">
+            {p.occasion || 'বিদ্যার দেবী শ্রী শ্রী সরস্বতীর শুভ আবির্ভাব উপলক্ষে বাৎসরিক বাণী অর্চনা ও পুষ্পাঞ্জলি প্রদান।'}
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: '#fdf4ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #f0abfc' }}>
+              <span style={{ fontSize: '12px', color: '#86198f', fontWeight: 700 }}>📅 পূজার তিথি ও সময়:</span>
+              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#86198f', marginTop: '2px' }}>{p.date || '২০২৬-০১-২৩'} • {p.time || 'সকাল ৮:০০'}</div>
+            </div>
+            <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+              <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 700 }}>📍 মণ্ডপ ও পূজার স্থান:</span>
+              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#1e40af', marginTop: '2px' }}>{p.venue || 'বিদ্যালয় প্রাঙ্গণ ও বিশেষ পূজা মণ্ডপ'}</div>
+            </div>
+            <div style={{ background: '#fffbeb', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fde68a' }}>
+              <span style={{ fontSize: '12px', color: '#92400e', fontWeight: 700 }}>🪔 প্রধান পুরোহিত:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#92400e', marginTop: '2px' }}>{p.purohit || 'পণ্ডিত শ্রী রামকৃষ্ণ চক্রবর্তী'}</div>
+            </div>
+            <div style={{ background: '#ecfdf5', padding: '12px 14px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>👩‍🏫 সমন্বয়ক শিক্ষিকা:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>{p.coordinator || 'শ্রীমতী আরতী রানী ভদ্র'}</div>
+            </div>
+          </div>
+
+          {/* Program Schedule Table */}
+          <h4 style={{ color: '#047857', marginBottom: '8px', fontSize: '15px', fontWeight: 800 }}>
+            📜 পূজার বাৎসরিক নির্ঘণ্ট ও অঞ্জলি সময়সূচি:
+          </h4>
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '16px' }}>
+            <table className="modal-table" style={{ margin: 0, width: '100%' }}>
+              <thead style={{ background: '#f1f5f9' }}>
+                <tr>
+                  <th style={{ width: '150px', padding: '8px 12px' }}>সময়</th>
+                  <th style={{ padding: '8px 12px' }}>পূজা কর্মসূচি ও ধর্মীয় আচার</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((it, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontWeight: 700, color: '#86198f' }}>{it.time}</td>
+                    <td style={{ color: '#334155' }}>{it.item}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Message & Prasad */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+            {p.message && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#86198f', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🕊️ বাণীর সারসংক্ষেপ ও শুভেচ্ছা বার্তা:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{p.message}</p>
+              </div>
+            )}
+            {p.prasad_details && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#d97706', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🍎 মহাপ্রসাদ বিতরণ ও আপ্যায়ন:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{p.prasad_details}</p>
+              </div>
+            )}
+          </div>
+
+          {p.committee && (
+            <div style={{ background: '#fdf4ff', padding: '10px 14px', borderRadius: '8px', fontSize: '12.5px', color: '#86198f' }}>
+              <b>পূজা উদযাপন কমিটি:</b> {p.committee}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 11. Freshers Reception & Farewell Ceremony (নবীনবরণ ও বিদায় অনুষ্ঠান) - Live Synchronized
+    if (
+      menuKey === 'public.nav.sport.freshers_farewell' || 
+      title === 'নবীনবরণ ও বিদায় অনুষ্ঠান' || 
+      title === 'নবীনবরন ও বিদায় অনুষ্ঠান' ||
+      title?.includes('নবীনবরণ') || 
+      title?.includes('নবীনবরন') || 
+      title?.includes('বিদায় অনুষ্ঠান') ||
+      title?.includes('বিদায় অনুষ্ঠান')
+    ) {
+      const relData = getStoredReligiousEventsData();
+      const f = relData.freshers_farewell || DEFAULT_RELIGIOUS_EVENTS.freshers_farewell || {};
+      const schedule = f.schedule || [];
+
+      const handlePrintFarewellPad = () => {
+        const printWindow = window.open('', '_blank', 'width=1000,height=900');
+        if (!printWindow) {
+          alert('পপআপ উইন্ডো ব্লক হয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন করুন।');
+          return;
+        }
+
+        const scheduleRowsHtml = schedule.map((it) => `
+          <tr>
+            <td style="padding:7px 10px;border:1px solid #0f172a;text-align:center;font-weight:700;color:#047857;">${it.time}</td>
+            <td style="padding:7px 10px;border:1px solid #0f172a;color:#1e293b;">${it.item}</td>
+          </tr>
+        `).join('');
+
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html lang="bn">
+          <head>
+            <meta charset="utf-8">
+            <title>${f.title || 'নবীনবরণ ও বিদায় অনুষ্ঠান'} — অফিসিয়াল বিবরণী</title>
+            <style>
+              @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
+              body { font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', Arial, sans-serif; color: #0f172a; margin: 0; padding: 10px; font-size: 13px; line-height: 1.5; background: #fff; }
+              ${SCHOOL_PAD_STYLES}
+              .meta-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: 700; margin: 12px 0 16px 0; border-bottom: 1px dotted #cbd5e1; padding-bottom: 6px; }
+              .order-title { text-align: center; margin: 10px 0 4px 0; font-size: 18px; font-weight: 900; color: #0f172a; }
+              .order-sub { text-align: center; margin: 0 0 14px 0; font-size: 13px; color: #475569; }
+              .info-box { border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; background: #f8fafc; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th { background: #f1f5f9; font-weight: 800; border: 1px solid #0f172a; padding: 7px 10px; font-size: 12px; }
+              .footer-signs { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 12px; font-weight: 700; }
+              .sign-line { border-top: 1px dashed #0f172a; padding-top: 5px; width: 180px; }
+            </style>
+          </head>
+          <body>
+            ${SCHOOL_PAD_HEADER_HTML}
+            <div class="meta-row">
+              <span>স্মারক নং: মপাউউবি/সাংস্কৃতিক/নবীন-বিদায়/২০২৬/০১</span>
+              <span>তারিখ: ${f.date || '....................'}</span>
+            </div>
+            <div class="order-title">${f.title || 'নবীনবরণ ও বিদায় সংবর্ধনা অনুষ্ঠান ২০২৬'}</div>
+            <div class="order-sub">${f.occasion || 'নবাগত শিক্ষার্থীদের পুষ্পিত বরণ ও এসএসসি পরীক্ষার্থীদের শুভকামনায় বিদায় সংবর্ধনা'}</div>
+
+            <div class="info-box">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12.5px;">
+                <div><b>📅 তারিখ ও সময়:</b> ${f.date || '—'} (${f.time || '—'})</div>
+                <div><b>📍 স্থান / ভেন্যু:</b> ${f.venue || '—'}</div>
+                <div><b>👑 প্রধান অতিথি:</b> ${f.chief_guest || '—'}</div>
+                <div><b>✨ বিশেষ অতিথি:</b> ${f.special_guest || '—'}</div>
+                <div><b>🎓 সভাপতি:</b> ${f.president || '—'}</div>
+                <div><b>🎙️ আহ্বায়ক / সমন্বয়ক:</b> ${f.convener || '—'}</div>
+              </div>
+            </div>
+
+            <h4 style="color:#047857;margin:12px 0 6px 0;font-size:14px;">📜 অনুষ্ঠানের পর্যায়ক্রমিক কর্মসূচি ও সময়সূচি:</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:140px;">সময়সূচি</th>
+                  <th style="text-align:left;">কর্মসূচির বিষয় ও বিস্তারিত বিবরণ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${scheduleRowsHtml}
+              </tbody>
+            </table>
+
+            <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;">
+              <div style="border:1px solid #e2e8f0;padding:8px 10px;border-radius:4px;">
+                <b>🎁 নবীনবরণ উপহার:</b> ${f.freshers_gifts || '—'}
+              </div>
+              <div style="border:1px solid #e2e8f0;padding:8px 10px;border-radius:4px;">
+                <b>🎓 বিদায়ী স্মারক:</b> ${f.farewell_gifts || '—'}
+              </div>
+            </div>
+
+            ${f.message ? `
+              <div style="margin-top:10px;padding:8px 10px;background:#f0fdf4;border:1px solid #bbf7d0;font-size:12px;border-radius:4px;">
+                <b>💬 শুভকামনা বার্তা:</b> ${f.message}
+              </div>
+            ` : ''}
+
+            <div class="footer-signs">
+              <div><div class="sign-line">আহ্বায়ক (সাংস্কৃতিক উপকমিটি)</div></div>
+              <div><div class="sign-line">প্রধান শিক্ষক</div></div>
+              <div><div class="sign-line">সভাপতি (ম্যানেজিং / এডহক কমিটি)</div></div>
+            </div>
+            <script>
+              window.onload = function() { setTimeout(function(){ window.print(); }, 250); };
+            </script>
+          </body>
+          </html>
+        `);
+        printWindow.document.close();
+      };
+
+      return (
+        <div className="submenu-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#f0fdfa', color: '#0f766e', border: '1px solid #99f6e4' }}>
+              🎓 {f.title || 'নবীনবরণ ও বিদায় অনুষ্ঠান'}
+            </div>
+            <button
+              type="button"
+              onClick={handlePrintFarewellPad}
+              style={{
+                background: '#0284c7',
+                color: '#ffffff',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+              }}
+            >
+              🖨️ অফিসিয়াল প্যাডে প্রিন্ট (A4 Portrait)
+            </button>
+          </div>
+
+          <p className="lead-text">
+            {f.occasion || '৬ষ্ঠ শ্রেণির নবাগত শিক্ষার্থীদের বরণ ও ১০ম শ্রেণির এসএসসি পরীক্ষার্থীদের বিদায় সংবর্ধনা ও সাংস্কৃতিক অনুষ্ঠান।'}
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: '#ecfdf5', padding: '12px 14px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>📅 তারিখ ও সময়:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>{f.date || '২০২৬-০১-২৮'} • {f.time || 'সকাল ১০:০০'}</div>
+            </div>
+            <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+              <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 700 }}>📍 স্থান / ভেন্যু:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e40af', marginTop: '2px' }}>{f.venue || 'বিদ্যালয় কেন্দ্রীয় মিলনায়তন ও মুক্তমঞ্চ'}</div>
+            </div>
+            <div style={{ background: '#fefce8', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fef08a' }}>
+              <span style={{ fontSize: '12px', color: '#854d0e', fontWeight: 700 }}>👑 প্রধান অতিথি:</span>
+              <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#854d0e', marginTop: '2px' }}>{f.chief_guest || 'সভাপতি, পরিচালনা পর্ষদ'}</div>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '12px', color: '#475569', fontWeight: 700 }}>✨ বিশেষ অতিথি:</span>
+              <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{f.special_guest || 'উপজেলা মাধ্যমিক শিক্ষা অফিসার'}</div>
+            </div>
+          </div>
+
+          {/* Program Schedule Table */}
+          <h4 style={{ color: '#047857', marginBottom: '8px', fontSize: '15px', fontWeight: 800 }}>
+            📜 অনুষ্ঠানের পর্যায়ক্রমিক কর্মসূচি ও সময়সূচি:
+          </h4>
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '16px' }}>
+            <table className="modal-table" style={{ margin: 0, width: '100%' }}>
+              <thead style={{ background: '#f1f5f9' }}>
+                <tr>
+                  <th style={{ width: '150px', padding: '8px 12px' }}>সময়সূচি</th>
+                  <th style={{ padding: '8px 12px' }}>কর্মসূচির বিষয় ও বিস্তারিত বিবরণ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((it, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>{it.time}</td>
+                    <td style={{ color: '#334155' }}>{it.item}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Freshers & Farewell Gifts Details */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+            {f.freshers_gifts && (
+              <div style={{ background: '#f0fdf4', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                <b style={{ color: '#15803d', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🌸 নবীন শিক্ষার্থীদের পুষ্পিত বরণ:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: '1.6' }}>{f.freshers_gifts}</p>
+              </div>
+            )}
+            {f.farewell_gifts && (
+              <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                <b style={{ color: '#1d4ed8', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🎓 বিদায়ী এসএসসি পরীক্ষার্থীদের সংবর্ধনা ও স্মারক:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: '1.6' }}>{f.farewell_gifts}</p>
+              </div>
+            )}
+          </div>
+
+          {f.message && (
+            <div style={{ background: '#fefce8', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fef08a', marginBottom: '14px' }}>
+              <b style={{ color: '#854d0e', fontSize: '13px', display: 'block', marginBottom: '4px' }}>💬 শুভকামনা ও আশির্বাদ বার্তা:</b>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{f.message}</p>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', fontSize: '12.5px', color: '#475569', border: '1px solid #e2e8f0' }}>
+            <span><b>সভাপতিত্ব:</b> {f.president || 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)'}</span>
+            <span><b>আহ্বায়ক ও সমন্বয়ক:</b> {f.convener || f.committee || 'সাংস্কৃতিক উপকমিটি'}</span>
+          </div>
+        </div>
+      );
+    }
+
+// Routine & Schedule (Class & Exam Routine)
+    if (menuKey?.includes('routine') || title?.includes('রুটিন')) {
+      return (
+        <div className="submenu-content" style={{ padding: '4px' }}>
+          <RoutinePanel sub={menuKey?.includes('exam') ? 'exam_routine' : 'class_routine'} />
+        </div>
+      );
+    }
+    // 0. Online Admission Module & Submenus
+    if (menuKey.startsWith('public.nav.admission') || (!menuKey.startsWith('public.nav.results') && title.includes('ভর্তি') && !title.includes('ফলাফল'))) {
+      return (
+        <div className="submenu-content admission-modal-flow">
+          <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>🎓 অনলাইন শিক্ষার্থী ভর্তি পোর্টাল — শিক্ষাবর্ষ ২০২৬</span>
+            <span style={{ fontSize: '11px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</span>
+          </div>
+          
+          {/* Submenu Navigation Tabs */}
+          <div className="adm-modal-tabs">
+            <button
+              type="button"
+              className={`adm-tab-btn ${admTab === 'apply' ? 'active' : ''}`}
+              onClick={() => setAdmTab('apply')}
+            >
+              📝 ভর্তির আবেদন ও ফি পরিশোধ
+            </button>
+            <button
+              type="button"
+              className={`adm-tab-btn ${admTab === 'docs' ? 'active' : ''}`}
+              onClick={() => setAdmTab('docs')}
+            >
+              📑 প্রয়োজনীয় কাগজপত্র ও সনদ
+            </button>
+            <button
+              type="button"
+              className={`adm-tab-btn ${admTab === 'rules' ? 'active' : ''}`}
+              onClick={() => setAdmTab('rules')}
+            >
+              📜 ভর্তি নিয়মাবলী ও আসন সংখ্যা
+            </button>
+            <button
+              type="button"
+              className={`adm-tab-btn ${admTab === 'tracking' ? 'active' : ''}`}
+              onClick={() => setAdmTab('tracking')}
+            >
+              🔍 আবেদন ট্র্যাকিং ও চূড়ান্ত স্থিতি
+            </button>
+          </div>
+
+          {/* TAB 1: Online Application Form & Fee Payment */}
+          {admTab === 'apply' && (
+            <div className="adm-tab-content">
+              {admReceipt ? (
+                <div className="admission-slip" style={{ border: '2px solid #047857', background: '#f8fafc', padding: '20px', borderRadius: '12px' }}>
+                  <div style={{ textAlign: 'center', borderBottom: '2px solid #047857', paddingBottom: '10px', marginBottom: '14px' }}>
+                    <img src={schoolLogo} style={{ height: '50px', width: 'auto', marginBottom: '4px' }} alt="Logo" />
+                    <h2 style={{ margin: 0, color: '#047857', fontSize: '20px', fontWeight: 900 }}>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h2>
+                    <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#475569' }}>মগড়া, কালিহাতি, টাঙ্গাইল • EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.</p>
+                    <div style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', borderRadius: '6px', padding: '5px 12px', margin: '6px auto', display: 'inline-block', fontWeight: 800, fontSize: '13px' }}>
+                      অনলাইন ভর্তি আবেদনপত্র ও ফি পরিশোধ রসিদ (শিক্ষাবর্ষ ২০২৬)
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#e0f2fe', padding: '10px 14px', borderRadius: '8px', marginBottom: '14px' }}>
+                    <div>
+                      <span style={{ fontSize: '11px', color: '#0369a1', fontWeight: 700 }}>আবেদন ট্র্যাকিং নম্বর (Application No):</span>
+                      <div style={{ fontSize: '18px', fontWeight: 900, color: '#0369a1', fontFamily: 'monospace' }}>{admReceipt.application_no}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ background: '#059669', color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '11.5px', fontWeight: 800 }}>
+                        ✓ ফি পরিশোধিত: {formatTk(admReceipt.payment_amount || 1400)}
+                      </span>
+                      <div style={{ fontSize: '10.5px', color: '#475569', marginTop: '2px', fontFamily: 'monospace' }}>TrxID: {admReceipt.payment_trx_id || 'TRX-PAID'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px', marginBottom: '14px' }}>
+                    <div style={{ width: '80px', height: '90px', borderRadius: '6px', overflow: 'hidden', border: '1.5px solid #047857', background: '#f1f5f9', flexShrink: 0, textAlign: 'center' }}>
+                      {admReceipt.scanned_photo ? (
+                        <img src={admReceipt.scanned_photo} alt="Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ paddingTop: '24px', fontSize: '11px', color: '#64748b' }}>ছবি সংযুক্ত</div>
+                      )}
+                    </div>
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '12px', textAlign: 'left' }}>
+                      <div><b>শিক্ষার্থীর নাম:</b> {admReceipt.applicant_name_bn}</div>
+                      <div><b>আবেদনকৃত শ্রেণি:</b> {toBn(admReceipt.applied_class)}ম শ্রেণি {admReceipt.department ? `(${admReceipt.department})` : ''}</div>
+                      <div><b>পিতার নাম:</b> {admReceipt.father_name || admReceipt.guardian_name}</div>
+                      <div><b>মাতার নাম:</b> {admReceipt.mother_name || '—'}</div>
+                      <div><b>জন্ম তারিখ:</b> {admReceipt.date_of_birth}</div>
+                      <div><b>জন্ম নিবন্ধন নং:</b> {admReceipt.birth_registration_no}</div>
+                      <div><b>মোবাইল:</b> {admReceipt.guardian_phone}</div>
+                      <div><b>আবেদনের তারিখ:</b> {admReceipt.application_date}</div>
+                      <div style={{ gridColumn: '1/-1' }}><b>ঠিকানা:</b> {admReceipt.address || '—'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#f0fdf4', border: '1px solid #86efac', padding: '12px', borderRadius: '8px', fontSize: '11.5px', color: '#166534', textAlign: 'left', lineHeight: 1.6, marginBottom: '14px' }}>
+                    <b>📌 ভর্তি প্রক্রিয়া ও পরবর্তী করণীয়:</b><br/>
+                    ১. আপনার আবেদন ও ফি সফলভাবে গৃহীত হয়েছে। এটি এখন <b>প্রধান শিক্ষকের স্ক্রুটিনি ও অনুমোদনের</b> জন্য জমা হয়েছে।<br/>
+                    ২. প্রধান শিক্ষকের অনুমোদন শেষে <b>শ্রেণি শিক্ষক শিক্ষার্থীকে শ্রেণিতে রোল ও শাখা বরাদ্দ করবেন।</b><br/>
+                    ৩. উপরের <b>"আবেদন ট্র্যাকিং"</b> ট্যাবে আবেদন নম্বর বা মোবাইল দিয়ে যেকোনো সময় ভর্তির লাইভ স্থিতি ও বরাদ্দকৃত রোল নম্বর জানতে পারবেন।
+                  </div>
+
+                  <div className="admission-slip-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    <button type="button" className="adm-submit-btn" onClick={() => window.print()}>
+                      🖨️ আবেদনপত্র ও ফি রসিদ প্রিন্ট / Save as PDF
+                    </button>
+                    <button
+                      type="button"
+                      style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+                      onClick={() => { setTrackingId(admReceipt.application_no); setAdmTab('tracking'); }}
+                    >
+                      🔍 আবেদন ট্র্যাক করুন
+                    </button>
+                    <button
+                      type="button"
+                      style={{ background: '#e2e8f0', color: '#334155', border: 'none', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                      onClick={() => { setAdmReceipt(null); setAdmForm(emptyAdm); setAdmMsg(''); }}
+                    >
+                      + নতুন আবেদন
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleAdmSubmit} className="adm-form-grid">
+                  <div style={{ gridColumn: '1/-1', background: '#f0fdf4', border: '1px solid #86efac', padding: '8px 12px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: '#166534', fontWeight: 700 }}>
+                      💡 ঘরে বসে সহজে অনলাইনে আবেদন ফরম পূরণ ও ফি পরিশোধ সম্পন্ন করুন
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleFillDemoData}
+                      style={{ background: '#047857', color: '#fff', border: 'none', padding: '3px 9px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      ⚡ ডেমো ডেটা পূরণ করুন
+                    </button>
+                  </div>
+
+                  {/* Section 1: Academic & Personal */}
+                  <div style={{ gridColumn: '1/-1', borderBottom: '1.5px solid #047857', paddingBottom: '4px', margin: '6px 0 2px' }}>
+                    <h4 style={{ margin: 0, color: '#047857', fontSize: '13.5px' }}>১. ভর্তির শ্রেণি ও শিক্ষার্থীর ব্যক্তিগত তথ্য</h4>
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>ভর্তির শ্রেণি *</label>
+                    <select value={admForm.applied_class} onChange={e => setAdmForm({ ...admForm, applied_class: e.target.value })} required>
+                      {['৬', '৭', '৮', '৯', '১০'].map(c => (
+                        <option key={c} value={c}>শ্রেণি {toBn(c)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {['9', '10', '৯', '১০'].includes(String(admForm.applied_class)) ? (
+                    <div className="adm-form-field">
+                      <label>বিভাগ (Department for Class 9/10) *</label>
+                      <select value={admForm.department} onChange={e => setAdmForm({ ...admForm, department: e.target.value })} required>
+                        <option value="বিজ্ঞান">বিজ্ঞান বিভাগ (Science)</option>
+                        <option value="মানবিক">মানবিক বিভাগ (Humanities)</option>
+                        <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা বিভাগ (Business Studies)</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="adm-form-field">
+                      <label>শিক্ষাবর্ষ *</label>
+                      <select value={admForm.academic_year} onChange={e => setAdmForm({ ...admForm, academic_year: e.target.value })} required>
+                        <option value="2026">২০২৬ খ্রি.</option>
+                        <option value="2027">২০২৭ খ্রি.</option>
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="adm-form-field full">
+                    <label>শিক্ষার্থীর পুরো নাম (বাংলায়) *</label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: তানভীর আহমেদ"
+                      value={admForm.applicant_name_bn}
+                      onChange={e => setAdmForm({ ...admForm, applicant_name_bn: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="adm-form-field full">
+                    <label>Applicant Full Name (English)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Tanvir Ahmed"
+                      value={admForm.applicant_name_en}
+                      onChange={e => setAdmForm({ ...admForm, applicant_name_en: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>জন্ম তারিখ *</label>
+                    <input
+                      type="date"
+                      value={admForm.date_of_birth}
+                      onChange={e => setAdmForm({ ...admForm, date_of_birth: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>লিঙ্গ *</label>
+                    <select value={admForm.gender} onChange={e => setAdmForm({ ...admForm, gender: e.target.value })} required>
+                      <option value="পুরুষ">পুরুষ</option>
+                      <option value="নারী">নারী</option>
+                    </select>
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>ধর্ম</label>
+                    <select value={admForm.religion} onChange={e => setAdmForm({ ...admForm, religion: e.target.value })}>
+                      <option value="ইসলাম">ইসলাম</option>
+                      <option value="হিন্দু">হিন্দু</option>
+                      <option value="বৌদ্ধ">বৌদ্ধ</option>
+                      <option value="খ্রিষ্টান">খ্রিষ্টান</option>
+                    </select>
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>রক্তের গ্রুপ</label>
+                    <select value={admForm.blood_group} onChange={e => setAdmForm({ ...admForm, blood_group: e.target.value })}>
+                      {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(b => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="adm-form-field full">
+                    <label>ডিজিটাল জন্ম নিবন্ধন নম্বর (অনলাইন ভেরিফায়েড ১৭ ডিজিট) *</label>
+                    <input
+                      type="text"
+                      placeholder="১৭ ডিজিটের অনলাইন জন্ম নিবন্ধন নম্বর"
+                      value={admForm.birth_registration_no}
+                      onChange={e => setAdmForm({ ...admForm, birth_registration_no: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  {/* Section 2: Parents & Guardian */}
+                  <div style={{ gridColumn: '1/-1', borderBottom: '1.5px solid #047857', paddingBottom: '4px', margin: '8px 0 2px' }}>
+                    <h4 style={{ margin: 0, color: '#047857', fontSize: '13.5px' }}>২. পিতা, মাতা ও অভিভাবকের তথ্যাদি</h4>
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>পিতার নাম *</label>
+                    <input
+                      type="text"
+                      placeholder="পিতার নাম"
+                      value={admForm.father_name}
+                      onChange={e => setAdmForm({ ...admForm, father_name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>পিতার NID নম্বর</label>
+                    <input
+                      type="text"
+                      placeholder="১০/১৩/১৭ ডিজিট NID"
+                      value={admForm.father_nid}
+                      onChange={e => setAdmForm({ ...admForm, father_nid: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>মাতার নাম *</label>
+                    <input
+                      type="text"
+                      placeholder="মাতার নাম"
+                      value={admForm.mother_name}
+                      onChange={e => setAdmForm({ ...admForm, mother_name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>মাতার NID নম্বর</label>
+                    <input
+                      type="text"
+                      placeholder="১০/১৩/১৭ ডিজিট NID"
+                      value={admForm.mother_nid}
+                      onChange={e => setAdmForm({ ...admForm, mother_nid: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>অভিভাবকের নাম *</label>
+                    <input
+                      type="text"
+                      placeholder="পিতা / মাতা / বৈধ অভিভাবক"
+                      value={admForm.guardian_name}
+                      onChange={e => setAdmForm({ ...admForm, guardian_name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>অভিভাবকের সচল মোবাইল নম্বর *</label>
+                    <input
+                      type="tel"
+                      placeholder="017XXXXXXXX"
+                      value={admForm.guardian_phone}
+                      onChange={e => setAdmForm({ ...admForm, guardian_phone: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="adm-form-field full">
+                    <label>বর্তমান ঠিকানা (গ্রাম, ডাকঘর, উপজেলা, জেলা) *</label>
+                    <textarea
+                      rows="2"
+                      placeholder="যেমন: গ্রাম: মগড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল"
+                      value={admForm.address}
+                      onChange={e => setAdmForm({ ...admForm, address: e.target.value })}
+                      required
+                    ></textarea>
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>পূর্ববর্তী বিদ্যালয়ের নাম</label>
+                    <input
+                      type="text"
+                      placeholder="পূর্বে যে বিদ্যালয়ে পড়ত"
+                      value={admForm.previous_school}
+                      onChange={e => setAdmForm({ ...admForm, previous_school: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>পূর্ববর্তী শ্রেণির ফলাফল / GPA</label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: ৫.০০ বা ৪.৮০"
+                      value={admForm.previous_gpa}
+                      onChange={e => setAdmForm({ ...admForm, previous_gpa: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Section 3: Document Uploads & Scans */}
+                  <div style={{ gridColumn: '1/-1', borderBottom: '1.5px solid #047857', paddingBottom: '4px', margin: '8px 0 2px' }}>
+                    <h4 style={{ margin: 0, color: '#047857', fontSize: '13.5px' }}>৩. প্রয়োজনীয় ডকুমেন্ট স্ক্যান ও আপলোড (Document Scans)</h4>
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>📷 শিক্ষার্থীর পাসপোর্ট সাইজের রঙিন ছবি *</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleFileUpload('scanned_photo', e)}
+                    />
+                    {admForm.scanned_photo && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <img src={admForm.scanned_photo} alt="Preview" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #047857' }} />
+                        <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>✓ ছবি সংযুক্ত হয়েছে</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>📑 ডিজিটাল জন্ম নিবন্ধন সনদের স্ক্যান কপি *</label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={e => handleFileUpload('scanned_birth_cert', e)}
+                    />
+                    {admForm.scanned_birth_cert && (
+                      <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700, marginTop: '4px', display: 'block' }}>✓ জন্ম সনদ সংযুক্ত হয়েছে</span>
+                    )}
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>📋 পূর্ববর্তী ক্লাসের মার্কশিট / ছাড়পত্র (TC) *</label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={e => handleFileUpload('scanned_tc', e)}
+                    />
+                    {admForm.scanned_tc && (
+                      <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700, marginTop: '4px', display: 'block' }}>✓ ছাড়পত্র/মার্কশিট সংযুক্ত হয়েছে</span>
+                    )}
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>🪪 পিতা বা মাতার NID ফটোকপি</label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={e => handleFileUpload('scanned_nid', e)}
+                    />
+                    {admForm.scanned_nid && (
+                      <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700, marginTop: '4px', display: 'block' }}>✓ এনআইডি কপি সংযুক্ত হয়েছে</span>
+                    )}
+                  </div>
+
+                  {/* Section 4: Online Fee Payment Gateway */}
+                  <div style={{ gridColumn: '1/-1', borderBottom: '1.5px solid #047857', paddingBottom: '4px', margin: '8px 0 2px' }}>
+                    <h4 style={{ margin: 0, color: '#047857', fontSize: '13.5px' }}>৪. অনলাইনে ভর্তি সংক্রান্ত ফি পরিশোধ (Online Payment Gateway)</h4>
+                  </div>
+
+                  <div style={{ gridColumn: '1/-1', background: '#ecfdf5', border: '1.5px solid #86efac', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#166534', fontWeight: 700 }}>ভর্তি শ্রেণি অনুযায়ী নির্ধারিত প্রদেয় ফি:</span>
+                        <div style={{ fontSize: '18px', fontWeight: 900, color: '#047857' }}>
+                          সর্বমোট: {formatTk(admForm.payment_amount)}
+                        </div>
+                        <small style={{ color: '#475569' }}>(আবেদন ফরম ফি ৳ ২০০ + সেশন চার্জ ও শ্রেণি ফি {formatTk(admForm.payment_amount - 200)})</small>
+                      </div>
+
+                      {/* Payment Method Selector */}
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {[
+                          ['bkash', 'বিকাশ', '#e11d48'],
+                          ['nagad', 'নগদ', '#ea580c'],
+                          ['rocket', 'রকেট', '#7c3aed'],
+                          ['bank', 'ব্যাংক', '#0284c7']
+                        ].map(([mKey, mLabel, mColor]) => {
+                          const isSel = admForm.payment_method === mKey;
+                          return (
+                            <button
+                              key={mKey}
+                              type="button"
+                              onClick={() => setAdmForm({ ...admForm, payment_method: mKey })}
+                              style={{
+                                background: isSel ? mColor : '#ffffff',
+                                color: isSel ? '#ffffff' : '#334155',
+                                border: `1.5px solid ${mColor}`,
+                                padding: '6px 12px', borderRadius: '6px', fontWeight: 800,
+                                fontSize: '11.5px', cursor: 'pointer'
+                              }}
+                            >
+                              {mLabel}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#ffffff', borderRadius: '6px', padding: '10px 12px', fontSize: '11.5px', border: '1px solid #cbd5e1' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span><b>মার্চেন্ট/হিসাব নম্বর:</b> <code style={{ fontSize: '13px', color: '#047857', fontWeight: 800 }}>01711-998877</code> (বিকাশ/নগদ পেমেন্ট)</span>
+                        <span style={{ fontSize: '10.5px', color: '#64748b' }}>সোনালী ব্যাংক কালিহাতি শাখা: ১২৩৪৫৬৭৮৯০</span>
+                      </div>
+                      <p style={{ margin: 0, color: '#475569', fontSize: '11px', lineHeight: 1.45 }}>
+                        ১. আপনার মোবাইল অ্যাপ থেকে উল্লেখিত নম্বরে নির্ধারিত <b>{formatTk(admForm.payment_amount)}</b> টাকা পাঠান।<br/>
+                        ২. ফিরতি SMS-এ প্রাপ্ত Transaction ID (TrxID) এবং আপনার মোবাইল নম্বর নিচে এন্ট্রি করুন।
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>
+                          Transaction ID (TrxID) *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="যেমন: BK92837461 বা 9H34DF98"
+                          value={admForm.payment_trx_id}
+                          onChange={e => setAdmForm({ ...admForm, payment_trx_id: e.target.value, payment_verified: true })}
+                          style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #047857', fontSize: '12.5px', fontWeight: 700 }}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>
+                          যে মোবাইল থেকে ফি পাঠিয়েছেন *
+                        </label>
+                        <input
+                          type="tel"
+                          placeholder="01XXXXXXXXX"
+                          value={admForm.payment_sender_mobile}
+                          onChange={e => setAdmForm({ ...admForm, payment_sender_mobile: e.target.value })}
+                          style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="adm-form-field full" style={{ marginTop: '10px' }}>
+                    <button type="submit" className="adm-submit-btn" disabled={admSubmitting} style={{ width: '100%', padding: '12px', fontSize: '14px', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' }}>
+                      {admSubmitting ? 'আবেদন ও ফি জমা হচ্ছে...' : '✓ অনলাইনে ভর্তি আবেদন ও ফি জমা দিন'}
+                    </button>
+                  </div>
+                </form>
+              )}
+              {admMsg && <p className="msg" style={{ marginTop: '10px', fontSize: '13px' }}>{admMsg}</p>}
+            </div>
+          )}
+
+          {/* TAB 2: Required Documents Checklist */}
+          {admTab === 'docs' && (
+            <div className="adm-tab-content">
+              <h4 style={{ margin: '0 0 12px 0', color: '#065f46', fontSize: '16px' }}>
+                📑 ভর্তির সময় সাথে আনার প্রয়োজনীয় ৭টি আবশ্যক সনদ ও ডকুমেন্টস:
+              </h4>
+              <div className="doc-checklist">
+                <div className="doc-item">
+                  <div className="doc-num">১</div>
+                  <div className="doc-info">
+                    <h4>অনলাইন পূরণকৃত আবেদনপত্র ও ফি রসিদের প্রিন্ট কপি</h4>
+                    <p>অনলাইনে ফরম পূরণের পর প্রিন্টকৃত অথবা ডাউনলোডকৃত আবেদন কপি (১ সেট)।</p>
+                    <span className="doc-tag">প্রিন্ট কপি</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">২</div>
+                  <div className="doc-info">
+                    <h4>সদ্য তোলা পাসপোর্ট সাইজের রঙিন ছবি</h4>
+                    <p>শিক্ষার্থীর ৪ কপি এবং পিতা ও মাতার ১ কপি করে স্পষ্ট রঙিন ছবি।</p>
+                    <span className="doc-tag">ছবি</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৩</div>
+                  <div className="doc-info">
+                    <h4>ডিজিটাল জন্ম নিবন্ধন সনদের সত্যায়িত ফটোকপি</h4>
+                    <p>অনলাইন ভেরিফায়েড ১৭ ডিজিটের ডিজিটাল জন্ম নিবন্ধন সনদের মূল ও সত্যায়িত ফটোকপি।</p>
+                    <span className="doc-tag">অনলাইন ভেরিফায়েড</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৪</div>
+                  <div className="doc-info">
+                    <h4>পূর্ববর্তী শ্রেণি পাশের মূল মার্কশিট ও প্রশংসাপত্র/TC</h4>
+                    <p>পূর্ববর্তী বিদ্যালয়ের ছাড়পত্র (Transfer Certificate) ও একাডেমিক ট্রান্সক্রিপ্ট।</p>
+                    <span className="doc-tag">মূল কপি ও ফটোকপি</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৫</div>
+                  <div className="doc-info">
+                    <h4>পিতা ও মাতার জাতীয় পরিচয়পত্র (NID)-এর ফটোকপি</h4>
+                    <p>পিতা ও মাতার জাতীয় পরিচয়পত্রের স্পষ্ট ফটোকপি (১ কপি করে)।</p>
+                    <span className="doc-tag">NID ফটোকপি</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৬</div>
+                  <div className="doc-info">
+                    <h4>কোটা বা বিশেষ সুবিধা সংক্রান্ত সনদ (প্রযোজ্য ক্ষেত্রে)</h4>
+                    <p>মুক্তিযোদ্ধা, ক্ষুদ্র নৃগোষ্ঠী, প্রতিবন্ধী বা অন্যান্য কোটার সমর্থনে প্রমাণপত্র।</p>
+                    <span className="doc-tag">প্রযোজ্য ক্ষেত্রে</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৭</div>
+                  <div className="doc-info">
+                    <h4>রক্তের গ্রুপ পরীক্ষার রিপোর্ট</h4>
+                    <p>শিক্ষার্থীর রক্তের গ্রুপ নিশ্চিতকরণে অনুমোদিত ল্যাবের পরীক্ষার রিপোর্ট।</p>
+                    <span className="doc-tag">মেডিকেল রিপোর্ট</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                <button type="button" className="adm-submit-btn" onClick={() => setAdmTab('apply')} style={{ maxWidth: '280px', margin: '0 auto' }}>
+                  📝 এখনই আবেদন ফরম পূরণ করুন →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: Rules & Eligibility */}
+          {admTab === 'rules' && (
+            <div className="adm-tab-content">
+              <h4 style={{ margin: '0 0 12px 0', color: '#1e3a8a', fontSize: '16px' }}>
+                📜 ২০২৬ শিক্ষাবর্ষের ভর্তি সংক্রান্ত নীতিমালা ও নির্দেশনা:
+              </h4>
+              <div className="rules-section" style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <ul className="bullet-list" style={{ lineHeight: 1.8 }}>
+                  <li><b>বয়সসীমা:</b> ৬ষ্ঠ শ্রেণিতে ভর্তির ক্ষেত্রে সরকারি নীতিমালা অনুযায়ী সর্বনিম্ন ১১+ বছর বয়স হতে হবে।</li>
+                  <li><b>আবেদন মাধ্যম:</b> অনলাইনে ঘরে বসে অথবা বিদ্যালয়ের ডিজিটাল সেবা কেন্দ্র থেকে ফরম পূরণ করা যাবে।</li>
+                  <li><b>ভর্তি মূল্যায়ন ও নির্বাচন:</b> প্রধান শিক্ষক মহোদয়ের নেতৃত্বাধীন ভর্তি কমিটি দ্বারা আবেদনপত্র যাচাই ও নির্বাচন সম্পন্ন হবে।</li>
+                  <li><b>অনলাইন ফি পরিশোধ:</b> নির্ধারিত ভর্তি ফরম ও সেশন ফি বিকাশ, নগদ, রকেট বা ব্যাংকের মাধ্যমে পরিশোধ করতে হবে।</li>
+                  <li><b>শ্রেণি শিক্ষকের ভূমিকা:</b> প্রধান শিক্ষকের চূড়ান্ত অনুমোদনের পর সংশ্লিষ্ট শ্রেণির শ্রেণি শিক্ষক শিক্ষার্থীকে রোল নম্বর ও শাখা বরাদ্দ করবেন।</li>
+                  <li><b>জরুরি হেল্পলাইন:</b> প্রধান শিক্ষক: ০১৭৭৭-XXXXXX, অফিস সহকারী: ০১৭২২-৩৪৫৬৭৮।</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: Application Tracking & Status */}
+          {admTab === 'tracking' && (
+            <div className="adm-tab-content">
+              <h4 style={{ margin: '0 0 12px 0', color: '#0f172a', fontSize: '16px' }}>
+                🔍 আবেদন ট্র্যাকিং ও রিয়েল-টাইম ভর্তি স্থিতি:
+              </h4>
+              <form onSubmit={handleTrackingSearch} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  placeholder="আবেদন নম্বর (ADM-2026-XXX) বা অভিভাবকের মোবাইল নম্বর দিন..."
+                  value={trackingId}
+                  onChange={e => setTrackingId(e.target.value)}
+                  style={{ flex: 1, padding: '10px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }}
+                />
+                <button type="submit" className="adm-submit-btn" style={{ width: 'auto', padding: '10px 20px' }}>
+                  অনুসন্ধান করুন
+                </button>
+              </form>
+              {trackingMsg && <p className="msg" style={{ color: '#dc2626' }}>{trackingMsg}</p>}
+
+              {trackingResult && (
+                <div className="admission-slip" style={{ border: '2px solid #0284c7', background: '#f0f9ff', padding: '20px', borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 2px', color: '#0369a1', fontSize: '18px' }}>{trackingResult.applicant_name_bn}</h3>
+                      <div style={{ fontFamily: 'monospace', fontWeight: 800, color: '#047857', fontSize: '14px' }}>
+                        আবেদন নং: {trackingResult.application_no}
+                      </div>
+                    </div>
+                    <span style={{
+                      background: trackingResult.status === 'admitted' ? '#047857' : trackingResult.status === 'head_approved' ? '#0284c7' : '#f59e0b',
+                      color: '#fff', padding: '5px 14px', borderRadius: '15px', fontWeight: 800, fontSize: '12px'
+                    }}>
+                      {trackingResult.status === 'admitted' ? '🎓 চূড়ান্ত ভর্তি সম্পন্ন' : trackingResult.status === 'head_approved' ? '✓ প্রধান শিক্ষক অনুমোদিত' : '⏳ নিরীক্ষাধীন'}
+                    </span>
+                  </div>
+
+                  {/* 4-Step Progress Tracker */}
+                  <div style={{ background: '#fff', borderRadius: '8px', padding: '14px', border: '1px solid #bae6fd', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase' }}>ভর্তি প্রক্রিয়ার অগ্রগতি স্থিতি:</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center', fontSize: '11px' }}>
+                      <div style={{ background: '#dcfce7', color: '#166534', padding: '6px', borderRadius: '6px', fontWeight: 700, border: '1px solid #86efac' }}>
+                        ১. আবেদন ও ফি জমা<br/>✓ সম্পন্ন
+                      </div>
+                      <div style={{
+                        background: ['head_approved', 'selected', 'admitted'].includes(trackingResult.status) ? '#dcfce7' : '#fef3c7',
+                        color: ['head_approved', 'selected', 'admitted'].includes(trackingResult.status) ? '#166534' : '#92400e',
+                        padding: '6px', borderRadius: '6px', fontWeight: 700, border: '1px solid #cbd5e1'
+                      }}>
+                        ২. প্রধান শিক্ষকের অনুমোদন<br/>{['head_approved', 'selected', 'admitted'].includes(trackingResult.status) ? '✓ অনুমোদিত' : '⏳ চলমান'}
+                      </div>
+                      <div style={{
+                        background: trackingResult.status === 'admitted' ? '#dcfce7' : '#f8fafc',
+                        color: trackingResult.status === 'admitted' ? '#166534' : '#64748b',
+                        padding: '6px', borderRadius: '6px', fontWeight: 700, border: '1px solid #cbd5e1'
+                      }}>
+                        ৩. শ্রেণি শিক্ষক রোল বরাদ্দ<br/>{trackingResult.status === 'admitted' ? '✓ সম্পন্ন' : 'অপেক্ষমাণ'}
+                      </div>
+                      <div style={{
+                        background: trackingResult.status === 'admitted' ? '#dcfce7' : '#f8fafc',
+                        color: trackingResult.status === 'admitted' ? '#166534' : '#64748b',
+                        padding: '6px', borderRadius: '6px', fontWeight: 700, border: '1px solid #cbd5e1'
+                      }}>
+                        ৪. আইডি ও ক্লাসে অন্তর্ভুক্তি<br/>{trackingResult.status === 'admitted' ? '✓ সক্রিয়' : 'অপেক্ষমাণ'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* If Admitted, Celebrate with Class & Roll */}
+                  {trackingResult.status === 'admitted' && (
+                    <div style={{ background: '#dcfce7', border: '2px solid #22c55e', borderRadius: '8px', padding: '14px', marginBottom: '14px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '28px' }}>🎉</span>
+                      <h4 style={{ margin: '4px 0', fontSize: '17px', color: '#15803d', fontWeight: 900 }}>
+                        অভিনন্দন! আপনার ভর্তি সফলভাবে চূড়ান্ত সম্পন্ন হয়েছে!
+                      </h4>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ background: '#fff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>শ্রেণি</span>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#15803d' }}>{toBn(trackingResult.applied_class)}ম শ্রেণি</div>
+                        </div>
+                        <div style={{ background: '#fff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>বরাদ্দকৃত রোল</span>
+                          <div style={{ fontSize: '18px', fontWeight: 900, color: '#047857' }}>{toBn(trackingResult.enrolled_roll_no || 1)}</div>
+                        </div>
+                        <div style={{ background: '#fff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>শাখা</span>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#15803d' }}>{trackingResult.enrolled_section || 'পদ্মা'}</div>
+                        </div>
+                        <div style={{ background: '#fff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>স্টুডেন্ট আইডি</span>
+                          <div style={{ fontSize: '14px', fontWeight: 800, color: '#0369a1', fontFamily: 'monospace' }}>{trackingResult.enrolled_student_id || 'MPUHS-2026-601'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="admission-slip-details">
+                    <div><b>পিতা/অভিভাবক:</b> {trackingResult.guardian_name || trackingResult.father_name}</div>
+                    <div><b>মোবাইল:</b> {trackingResult.guardian_phone}</div>
+                    <div><b>জন্ম তারিখ:</b> {trackingResult.date_of_birth || '—'}</div>
+                    <div><b>অনলাইন ফি:</b> <span style={{ color: '#047857', fontWeight: 700 }}>পরিশোধিত (TrxID: {trackingResult.payment_trx_id || 'TRX-OK'})</span></div>
+                    <div style={{ gridColumn: '1/-1' }}><b>ঠিকানা:</b> {trackingResult.address || '—'}</div>
+                  </div>
+
+                  <div className="admission-slip-actions">
+                    <button type="button" className="adm-submit-btn" onClick={() => window.print()}>
+                      🖨️ ভর্তি প্রত্যয়নপত্র ও রসিদ প্রিন্ট করুন
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+    // 1. Leadership Speeches (President, Head Teacher, Assistant Head Teacher)
+    if (menuKey.startsWith('public.nav.leadership') || title.includes('বাণী') || menuKey === 'public.nav.institution.message') {
+      const leaderData = getLeadershipData();
+      const leaderInfo = leaderData.map;
+
+      const selectedKey = menuKey in leaderInfo ? menuKey : (title.includes('সহকারী') ? 'public.nav.leadership.asst_head' : (title.includes('প্রধান শিক্ষক') ? 'public.nav.leadership.head' : (title.includes('সভাপতি') ? 'public.nav.leadership.president' : null)));
+
+      if (selectedKey && leaderInfo[selectedKey]) {
+        const leader = leaderInfo[selectedKey];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge">{leader.badge}</div>
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '18px', alignItems: 'center', margin: '16px 0', padding: '16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <div style={{ width: '84px', height: '84px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 10px rgba(0,0,0,0.15)', border: '3px solid #2874c6' }}>
+                <img src={leader.photo} alt={leader.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div>
+                <h3 style={{ margin: '0 0 4px 0', color: '#1a202c', fontSize: '18px' }}>{leader.name}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#1d4ed8', fontWeight: 700, fontSize: '14px' }}>{leader.designation || leader.role}</p>
+                <small style={{ color: '#64748b', fontSize: '12px' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতি, টাঙ্গাইল</small>
+              </div>
+            </div>
+            <div className="leader-speech" style={{ lineHeight: '1.8', color: '#2d3748', fontSize: '15px' }}>
+              {(Array.isArray(leader.speech) ? leader.speech : [leader.speech]).map((para, i) => (
+                <p key={i} style={{ marginBottom: '12px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // Show all 3 messages together if general 'বাণী' menu clicked
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">📜 সভাপতি, প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষকের বাণী</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
+            {Object.values(leaderInfo).map((leader, idx) => (
+              <div key={idx} style={{ padding: '16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: '2px solid #2874c6' }}>
+                    <img src={leader.photo} alt={leader.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, color: '#1a202c', fontSize: '16px' }}>{leader.title}</h4>
+                    <p style={{ margin: 0, color: '#1d4ed8', fontSize: '13px', fontWeight: 700 }}>{leader.name} — {leader.designation || leader.role}</p>
+                  </div>
+                </div>
+                <div style={{ lineHeight: '1.7', color: '#2d3748', fontSize: '14px' }}>
+                  {(Array.isArray(leader.speech) ? leader.speech : [leader.speech]).map((para, i) => (
+                    <p key={i} style={{ marginBottom: '8px' }}>{para}</p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 1. Institutional Information Submenus (12 items) - Live Synchronized with Login Admin Panel
+    if (menuKey === 'public.nav.institution.about' || title === 'বিদ্যালয় পরিচিতি') {
+      const ab = instData.about || {};
+      const stats = ab.stats || {};
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">🏛️ বিদ্যালয় পরিচিতি</div>
+          <h3>{ab.name_bn || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়'} (স্থাপিত: {ab.established || '১৯৪৬'} খ্রি.)</h3>
+          <p className="lead-text">
+            {ab.profile_text || 'টাঙ্গাইল জেলার কালিহাতি উপজেলার মগড়া ইউনিয়নে অবস্থিত একটি ঐতিহ্যবাহী ও সুপ্রাচীন বিদ্যাপীঠ। বিগত ৮ দশকেরও বেশি সময় ধরে প্রতিষ্ঠানটি স্থানীয় পর্যায়ে মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক কারিগরি শিক্ষার আলো ছড়িয়ে আসছে।'}
+          </p>
+          <div className="info-stats-grid">
+            <div className="info-stat-card"><b>{ab.eiin || '১১৪২৯০'}</b><span>EIIN নম্বর</span></div>
+            <div className="info-stat-card"><b>{ab.mpo || '৪২০৬০৭১৩০২'}</b><span>MPO কোড</span></div>
+            <div className="info-stat-card"><b>{ab.established || '১৯৪৬'}</b><span>প্রতিষ্ঠার সন</span></div>
+            <div className="info-stat-card"><b>{stats.students || '১২৫০+ জন'}</b><span>মোট শিক্ষার্থী</span></div>
+            <div className="info-stat-card"><b>{stats.teachers || '২৮ জন'}</b><span>শিক্ষক সংখ্যা</span></div>
+            <div className="info-stat-card"><b>{stats.staff || '৬ জন'}</b><span>কর্মচারী সংখ্যা</span></div>
+            <div className="info-stat-card"><b>{stats.land_area || '৩.৫০ একর'}</b><span>জমির পরিমাণ</span></div>
+            <div className="info-stat-card"><b>{stats.buildings || '৩টি ভবন'}</b><span>একাডেমিক ভবন</span></div>
+            <div className="info-stat-card"><b>{stats.classrooms || '২৪টি'}</b><span>শ্রেণিকক্ষ</span></div>
+            <div className="info-stat-card"><b>{stats.pass_rate || '৯৮.৫%'}</b><span>গড় পাসের হার</span></div>
+          </div>
+          <div style={{ marginTop: '16px', background: '#f8fafc', padding: '14px 18px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+            <h4 style={{ margin: '0 0 6px', color: '#047857' }}>📍 ক্যাম্পাস যোগাযোগ ও অবস্থান:</h4>
+            <p style={{ margin: '2px 0', fontSize: '13.5px', color: '#334155' }}><b>ঠিকানা:</b> {ab.address || 'গ্রাম ও ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল'}</p>
+            <p style={{ margin: '2px 0', fontSize: '13.5px', color: '#334155' }}><b>মোবাইল/ফোন:</b> {ab.phone || '01712-345678'} • <b>ইমেইল:</b> {ab.email || 'magrapuhs.46@gmail.com'}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.history' || title === 'বিদ্যালয়ের ইতিহাস') {
+      const hist = instData.history || {};
+      const milestones = hist.milestones || [];
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">📜 বিদ্যালয়ের ইতিহাস ও ঐতিহ্য</div>
+          <h3>আট দশকের গৌরবময় ইতিহাস (১৯৪৬ - বর্তমান)</h3>
+          <p className="lead-text">
+            {hist.founding_story || 'ব্রিটিশ শাসনামলের শেষলগ্নে ১৯৪৬ খ্রিষ্টাব্দে টাঙ্গাইল জেলার কালিহাতি উপজেলার মগড়া ইউনিয়নের শিক্ষানুরাগী ও বিশিষ্ট ব্যক্তিবর্গের ঐকান্তিক প্রচেষ্টায় এই বিদ্যাপীঠ প্রতিষ্ঠিত হয়।'}
+          </p>
+          <div style={{ display: 'grid', gap: '14px', margin: '18px 0' }}>
+            <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '8px', borderLeft: '4px solid #047857', border: '1px solid #e2e8f0' }}>
+              <h4 style={{ margin: '0 0 6px', color: '#065f46' }}>🏛️ প্রতিষ্ঠা ও পটভূমি</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: '#334155', lineHeight: '1.6' }}>
+                {hist.founding_story}
+              </p>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '8px', borderLeft: '4px solid #2563eb', border: '1px solid #e2e8f0' }}>
+              <h4 style={{ margin: '0 0 6px', color: '#1d4ed8' }}>🎖️ মহান মুক্তিযুদ্ধে গৌরবোজ্জ্বল ভূমিকা</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: '#334155', lineHeight: '1.6' }}>
+                {hist.liberation_war || '১৯৭১ সালের মহান মুক্তিযুদ্ধে অত্র বিদ্যালয়ের শিক্ষক, তৎকালীন ছাত্র ও স্থানীয় বীর মুক্তিযোদ্ধারা সক্রিয়ভাবে পাকিস্তানি হানাদার বাহিনীর বিরুদ্ধে প্রতিরোধ গড়ে তোলেন।'}
+              </p>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '8px', borderLeft: '4px solid #d97706', border: '1px solid #e2e8f0' }}>
+              <h4 style={{ margin: '0 0 6px', color: '#b45309' }}>🚀 আধুনিকায়ন ও ডিজিটাল যুগে পদার্পণ</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: '#334155', lineHeight: '1.6' }}>
+                {hist.modernization || 'কাঁচা টিনশেড ঘর থেকে আজ সুবিশাল বহুতল একাডেমিক ভবন, আধুনিক বিজ্ঞানাগার, শেখ রাসেল ডিজিটাল কম্পিউটার ল্যাব ও সম্পূর্ণ স্বয়ংক্রিয় অনলাইন স্কুল ম্যানেজমেন্ট সিস্টেম সমৃদ্ধ প্রতিষ্ঠানে রূপান্তর লাভ করেছে।'}
+              </p>
+            </div>
+          </div>
+          {milestones.length > 0 && (
+            <div style={{ marginTop: '18px' }}>
+              <h4 style={{ color: '#047857', marginBottom: '10px' }}>⏳ ঐতিহাসিক কালক্রম ও মাইলফলক:</h4>
+              <div style={{ display: 'grid', gap: '8px' }}>
+                {milestones.map((m, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: '#f1f5f9', padding: '10px 14px', borderRadius: '6px' }}>
+                    <span style={{ background: '#047857', color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>{m.year}</span>
+                    <div>
+                      <b style={{ color: '#0f172a', fontSize: '14px' }}>{m.title}</b>
+                      <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: '#475569' }}>{m.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.committee' || title === 'পরিচালনা পর্ষদ' || title === 'পরিচালনা কমিটি') {
+      const comm = instData.committee || {};
+      const activeType = comm.active_type || 'regular';
+      const effectiveType = committeeCategoryTab || activeType;
+
+      const regularData = comm.regular || {
+        title: 'নিয়মিত ম্যানেজিং কমিটি',
+        tenure: comm.tenure || '২০২৪–২০২৬',
+        approval_memo: 'মাউশি/বোর্ড স্মারক নং: ৩৭.০২.০০০০.১০৬... তারিখ: ১৫-০১-২০২৪',
+        members: (comm.members && comm.members.length) ? comm.members : MOCK_COMMITTEE
+      };
+
+      const adhocData = comm.adhoc || {
+        title: 'এডহক কমিটি',
+        tenure: '২০২৬ (৬ মাস মেয়াদি)',
+        approval_memo: 'শিক্ষা বোর্ড অনুমোদন স্মারক নং: ১৮.০৪.০০০... তারিখ: ১০-০১-২০২৬',
+        members: (MOCK_ADHOC_COMMITTEE && MOCK_ADHOC_COMMITTEE.length) ? MOCK_ADHOC_COMMITTEE : []
+      };
+
+      const selectedComm = effectiveType === 'adhoc' ? adhocData : regularData;
+      const members = (selectedComm.members && selectedComm.members.length)
+        ? selectedComm.members
+        : (effectiveType === 'adhoc' ? (MOCK_ADHOC_COMMITTEE || []) : MOCK_COMMITTEE);
+      const tenure = selectedComm.tenure || comm.tenure || '২০২৪–২০২৬';
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">
+            👥 পরিচালনা পর্ষদ (Managing Committee) • {effectiveType === 'adhoc' ? 'এডহক কমিটি' : 'নিয়মিত ম্যানেজিং কমিটি'}
+          </div>
+
+          {/* Committee 2 Divisions Switcher (২টি ভাগ) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '10px',
+            margin: '14px 0 16px'
+          }}>
+            <button
+              type="button"
+              onClick={() => setCommitteeCategoryTab('regular')}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: effectiveType === 'regular' ? '2px solid #047857' : '1px solid #cbd5e1',
+                background: effectiveType === 'regular' ? '#ecfdf5' : '#ffffff',
+                color: effectiveType === 'regular' ? '#065f46' : '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: effectiveType === 'regular' ? '0 2px 8px rgba(4,120,87,0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>🏛️</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div>ভাগ ১: নিয়মিত ম্যানেজিং কমিটি</div>
+                  <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>
+                    পূর্ণাঙ্গ কমিটি • {regularData.tenure || '২০২৪–২০২৬'}
+                  </small>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '12px', background: '#e2e8f0', color: '#334155', padding: '2px 7px', borderRadius: '10px', fontWeight: 700 }}>
+                  {(regularData.members || []).length} জন
+                </span>
+                {activeType === 'regular' && (
+                  <span style={{ fontSize: '11px', background: '#059669', color: '#fff', padding: '2px 7px', borderRadius: '10px', fontWeight: 700 }}>
+                    সক্রিয়
+                  </span>
+                )}
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCommitteeCategoryTab('adhoc')}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: effectiveType === 'adhoc' ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                background: effectiveType === 'adhoc' ? '#f0f9ff' : '#ffffff',
+                color: effectiveType === 'adhoc' ? '#0369a1' : '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: effectiveType === 'adhoc' ? '0 2px 8px rgba(2,132,199,0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>📋</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div>ভাগ ২: এডহক কমিটি</div>
+                  <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>
+                    অন্তর্বর্তীকালীন কমিটি • {adhocData.tenure || '৬ মাস মেয়াদি'}
+                  </small>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '12px', background: '#e2e8f0', color: '#334155', padding: '2px 7px', borderRadius: '10px', fontWeight: 700 }}>
+                  {(adhocData.members || []).length} জন
+                </span>
+                {activeType === 'adhoc' && (
+                  <span style={{ fontSize: '11px', background: '#0284c7', color: '#fff', padding: '2px 7px', borderRadius: '10px', fontWeight: 700 }}>
+                    সক্রিয়
+                  </span>
+                )}
+              </div>
+            </button>
+          </div>
+
+          {/* Committee Info Banner */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            padding: '10px 14px',
+            marginBottom: '14px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div>
+              <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>
+                {effectiveType === 'adhoc' ? '📋 এডহক কমিটি (Ad-hoc Committee)' : '🏛️ নিয়মিত ম্যানেজিং কমিটি (Regular Managing Committee)'}
+              </span>
+              <span style={{ marginLeft: '10px', fontSize: '13px', color: '#64748b' }}>
+                মেয়াদকাল: <strong style={{ color: effectiveType === 'adhoc' ? '#0369a1' : '#047857' }}>{tenure}</strong>
+              </span>
+            </div>
+            {selectedComm.approval_memo && (
+              <small style={{ color: '#475569', fontSize: '12px', background: '#ffffff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
+                {selectedComm.approval_memo}
+              </small>
+            )}
+          </div>
+
+          <p className="lead-text">
+            {effectiveType === 'adhoc'
+              ? 'শিক্ষা বোর্ড/জেলা প্রশাসন কর্তৃক অনুমোদিত এডহক কমিটির বিভিন্ন ক্যাটাগরির সম্মানিত সদস্যবৃন্দ:'
+              : 'বিদ্যালয়ের সার্বিক শিক্ষা, প্রশাসনিক ও ভৌত অবকাঠামোগত উন্নয়নের দায়িত্বে নিয়োজিত নিয়মিত ম্যানেজিং কমিটির বিভিন্ন ক্যাটাগরির সম্মানিত সদস্যবৃন্দ:'}
+          </p>
+
+          <div className="committee-grid">
+            {members.map((m, idx) => {
+              const ld = getLeadershipData();
+              const photoSrc = m.role === 'সভাপতি' ? (ld.president.photo || PHOTO_PRESIDENT) : m.role === 'সদস্য সচিব' ? (ld.head.photo || PHOTO_HEAD_TEACHER) : (m.photo || PHOTO_PRESIDENT);
+              return (
+                <div key={idx} className="committee-card">
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #047857' }}>
+                    <img src={photoSrc} alt={m.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div className="member-info">
+                    <span className="member-role" style={{
+                      background: m.role?.includes('সভাপতি') ? '#fef3c7' : m.role?.includes('সদস্য সচিব') ? '#ecfdf5' : '#f1f5f9',
+                      color: m.role?.includes('সভাপতি') ? '#92400e' : m.role?.includes('সদস্য সচিব') ? '#065f46' : '#334155'
+                    }}>
+                      {m.role}
+                    </span>
+                    <h4>{m.name_bn}</h4>
+                    <p>{m.designation}</p>
+                    {m.mobile && <small style={{ display: 'block', color: '#64748b', marginTop: '2px' }}>📞 {m.mobile}</small>}
+                    <small>মেয়াদকাল: {m.tenure || tenure}</small>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    if (
+      menuKey === 'public.nav.institution.donors' ||
+      title === 'বিদ্যালয়ের দাতা সদস্য' ||
+      title === 'দাতা সদস্য' ||
+      title?.includes('দাতা সদস্য')
+    ) {
+      const donorsData = instData.donors || {};
+      const lifeDonors = Array.isArray(donorsData.life_donors) && donorsData.life_donors.length
+        ? donorsData.life_donors
+        : (DEFAULT_INSTITUTION_DATA?.donors?.life_donors || []);
+      const oneTimeDonors = Array.isArray(donorsData.one_time_donors) && donorsData.one_time_donors.length
+        ? donorsData.one_time_donors
+        : (DEFAULT_INSTITUTION_DATA?.donors?.one_time_donors || []);
+
+      const activeList = donorTab === 'one_time' ? oneTimeDonors : lifeDonors;
+      const filteredDonors = activeList.filter(d => {
+        if (!donorSearch.trim()) return true;
+        const q = donorSearch.toLowerCase();
+        return (
+          (d.name_bn || '').toLowerCase().includes(q) ||
+          (d.name_en || '').toLowerCase().includes(q) ||
+          (d.donation_amount || '').toLowerCase().includes(q) ||
+          (d.address || '').toLowerCase().includes(q) ||
+          (d.year || '').toLowerCase().includes(q) ||
+          (d.designation || '').toLowerCase().includes(q)
+        );
+      });
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">
+            🤝 বিদ্যালয়ের দাতা সদস্য (Honorable Donor Members) • {donorTab === 'life' ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য'}
+          </div>
+
+          {/* Donor 2 Features Switcher (২টি ফিচার বা ভাগ) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '12px',
+            margin: '14px 0 16px'
+          }}>
+            {/* Feature 1: আজীবন দাতা সদস্য */}
+            <button
+              type="button"
+              onClick={() => setDonorTab('life')}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: donorTab === 'life' ? '2px solid #047857' : '1px solid #cbd5e1',
+                background: donorTab === 'life' ? '#ecfdf5' : '#ffffff',
+                color: donorTab === 'life' ? '#065f46' : '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: donorTab === 'life' ? '0 2px 8px rgba(4,120,87,0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>💎</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div>ফিচার ১: আজীবন দাতা সদস্যদের তথ্য</div>
+                  <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>
+                    স্থায়ী তহবিল ও ভূমি দাতা সদস্যবৃন্দ
+                  </small>
+                </div>
+              </div>
+              <span style={{ fontSize: '12px', background: donorTab === 'life' ? '#059669' : '#e2e8f0', color: donorTab === 'life' ? '#fff' : '#334155', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                {toBn(lifeDonors.length)} জন
+              </span>
+            </button>
+
+            {/* Feature 2: এককালীন দাতা সদস্য */}
+            <button
+              type="button"
+              onClick={() => setDonorTab('one_time')}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: donorTab === 'one_time' ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                background: donorTab === 'one_time' ? '#f0f9ff' : '#ffffff',
+                color: donorTab === 'one_time' ? '#0369a1' : '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: donorTab === 'one_time' ? '0 2px 8px rgba(2,132,199,0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>🤝</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div>ফিচার ২: এককালীন দাতা সদস্যদের তথ্য</div>
+                  <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>
+                    প্রকল্প, ল্যাব, লাইব্রেরি ও নগদ অনুদান
+                  </small>
+                </div>
+              </div>
+              <span style={{ fontSize: '12px', background: donorTab === 'one_time' ? '#0284c7' : '#e2e8f0', color: donorTab === 'one_time' ? '#fff' : '#334155', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                {toBn(oneTimeDonors.length)} জন
+              </span>
+            </button>
+          </div>
+
+          {/* Quick Stats Summary Cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '10px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>মোট আজীবন দাতা</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#047857', marginTop: '2px' }}>
+                {toBn(lifeDonors.length)} জন
+              </div>
+            </div>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>মোট এককালীন দাতা</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#0284c7', marginTop: '2px' }}>
+                {toBn(oneTimeDonors.length)} জন
+              </div>
+            </div>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>সর্বমোট দাতা সদস্য</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                {toBn(lifeDonors.length + oneTimeDonors.length)} জন
+              </div>
+            </div>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>অবদান ক্ষেত্র</div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#d97706', marginTop: '4px' }}>
+                ভূমি, ভবন ও ল্যাব
+              </div>
+            </div>
+          </div>
+
+          {/* Toolbar: Search, View Mode, Print */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px',
+            marginBottom: '16px',
+            background: '#ffffff',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+          }}>
+            <div style={{ position: 'relative', flex: '1', minWidth: '220px' }}>
+              <input
+                type="text"
+                placeholder="🔍 নাম, গ্রাম, অনুদানের বিবরণ বা সাল দিয়ে খুঁজুন..."
+                value={donorSearch}
+                onChange={(e) => setDonorSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '7px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* View Mode Toggle */}
+              <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden' }}>
+                <button
+                  type="button"
+                  onClick={() => setDonorViewMode('cards')}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: 'none',
+                    background: donorViewMode === 'cards' ? '#0f172a' : '#ffffff',
+                    color: donorViewMode === 'cards' ? '#ffffff' : '#475569',
+                    cursor: 'pointer'
+                  }}
+                >
+                  📇 কার্ড ভিউ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDonorViewMode('table')}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: 'none',
+                    background: donorViewMode === 'table' ? '#0f172a' : '#ffffff',
+                    color: donorViewMode === 'table' ? '#ffffff' : '#475569',
+                    cursor: 'pointer'
+                  }}
+                >
+                  📋 টেবিল ভিউ
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className="lead-text" style={{ marginBottom: '14px' }}>
+            {donorTab === 'life'
+              ? 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় প্রতিষ্ঠাকালীন ও পরবর্তী সময়ে বিদ্যালয় অবকাঠামো ও ক্যাম্পাস সম্প্রসারণে স্থায়ী অনুদান প্রদানকারী সম্মানিত আজীবন দাতা সদস্যবৃন্দ:'
+              : 'বিদ্যালয়ের শিক্ষা কার্যক্রমের মানোন্নয়ন, ল্যাবরেটরি স্থাপন, লাইব্রেরি সমৃদ্ধকরণ এবং ছাত্র-কল্যাণ তহবিলে এককালীন অনুদানকারী সম্মানিত ব্যক্তিবর্গ:'}
+          </p>
+
+          {/* View 1: Card View */}
+          {donorViewMode === 'cards' && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
+              gap: '16px'
+            }}>
+              {filteredDonors.map((d, idx) => (
+                <div
+                  key={d.id || idx}
+                  style={{
+                    background: '#ffffff',
+                    border: `1.5px solid ${donorTab === 'life' ? '#a7f3d0' : '#bae6fd'}`,
+                    borderRadius: '12px',
+                    padding: '16px',
+                    boxShadow: '0 3px 10px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                  }}
+                >
+                  <div>
+                    {/* Top Row: Avatar & Status Badge */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        background: donorTab === 'life' ? '#ecfdf5' : '#f0f9ff',
+                        border: `2px solid ${donorTab === 'life' ? '#059669' : '#0284c7'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '24px',
+                        flexShrink: 0
+                      }}>
+                        {d.photo ? (
+                          <img src={d.photo} alt={d.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <span>{donorTab === 'life' ? '💎' : '🤝'}</span>
+                        )}
+                      </div>
+
+                      <span style={{
+                        background: donorTab === 'life' ? '#ecfdf5' : '#e0f2fe',
+                        color: donorTab === 'life' ? '#065f46' : '#0369a1',
+                        border: `1px solid ${donorTab === 'life' ? '#a7f3d0' : '#bae6fd'}`,
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 800
+                      }}>
+                        {d.status || (donorTab === 'life' ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য')}
+                      </span>
+                    </div>
+
+                    {/* Donor Details */}
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '16px', color: '#0f172a', fontWeight: 800 }}>
+                      {d.name_bn}
+                    </h4>
+                    {d.name_en && (
+                      <small style={{ color: '#64748b', display: 'block', fontSize: '11.5px', marginBottom: '4px' }}>
+                        {d.name_en}
+                      </small>
+                    )}
+                    <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: '#475569', fontWeight: 600 }}>
+                      {d.designation || 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক'}
+                    </p>
+
+                    {/* Contribution Highlight Box */}
+                    <div style={{
+                      background: donorTab === 'life' ? '#f0fdf4' : '#f8fafc',
+                      border: `1px solid ${donorTab === 'life' ? '#bbf7d0' : '#e2e8f0'}`,
+                      borderRadius: '8px',
+                      padding: '9px 12px',
+                      marginBottom: '10px'
+                    }}>
+                      <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>অনুদানের পরিমাণ ও বিবরণ:</div>
+                      <div style={{ fontSize: '13.5px', fontWeight: 800, color: donorTab === 'life' ? '#047857' : '#0369a1', marginTop: '2px' }}>
+                        💰 {d.donation_amount || '—'}
+                      </div>
+                    </div>
+
+                    {/* Remarks / Acknowledgement */}
+                    {d.remarks && (
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#475569',
+                        fontStyle: 'italic',
+                        background: '#f8fafc',
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        marginBottom: '10px',
+                        lineHeight: '1.5'
+                      }}>
+                        "{d.remarks}"
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Footer: Address, Year & Phone */}
+                  <div style={{
+                    borderTop: '1px solid #f1f5f9',
+                    paddingTop: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '11.5px',
+                    color: '#64748b',
+                    flexWrap: 'wrap',
+                    gap: '4px'
+                  }}>
+                    <span>📍 {d.address || 'মগড়া, টাঙ্গাইল'}</span>
+                    <span style={{ fontWeight: 700, color: '#0f172a' }}>📅 সাল: {toBn(d.year || '—')}</span>
+                    {d.mobile && (
+                      <span style={{ width: '100%', color: '#334155', fontWeight: 600 }}>📞 {d.mobile}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* View 2: Table View */}
+          {donorViewMode === 'table' && (
+            <div style={{
+              overflowX: 'auto',
+              background: '#ffffff',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+            }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: donorTab === 'life' ? '#f0fdf4' : '#f0f9ff', color: donorTab === 'life' ? '#166534' : '#075985', borderBottom: '2px solid #cbd5e1' }}>
+                    <th style={{ padding: '10px 8px', textAlign: 'center', width: '40px' }}>ক্র.</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>দাতা সদস্যের নাম ও পদবি</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>ঠিকানা ও যোগাযোগ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>অনুদানের বিবরণ/পরিমাণ</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', width: '70px' }}>সাল</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', width: '110px' }}>ক্যাটাগরি</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDonors.map((d, idx) => (
+                    <tr key={d.id || idx} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>
+                        {toBn(idx + 1)}.
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <strong style={{ color: '#0f172a', fontSize: '13.5px' }}>{d.name_bn}</strong>
+                        {d.name_en && <div style={{ fontSize: '11px', color: '#64748b' }}>{d.name_en}</div>}
+                        <div style={{ fontSize: '12px', color: '#047857', fontWeight: 600 }}>{d.designation}</div>
+                      </td>
+                      <td style={{ padding: '10px 12px', fontSize: '12px' }}>
+                        <div>{d.address || '—'}</div>
+                        {d.mobile && <div style={{ color: '#64748b' }}>📱 {d.mobile}</div>}
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <div style={{ fontWeight: 800, color: donorTab === 'life' ? '#047857' : '#0284c7' }}>
+                          {d.donation_amount || '—'}
+                        </div>
+                        {d.remarks && <div style={{ fontSize: '11.5px', color: '#64748b', fontStyle: 'italic', marginTop: '2px' }}>{d.remarks}</div>}
+                      </td>
+                      <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: '#475569' }}>
+                        {toBn(d.year || '—')}
+                      </td>
+                      <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                        <span style={{
+                          background: donorTab === 'life' ? '#ecfdf5' : '#e0f2fe',
+                          color: donorTab === 'life' ? '#065f46' : '#0369a1',
+                          padding: '2px 7px',
+                          borderRadius: '10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          display: 'inline-block'
+                        }}>
+                          {d.status || (donorTab === 'life' ? 'আজীবন' : 'এককালীন')}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {!filteredDonors.length && (
+            <div style={{ textAlign: 'center', padding: '36px 16px', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1', color: '#64748b', marginTop: '14px' }}>
+              🔍 আপনার অনুসন্ধানের সাথে কোনো দাতা সদস্যের রেকর্ড মেলেনি।
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.regulations' || title === 'বিধি বিধান' || menuKey === 'public.nav.institution.rules') {
+      const regs = instData.regulations || {};
+      const rules = regs.rules || [];
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">⚖️ প্রাতিষ্ঠানিক বিধি বিধান ও নীতিমালা</div>
+          <div className="rules-section">
+            <p className="lead-text">{regs.overview || 'মাধ্যমিক ও উচ্চশিক্ষা অধিদপ্তর (মাউশি) এবং ঢাকা শিক্ষা বোর্ডের বিধিমালা অনুযায়ী পরিচালিত নীতিসমূহ:'}</p>
+            <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14.5px' }}>
+              {rules.map((r, idx) => (
+                <li key={idx}><b>{r.title}:</b> {r.detail}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.code_of_conduct' || title === 'আচরন বিধি' || title === 'আচরণবিধি') {
+      const coc = instData.code_of_conduct || {};
+      const studentConduct = coc.student_conduct || [];
+      const guardianConduct = coc.guardian_conduct || [];
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">🛡️ আচরন বিধি ও শৃঙ্খলা নীতিমালা</div>
+          <div className="rules-section">
+            <h4 style={{ color: '#047857', margin: '14px 0 8px', fontSize: '16px' }}>🎓 শিক্ষার্থীদের জন্য পালনীয় আচরণবিধি:</h4>
+            <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14px' }}>
+              {studentConduct.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+            {guardianConduct.length > 0 && (
+              <>
+                <h4 style={{ color: '#0369a1', margin: '18px 0 8px', fontSize: '16px' }}>👨‍👩‍👧 সম্মানিত অভিভাবকদের প্রতি নির্দেশনা:</h4>
+                <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14px' }}>
+                  {guardianConduct.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.master_plan' || title === 'মুখ্য পরিকল্পনা') {
+      const mp = instData.master_plan || {};
+      const plans = mp.plans || [];
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">🎯 প্রাতিষ্ঠানিক মুখ্য পরিকল্পনা ও কৌশলগত রূপরেখা</div>
+          <p className="lead-text">{mp.overview || 'আগামী শিক্ষাবর্ষগুলোতে গুণগত শিক্ষা ও ক্যাম্পাস উন্নয়নে গৃহীত মহাপরিকল্পনা:'}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', margin: '16px 0' }}>
+            {plans.map((p, idx) => (
+              <div key={idx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#065f46', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>{p.icon || '🎯'}</span>
+                  <span>{p.title}</span>
+                </b>
+                <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.library' || title === 'গ্রন্থাগার/লাইব্রেরী' || title === 'পাঠাগার/লাইব্রেরী' || title?.includes('গ্রন্থাগার') || title?.includes('লাইব্রেরি')) {
+      const lib = instData.library || {};
+      const sections = lib.sections || [];
+
+      // Retrieve live library books from Login Page / Admin Library Database
+      let liveBooks = [];
+      try {
+        const saved = localStorage.getItem('magra_db_library_books');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) liveBooks = parsed;
+        }
+      } catch {}
+      if (!liveBooks.length) liveBooks = SEED_BOOKS;
+
+      // Calculate Stock Totals
+      const totalCopies = liveBooks.reduce((acc, b) => acc + (Number(b.quantity) || 1), 0);
+      const availableCopies = liveBooks.reduce((acc, b) => acc + (Number(b.available_quantity !== undefined ? b.available_quantity : b.quantity) || 0), 0);
+      const borrowedCopies = Math.max(0, totalCopies - availableCopies);
+
+      // Filter books
+      const filteredBooks = liveBooks.filter(b => {
+        const matchesCategory = libraryCategory === 'all' || b.category === libraryCategory;
+        const q = searchQuery.trim().toLowerCase();
+        const matchesQuery = !q || [b.title, b.author, b.accession_no, b.publisher, b.shelf, b.category]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(q);
+        return matchesCategory && matchesQuery;
+      });
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>📚 বিদ্যালয় কেন্দ্রীয় গ্রন্থাগার ও লাইব্রেরী</span>
+            <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+              EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.
+            </span>
+          </div>
+
+          <p className="lead-text">
+            {lib.summary || 'বিদ্যালয়ের সমৃদ্ধ কেন্দ্রীয় গ্রন্থাগারে পাঠ্যবই, রেফারেন্স গ্রন্থ, বিশ্বসাহিত্য, বিজ্ঞান, মুক্তিযুদ্ধ ও সাধারণ জ্ঞানের সমৃদ্ধ সংগ্রহ রয়েছে।'}
+          </p>
+
+          {/* Librarian Info Card */}
+          <div style={{
+            background: 'linear-gradient(135deg, #064e3b 0%, #0f766e 100%)',
+            color: '#ffffff',
+            padding: '12px 18px',
+            borderRadius: '10px',
+            marginBottom: '16px',
+            boxShadow: '0 2px 6px rgba(6,78,59,0.15)'
+          }}>
+            <div style={{ fontWeight: 800, fontSize: '14.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>👨‍🏫 দায়িত্বপ্রাপ্ত শিক্ষক:</span>
+              <span>{LIBRARIAN_TEACHER.name_bn}</span>
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '3px' }}>
+              {LIBRARIAN_TEACHER.designation} • রিডিং রুম সময়সূচি: <b>{lib.reading_hours || 'সকাল ১০:০০ - বিকাল ৪:০০ (কর্মদিবসে)'}</b>
+            </div>
+          </div>
+
+          {/* 4 Summary Cards */}
+          <div className="info-stats-grid" style={{ marginBottom: '16px' }}>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #047857' }}>
+              <b>{toBn(totalCopies)} টি</b>
+              <span>মোট বইয়ের স্টক</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #0284c7' }}>
+              <b>{toBn(liveBooks.length)} টি</b>
+              <span>অনন্য বই / শিরোনাম</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #16a34a' }}>
+              <b>{toBn(availableCopies)} টি</b>
+              <span>বর্তমানে শেলফে মজুত</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #d97706' }}>
+              <b>{toBn(borrowedCopies)} টি</b>
+              <span>শিক্ষার্থীদের ইস্যুকৃত</span>
+            </div>
+          </div>
+
+          {/* Search & Category Filter Toolbar */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '10px',
+            padding: '12px 14px',
+            marginBottom: '16px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '10px',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 280px' }}>
+              <span style={{ fontSize: '15px' }}>🔍</span>
+              <input
+                type="text"
+                placeholder="বইয়ের নাম, লেখক, অ্যাকসেশন নং বা প্রকাশনী দিয়ে খুঁজুন..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#475569' }}>ক্যাটাগরি:</span>
+              <select
+                value={libraryCategory}
+                onChange={(e) => setLibraryCategory(e.target.value)}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px',
+                  background: '#ffffff'
+                }}
+              >
+                <option value="all">সব ক্যাটাগরি ({liveBooks.length})</option>
+                {BOOK_CATEGORIES.map(c => {
+                  const count = liveBooks.filter(b => b.category === c.label).length;
+                  return (
+                    <option key={c.key} value={c.label}>
+                      {c.icon} {c.label} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
+
+          {/* Book Catalog & Stock Register Table */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h4 style={{ margin: 0, color: '#047857', fontSize: '15px', fontWeight: 800 }}>
+              📖 বইয়ের তালিকা ও স্টক রেজিস্টার (মোট {toBn(filteredBooks.length)} টি প্রদর্শিত):
+            </h4>
+            {searchQuery && (
+              <button
+                type="button"
+                className="mini"
+                onClick={() => setSearchQuery('')}
+                style={{ background: '#f1f5f9', color: '#475569', fontSize: '11px' }}
+              >
+                ফিল্টার মুছুন ✕
+              </button>
+            )}
+          </div>
+
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '16px' }}>
+            <table className="modal-table" style={{ margin: 0, width: '100%' }}>
+              <thead style={{ background: '#f1f5f9' }}>
+                <tr>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>অ্যাকসেশন নং</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>বইয়ের নাম ও লেখক</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>ক্যাটাগরি</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>প্রকাশনী ও তাক</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px', textAlign: 'center' }}>মোট কপি</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px', textAlign: 'center' }}>মজুত স্থিতি</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>সংগ্রহ সূত্র</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBooks.length > 0 ? (
+                  filteredBooks.map(b => {
+                    const avail = Number(b.available_quantity !== undefined ? b.available_quantity : b.quantity) || 0;
+                    return (
+                      <tr key={b.id || b.accession_no}>
+                        <td style={{ fontFamily: 'monospace', fontSize: '11.5px', fontWeight: 700, color: '#0369a1' }}>
+                          {b.accession_no || 'MAG-BK'}
+                        </td>
+                        <td>
+                          <b style={{ color: '#0f172a', fontSize: '13.5px' }}>{b.title}</b>
+                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '1px' }}>✍️ {b.author}</div>
+                        </td>
+                        <td>
+                          <span className="badge" style={{ fontSize: '11.5px' }}>{b.category}</span>
+                        </td>
+                        <td style={{ fontSize: '12px', color: '#475569' }}>
+                          <div>{b.publisher || '—'}</div>
+                          <small style={{ color: '#64748b' }}>📍 {b.shelf || 'সাধারণ তাক'}</small>
+                        </td>
+                        <td style={{ textAlign: 'center', fontWeight: 700, fontSize: '13px' }}>
+                          {toBn(b.quantity || 1)} টি
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {avail > 0 ? (
+                            <span style={{
+                              background: '#ecfdf5',
+                              color: '#065f46',
+                              border: '1px solid #86efac',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontSize: '11.5px',
+                              fontWeight: 800
+                            }}>
+                              ✓ {toBn(avail)}টি মজুত
+                            </span>
+                          ) : (
+                            <span style={{
+                              background: '#fee2e2',
+                              color: '#991b1b',
+                              border: '1px solid #fca5a5',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontSize: '11.5px',
+                              fontWeight: 800
+                            }}>
+                              ইস্যুকৃত (স্টকে নেই)
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '11.5px', color: '#475569' }}>
+                          {b.source || 'বিদ্যালয়ের নিজস্ব তহবিল'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                      কোনো বইয়ের রেকর্ড পাওয়া যায়নি।
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Library Rules */}
+          {lib.rules && (
+            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px', color: '#475569' }}>
+              <b style={{ color: '#047857' }}>📜 বই ইস্যু ও ব্যবহারের নীতিমালা:</b> {lib.rules}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.curriculum' || title === 'পাঠ্যক্রম') {
+      const cur = instData.curriculum || {};
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">📖 জাতীয় শিক্ষাক্রম রূপরেখা (NCTB Curriculum)</div>
+          <p className="lead-text">{cur.overview || 'এনসিটিবি (NCTB) অনুমোদিত শিক্ষাক্রম অনুযায়ী শ্রেণিভিত্তিক পাঠদান ও মূল্যায়ন পদ্ধতি:'}</p>
+          <div style={{ display: 'grid', gap: '12px', margin: '16px 0' }}>
+            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <b style={{ color: '#0369a1', fontSize: '15px' }}>৬ষ্ঠ হতে ৮ম শ্রেণি (নিম্ন মাধ্যমিক):</b>
+              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155', lineHeight: '1.6' }}>
+                {cur.lower_secondary || 'বাংলা, ইংরেজি, গণিত, বিজ্ঞান, ইতিহাস ও সামাজিক বিজ্ঞান, ডিজিটাল প্রযুক্তি, জীবন ও জীবিকা, স্বাস্থ্য সুরক্ষা, ধর্ম ও নৈতিক শিক্ষা, শিল্প ও সংস্কৃতি।'}
+              </p>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <b style={{ color: '#15803d', fontSize: '15px' }}>৯ম ও ১০ম শ্রেণি — বিজ্ঞান বিভাগ:</b>
+              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155', lineHeight: '1.6' }}>
+                {cur.secondary_science || 'বাংলা, ইংরেজি, গণিত, পদার্থবিজ্ঞান, রসায়ন, জীববিজ্ঞান, উচ্চতর গণিত/কৃষি শিক্ষা, তথ্য ও যোগাযোগ প্রযুক্তি, ধর্ম ও নৈতিক শিক্ষা।'}
+              </p>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <b style={{ color: '#854d0e', fontSize: '15px' }}>৯ম ও ১০ম শ্রেণি — মানবিক বিভাগ:</b>
+              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155', lineHeight: '1.6' }}>
+                {cur.secondary_humanities || 'বাংলা, ইংরেজি, গণিত, বাংলাদেশের ইতিহাস ও বিশ্বসভ্যতা, ভূগোল ও পরিবেশ, পৌরনীতি ও নাগরিকতা, অর্থনীতি/কৃষি শিক্ষা, সাধারণ বিজ্ঞান, ধর্ম।'}
+              </p>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <b style={{ color: '#86198f', fontSize: '15px' }}>৯ম ও ১০ম শ্রেণি — ব্যবসায় শিক্ষা শাখা:</b>
+              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155', lineHeight: '1.6' }}>
+                {cur.secondary_business || 'বাংলা, ইংরেজি, গণিত, হিসাববিজ্ঞান, ফিন্যান্স ও ব্যাংকিং, ব্যবসায় উদ্যোগ, সাধারণ বিজ্ঞান, তথ্য ও যোগাযোগ প্রযুক্তি, ধর্ম।'}
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.syllabus' || title === 'পাঠ্যতালিকা') {
+      const syl = instData.syllabus || {};
+      const classes = syl.classes || [];
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">📑 শ্রেণিভিত্তিক পাঠ্যতালিকা ও পাঠ্যসূচি — শিক্ষাবর্ষ {syl.year || '২০২৬'}</div>
+          <p className="lead-text">চলতি শিক্ষাবর্ষের অর্ধবার্ষিক, প্রাক-নির্বাচনী ও বার্ষিক পরীক্ষার পাঠ্যবই ও সিলেবাস বিভাজন:</p>
+          <div style={{ display: 'grid', gap: '10px', margin: '16px 0' }}>
+            {classes.map((c, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <div>
+                  <b style={{ color: '#0f172a', fontSize: '15px' }}>{c.class_name}</b>
+                  <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#475569' }}>{c.syllabus_title}</p>
+                </div>
+                <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px' }}>
+                  {c.status || 'সিলেবাস অনুমোদিত'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.publications' || title === 'প্রকাশনা') {
+      const pub = instData.publications || {};
+      const items = pub.items || [];
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">📰 বিদ্যালয় প্রকাশনা ও সাময়িকী</div>
+          <p className="lead-text">{pub.summary || 'শিক্ষার্থীদের সৃজনশীল লেখালেখি, কবিতা, চিত্রাঙ্কন ও প্রাতিষ্ঠানিক স্মরণিকা:'}</p>
+          <div style={{ display: 'grid', gap: '14px', margin: '16px 0' }}>
+            {items.map((it, idx) => (
+              <div key={idx} style={{ background: idx === 0 ? '#fdf4ff' : idx === 1 ? '#ecfdf5' : '#fffbeb', padding: '14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#0f172a', fontSize: '15px' }}>📖 {it.title} <small style={{ color: '#047857', fontWeight: 700 }}>({it.type})</small></b>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#475569' }}>{it.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.hostel' || title === 'ছাত্রাবাস') {
+      const hos = instData.hostel || {};
+      const features = hos.features || [];
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">🏢 ছাত্রাবাস ও আবাসিক সুবিধা</div>
+          <p className="lead-text"><b>{hos.name || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় আবাসিক ছাত্রাবাস'}</b></p>
+          <div style={{ background: '#eff6ff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #bfdbfe', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', color: '#1e40af', fontWeight: 700 }}>{hos.superintendent || 'হোস্টেল সুপারিনটেনডেন্ট কর্তৃক সার্বক্ষণিক পরিচালিত'}</span>
+            <span style={{ display: 'block', fontSize: '12px', color: '#3b82f6', marginTop: '2px' }}>মোট ধারণক্ষমতা: {hos.capacity || '৬০ জন শিক্ষার্থী'} • {hos.fees || 'ভর্তুকিমূল্যে নির্ধারিত'}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', margin: '16px 0' }}>
+            {features.map((feat, idx) => (
+              <div key={idx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <b style={{ color: '#0f172a' }}>{feat.title}</b>
+                <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569' }}>{feat.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (menuKey === 'public.nav.institution.transport' || title === 'পরিবহণ সুবিধা') {
+      const tr = instData.transport || {};
+      const guidelines = tr.safety_guidelines || [];
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">🚌 পরিবহণ ও যাতায়াত সুবিধা</div>
+          <p className="lead-text">বিদ্যালয়ে ছাত্র-ছাত্রীদের নিরাপদে যাতায়াতের সামগ্রিক ব্যবস্থা ও দিকনির্দেশনা:</p>
+          <div style={{ marginBottom: '14px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '13.5px', color: '#334155' }}><b>ক্যাম্পাস সংযোগ:</b> {tr.road_connectivity || 'কালিহাতি উপজেলার মগড়া ইউনিয়ন ও পার্শ্ববর্তী গ্রামগুলো থেকে পাকা সড়কপথে সুলভ যোগাযোগের সুবিধা।'}</p>
+            <p style={{ margin: '0 0 6px', fontSize: '13.5px', color: '#334155' }}><b>সাইকেল শেড:</b> {tr.bicycle_shed || 'শিক্ষার্থীদের জন্য ক্যাম্পাসে নিরাপদ ও সুপরিসর সাইকেল শেড ব্যবস্থা রয়েছে।'}</p>
+            {tr.future_bus && <p style={{ margin: 0, fontSize: '13.5px', color: '#047857' }}><b>ভবিষ্যৎ পরিকল্পনা:</b> {tr.future_bus}</p>}
+          </div>
+          {guidelines.length > 0 && (
+            <>
+              <h4 style={{ color: '#047857', marginBottom: '8px' }}>সড়ক নিরাপত্তা ও শৃঙ্খলা নির্দেশনাবলী:</h4>
+              <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14px' }}>
+                {guidelines.map((g, idx) => (
+                  <li key={idx}>{g}</li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    
+function parseTeacherEducationDetails(teacher) {
+  if (!teacher) return { academic: [], professional: [] };
+
+  const rawStr = teacher.educational_qualifications || '';
+  const isYear = (s) => /^[০-৯0-9]{4}$/.test(String(s || '').trim());
+  const toBn = (str) => {
+    if (str === null || str === undefined) return '';
+    const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return String(str).replace(/[0-9]/g, d => bn[Number(d)]);
+  };
+
+  // 1. Parse raw text items
+  let parsedFromText = [];
+  if (rawStr.trim()) {
+    const items = rawStr.split(';').map(s => s.trim()).filter(Boolean);
+    parsedFromText = items.map(item => {
+      const parts = item.split(/\s*-\s*/).map(p => p.trim()).filter(Boolean);
+      if (!parts.length) return null;
+
+      let degree = parts[0] || '—';
+      let institution = '—';
+      let board = '—';
+      let subject = '—';
+      let year = '—';
+      let result = '—';
+
+      if (parts.length >= 6) {
+        institution = parts[1] || '—';
+        board = parts[2] || '—';
+        subject = parts[3] || '—';
+        year = toBn(parts[4] || '—');
+        result = parts.slice(5).join(' - ') || '—';
+      } else if (parts.length === 5) {
+        institution = parts[1] || '—';
+        board = parts[2] || '—';
+        if (isYear(parts[3])) {
+          year = toBn(parts[3]);
+          result = parts[4] || '—';
+        } else {
+          subject = parts[3];
+          if (isYear(parts[4])) {
+            year = toBn(parts[4]);
+          } else {
+            result = parts[4];
+          }
+        }
+      } else if (parts.length === 4) {
+        institution = parts[1] || '—';
+        if (isYear(parts[2])) {
+          year = toBn(parts[2]);
+          result = parts[3] || '—';
+        } else {
+          board = parts[2] || '—';
+          if (isYear(parts[3])) {
+            year = toBn(parts[3]);
+          } else {
+            result = parts[3];
+          }
+        }
+      } else if (parts.length === 3) {
+        institution = parts[1] || '—';
+        if (isYear(parts[2])) {
+          year = toBn(parts[2]);
+        } else {
+          result = parts[2] || '—';
+        }
+      } else if (parts.length === 2) {
+        institution = parts[1] || '—';
+      }
+
+      return { 
+        degree: degree.trim(), 
+        institution: institution.trim(), 
+        board: board.trim(), 
+        subject: subject.trim(), 
+        year: year.trim(), 
+        result: result.trim(), 
+        type: 'academic' 
+      };
+    }).filter(Boolean);
+  }
+
+  // 2. Parse extended_profile_json if available
+  let extEdu = [];
+  let profEdu = [];
+  if (teacher.extended_profile_json) {
+    try {
+      const ext = typeof teacher.extended_profile_json === 'string'
+        ? JSON.parse(teacher.extended_profile_json)
+        : teacher.extended_profile_json;
+
+      if (Array.isArray(ext?.education) && ext.education.length > 0) {
+        extEdu = ext.education.map(e => ({
+          degree: (e.exam || e.degree || e.name || '—').trim(),
+          institution: (e.institution || '—').trim(),
+          board: (e.board || '—').trim(),
+          subject: e.subject ? e.subject.trim() : '—',
+          year: e.year ? toBn(e.year.trim()) : '—',
+          result: (e.result || '—').trim(),
+          type: 'academic'
+        }));
+      }
+
+      if (Array.isArray(ext?.professional_qualifications) && ext.professional_qualifications.length > 0) {
+        profEdu = ext.professional_qualifications.map(e => ({
+          degree: (e.exam || e.degree || 'বিএড').trim(),
+          institution: (e.institution || '—').trim(),
+          board: (e.board || '—').trim(),
+          subject: e.subject ? e.subject.trim() : '—',
+          year: e.year ? toBn(e.year.trim()) : '—',
+          result: (e.result || '—').trim(),
+          type: 'professional'
+        }));
+      }
+    } catch {}
+  }
+
+  // If text was parsed, enrich missing fields from extEdu if same exam exists
+  let finalAcademic = parsedFromText.length ? parsedFromText : extEdu;
+  if (parsedFromText.length && extEdu.length) {
+    finalAcademic = parsedFromText.map(pt => {
+      const match = extEdu.find(ee => 
+        (ee.degree && pt.degree && (ee.degree.includes(pt.degree) || pt.degree.includes(ee.degree))) ||
+        (ee.year && pt.year && ee.year === pt.year)
+      );
+      if (match) {
+        return {
+          degree: pt.degree !== '—' ? pt.degree : match.degree,
+          institution: pt.institution !== '—' ? pt.institution : match.institution,
+          board: pt.board !== '—' ? pt.board : match.board,
+          subject: pt.subject !== '—' ? pt.subject : match.subject,
+          year: pt.year !== '—' ? pt.year : match.year,
+          result: pt.result !== '—' ? pt.result : match.result,
+          type: 'academic'
+        };
+      }
+      return pt;
+    });
+  }
+
+  return { academic: finalAcademic, professional: profEdu };
+}
+
+function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = '#ecfdf5', badgeBorder = '#a7f3d0') {
+  const { academic, professional } = parseTeacherEducationDetails(teacher);
+  const totalRows = [...academic, ...professional];
+
+  if (!totalRows.length) {
+    if (!teacher?.educational_qualifications) return null;
+    return (
+      <div style={{ background: badgeBg, padding: '12px 16px', borderRadius: '8px', border: `1px solid ${badgeBorder}`, marginBottom: '16px' }}>
+        <span style={{ fontSize: '12.5px', fontWeight: 800, color: themeColor, display: 'block', marginBottom: '2px' }}>
+          📜 শিক্ষাগত যোগ্যতা:
+        </span>
+        <p style={{ margin: 0, fontSize: '13px', color: themeColor, fontWeight: 600 }}>
+          {teacher.educational_qualifications}
+        </p>
+      </div>
+    );
+  }
+
+  const toBn = (n) => {
+    const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return String(n).replace(/[0-9]/g, d => bn[Number(d)]);
+  };
+
+  return (
+    <div style={{ background: '#ffffff', borderRadius: '10px', border: `1px solid ${badgeBorder}`, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: '18px' }}>
+      <div style={{ background: badgeBg, padding: '10px 16px', borderBottom: `1px solid ${badgeBorder}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <span style={{ fontSize: '13.5px', fontWeight: 800, color: themeColor, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          📜 শিক্ষাগত যোগ্যতার বিবরণ
+        </span>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: themeColor, background: 'rgba(255,255,255,0.7)', padding: '2px 8px', borderRadius: '4px', border: `1px solid ${badgeBorder}` }}>
+          অফিসিয়াল একাডেমিক রেকর্ড ({toBn(totalRows.length)} টি)
+        </span>
+      </div>
+
+      <div style={{ overflowX: 'auto', width: '100%' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left', minWidth: '640px' }}>
+          <thead>
+            <tr style={{ background: badgeBg, borderBottom: `2px solid ${badgeBorder}`, color: themeColor }}>
+              <th style={{ padding: '10px 12px', textAlign: 'center', width: '45px', fontWeight: 700, color: themeColor }}>ক্রম</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700, color: themeColor }}>পরীক্ষা / অর্জিত ডিগ্রি</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700, color: themeColor }}>শিক্ষা প্রতিষ্ঠান</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700, color: themeColor }}>বোর্ড / বিশ্ববিদ্যালয়</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700, color: themeColor }}>বিভাগ / বিষয়</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: themeColor }}>পাসের সন</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: themeColor }}>ফলাফল / শ্রেণি</th>
+            </tr>
+          </thead>
+          <tbody>
+            {academic.map((row, idx) => (
+              <tr key={'acad-' + idx} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#fcfdfd' }}>
+                <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>{toBn(idx + 1)}</td>
+                <td style={{ padding: '9px 12px', fontWeight: 700, color: '#0f172a' }}>{row.degree}</td>
+                <td style={{ padding: '9px 12px', color: '#334155' }}>{row.institution}</td>
+                <td style={{ padding: '9px 12px', color: '#475569' }}>{row.board}</td>
+                <td style={{ padding: '9px 12px', color: '#475569' }}>{row.subject}</td>
+                <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: 700, color: themeColor }}>{row.year}</td>
+                <td style={{ padding: '9px 12px', textAlign: 'center' }}>
+                  <span style={{ 
+                    display: 'inline-block',
+                    padding: '2px 8px', 
+                    borderRadius: '4px', 
+                    fontSize: '11.5px', 
+                    fontWeight: 700,
+                    background: (row.result.includes('প্রথম') || row.result.includes('১ম') || row.result.includes('জিপিএ-৫') || row.result.includes('5.')) ? '#dcfce7' : '#e0f2fe',
+                    color: (row.result.includes('প্রথম') || row.result.includes('১ম') || row.result.includes('জিপিএ-৫') || row.result.includes('5.')) ? '#15803d' : '#0369a1'
+                  }}>
+                    {row.result}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {professional.map((pRow, pIdx) => (
+              <tr key={'prof-' + pIdx} style={{ borderBottom: '1px solid #e2e8f0', background: '#fdfbfe' }}>
+                <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: 700, color: '#7c3aed' }}>{toBn(academic.length + pIdx + 1)}</td>
+                <td style={{ padding: '9px 12px', fontWeight: 700, color: '#6d28d9' }}>
+                  {pRow.degree} <span style={{ fontSize: '10.5px', background: '#ede9fe', color: '#6d28d9', padding: '1px 6px', borderRadius: '3px', marginLeft: '4px' }}>পেশাগত</span>
+                </td>
+                <td style={{ padding: '9px 12px', color: '#334155' }}>{pRow.institution}</td>
+                <td style={{ padding: '9px 12px', color: '#475569' }}>{pRow.board}</td>
+                <td style={{ padding: '9px 12px', color: '#475569' }}>{pRow.subject}</td>
+                <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: 700, color: '#7c3aed' }}>{pRow.year}</td>
+                <td style={{ padding: '9px 12px', textAlign: 'center' }}>
+                  <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700, background: '#ede9fe', color: '#6d28d9' }}>
+                    {pRow.result}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+    // 2. Staff / Teachers & Contact submenus
+    if (
+      menuKey.startsWith('public.nav.staff') || 
+      menuKey.startsWith('public.nav.contact') || 
+      title?.includes('শিক্ষক') || 
+      title?.includes('কর্মচারী') || 
+      title?.includes('অফিস সহকারী') || 
+      title?.includes('যোগাযোগ')
+    ) {
+      const formerPersonnel = getStoredFormerPersonnelData();
+      
+      // A. Head Teacher (প্রধান শিক্ষক)
+      if (
+        menuKey === 'public.nav.staff.head' || 
+        menuKey === 'public.nav.contact.head' || 
+        title === 'প্রধান শিক্ষক' || 
+        title?.includes('প্রধান শিক্ষক পরিচিতি')
+      ) {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+        const head = rawList.find(t => 
+          t && (
+            t.public_contact_role === 'head_teacher' || 
+            (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) ||
+            t.id === 't-1' ||
+            (t.name_bn && t.name_bn.includes('শফিকুল'))
+          )
+        ) || rawList[0] || {};
+
+        const leaderData = getLeadershipData(rawList);
+        const headLeader = leaderData.map['public.nav.leadership.head'] || {};
+        const speechParas = Array.isArray(headLeader.speech) ? headLeader.speech : [headLeader.speech || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ে আপনাকে স্বাগতম। মানসম্মত শিক্ষা ও নৈতিক চরিত্র গঠনে আমাদের প্রচেষ্টা সর্বদা অব্যাহত।'];
+        const headJoiningDate = head.current_post_joining_date || head.first_joining_date || '2014-06-26';
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(4,120,87,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🎓 প্রতিষ্ঠান প্রধান পরিচিতি
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+              <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(4,120,87,0.25)', border: '3px solid #047857' }}>
+                <img src={getTeacherPhoto(head)} alt={head.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                    Employee ID: {head.employee_id || 'EMP-001'}
+                  </span>
+                  {head.mpo_index_no && (
+                    <span style={{ background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                      MPO Index: {head.mpo_index_no}
+                    </span>
+                  )}
+                </div>
+                <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{head.name_bn || 'মুহাম্মদ শফিকুল ইসলাম'}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{head.name_en || 'MUHAMMAD SHAFIQUL ISLAM'}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#047857', fontWeight: 700, fontSize: '15px' }}>{head.designation || 'প্রধান শিক্ষক'}</p>
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                  {head.phone && <span>📱 {head.phone}</span>}
+                  {head.email && <span>✉️ {head.email}</span>}
+                  <span>📅 বর্তমান পদে যোগদান: {headJoiningDate}</span>
+                </div>
+              </div>
+            </div>
+
+            {renderTeacherEducationTable(head, '#047857', '#ecfdf5', '#a7f3d0')}
+
+            <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#047857', fontSize: '16px', fontWeight: 800 }}>
+                💬 প্রধান শিক্ষকের শুভেচ্ছা বাণী:
+              </h4>
+              {speechParas.map((para, i) => (
+                <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // B. Assistant Head Teacher (সহকারী প্রধান শিক্ষক)
+      if (
+        menuKey === 'public.nav.staff.assistant' || 
+        menuKey === 'public.nav.contact.assistant' || 
+        title === 'সহকারী প্রধান শিক্ষক' || 
+        title?.includes('সহকারী প্রধান শিক্ষক পরিচিতি')
+      ) {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+        const asst = rawList.find(t => 
+          t && (
+            t.public_contact_role === 'assistant_head_teacher' || 
+            (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) ||
+            t.id === 't-2' ||
+            (t.name_bn && t.name_bn.includes('তাপসী'))
+          )
+        ) || rawList[1] || {};
+
+        const leaderData = getLeadershipData(rawList);
+        const asstLeader = leaderData.map['public.nav.leadership.asst_head'] || {};
+        const speechParas = Array.isArray(asstLeader.speech) ? asstLeader.speech : [asstLeader.speech || 'শিক্ষার্থীদের মেধা বিকাশ ও পাঠদানের গুণগত মান বজায় রাখতে আমরা প্রতিটি ক্ষেত্রে যত্নশীল।'];
+        const asstJoiningDate = asst.current_post_joining_date || asst.first_joining_date || '2012-12-13';
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(13,148,136,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                📖 সহকারী প্রতিষ্ঠান প্রধান পরিচিতি
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+              <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(13,148,136,0.25)', border: '3px solid #0d9488' }}>
+                <img src={getTeacherPhoto(asst)} alt={asst.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#0d9488', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                    Employee ID: {asst.employee_id || 'EMP-002'}
+                  </span>
+                  {asst.mpo_index_no && (
+                    <span style={{ background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                      MPO Index: {asst.mpo_index_no}
+                    </span>
+                  )}
+                </div>
+                <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{asst.name_bn || 'তাপসী সরকার'}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{asst.name_en || 'TAPASI SARKER'}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#0d9488', fontWeight: 700, fontSize: '15px' }}>{asst.designation || 'সহকারী প্রধান শিক্ষক'} {asst.subject ? ('(' + asst.subject + ')') : ''}</p>
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                  {asst.phone && <span>📱 {asst.phone}</span>}
+                  {asst.email && <span>✉️ {asst.email}</span>}
+                  <span>📅 বর্তমান পদে যোগদান: {asstJoiningDate}</span>
+                </div>
+              </div>
+            </div>
+
+            {renderTeacherEducationTable(asst, '#0d9488', '#f0fdfa', '#99f6e4')}
+
+            <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#0d9488', fontSize: '16px', fontWeight: 800 }}>
+                💬 সহকারী প্রধান শিক্ষকের একাডেমিক বার্তা:
+              </h4>
+              {speechParas.map((para, i) => (
+                <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // B.1. ICT Teacher (আইসিটি শিক্ষক)
+      if (
+        menuKey === 'public.nav.contact.ict' || 
+        menuKey === 'public.nav.staff.ict' || 
+        title === 'আইসিটি শিক্ষক' || 
+        title?.includes('আইসিটি শিক্ষক')
+      ) {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+        const ict = rawList.find(t => 
+          t && (
+            t.public_contact_role === 'ict_teacher' || 
+            (t.designation && t.designation.includes('আইসিটি')) ||
+            (t.subject && t.subject.includes('আইসিটি')) ||
+            t.employee_id === 'EMP-006' ||
+            (t.name_bn && t.name_bn.includes('আবুবকর'))
+          )
+        ) || rawList.find(t => t && t.employee_id === 'EMP-006') || {};
+
+        const ictPhoto = getTeacherPhoto(ict) || PHOTO_ICT_TEACHER;
+        const speechParas = [
+          'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়কে একটি তথ্যপ্রযুক্তি-সমৃদ্ধ আদর্শ ডিজিটাল শিক্ষা প্রতিষ্ঠান হিসেবে গড়ে তুলতে আমরা নিরবচ্ছিন্নভাবে কাজ করে যাচ্ছি। আধুনিক শেখ রাসেল ডিজিটাল ল্যাব ও স্মার্ট মাল্টিমিডিয়া ক্লাসরুমের সর্বোত্তম ব্যবহার নিশ্চিত করে শিক্ষার্থীদের বাস্তবমুখী কম্পিউটার জ্ঞান ও প্রোগ্রামিংয়ে পারদর্শী করে তোলা হচ্ছে।',
+          'আমাদের লক্ষ্য প্রতিটি শিক্ষার্থীকে একবিংশ শতাব্দীর বৈশ্বিক চ্যালেঞ্জ মোকাবিলার উপযোগী আইসিটি দক্ষতা ও সাইবার নিরাপত্তায় দক্ষ নাগরিক হিসেবে গড়ে তোলা। অনলাইন পোর্টাল, ই-সেবা এবং শিক্ষা বাতায়নের সাথে শিক্ষার্থীদের সম্পৃক্ততায় বিদ্যালয় সর্বদা একধাপ এগিয়ে।'
+        ];
+        const ictJoiningDate = ict.current_post_joining_date || ict.first_joining_date || ict.joining_date || '2005-01-01';
+        const formattedIctPhone = ict.phone ? (ict.phone.length === 11 && !ict.phone.includes('-') ? `${ict.phone.slice(0, 5)}-${ict.phone.slice(5)}` : ict.phone) : '01710-689846';
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(2,132,199,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                💻 তথ্য ও যোগাযোগ প্রযুক্তি (ICT) শিক্ষক পরিচিতি
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #bae6fd', flexWrap: 'wrap' }}>
+              <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(2,132,199,0.25)', border: '3px solid #0284c7', background: '#e0f2fe' }}>
+                <img src={ictPhoto} alt={ict.name_bn || 'মুহাম্মদ আবুবকর সিদ্দিক'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                    Employee ID: {ict.employee_id || 'EMP-006'}
+                  </span>
+                  {ict.mpo_index_no && (
+                    <span style={{ background: '#0369a1', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                      MPO Index: {ict.mpo_index_no}
+                    </span>
+                  )}
+                  <span style={{ background: '#e0f2fe', color: '#0369a1', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid #bae6fd' }}>
+                    💻 আইসিটি ফোকাল পয়েন্ট ও ল্যাব ইনচার্জ
+                  </span>
+                </div>
+                <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{ict.name_bn || 'মুহাম্মদ আবুবকর সিদ্দিক'}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{ict.name_en || 'MUHAMMAD ABUBOKOR SIDDIQUE'}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#0284c7', fontWeight: 700, fontSize: '15px' }}>{ict.designation || 'সিনিয়র শিক্ষক'} • বিষয়: {ict.subject || 'তথ্য ও যোগাযোগ প্রযুক্তি (আইসিটি)'}</p>
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                  <span>📱 {formattedIctPhone}</span>
+                  {ict.email && <span>✉️ {ict.email}</span>}
+                  <span>📅 বর্তমান পদে যোগদান: {ictJoiningDate}</span>
+                </div>
+              </div>
+            </div>
+
+            {renderTeacherEducationTable(ict, '#0284c7', '#f0f9ff', '#bae6fd')}
+
+            <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #bae6fd', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#0284c7', fontSize: '16px', fontWeight: 800 }}>
+                💬 আইসিটি শিক্ষকের ডিজিটাল বার্তা ও প্রযুক্তি রূপকল্প:
+              </h4>
+              {speechParas.map((para, i) => (
+                <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // B.2. Office Assistant (অফিস সহকারী)
+      if (
+        menuKey === 'public.nav.contact.office' || 
+        menuKey === 'public.nav.staff.office' || 
+        title === 'অফিস সহকারী' || 
+        title?.includes('অফিস সহকারী')
+      ) {
+        let liveStaff = [];
+        try { liveStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]'); } catch {}
+        const rawStaff = liveStaff.length ? liveStaff : MOCK_STAFF;
+        let officeAsst = rawStaff.find(s => 
+          s && (
+            s.public_contact_role === 'office_assistant' || 
+            (s.designation && s.designation.includes('অফিস সহকারী')) ||
+            s.employee_id === 'STF-001' ||
+            (s.name_bn && s.name_bn.includes('আলমগীর'))
+          )
+        ) || rawStaff[0] || {};
+
+        // Ensure educational qualifications are available
+        const officeAsstWithEdu = {
+          ...officeAsst,
+          educational_qualifications: officeAsst.educational_qualifications || "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা বোর্ড - বিজ্ঞান - ২০১০ - জিপিএ ৪.৫০ ; এইচএসসি/সমমান - সরকারি এম এম আলী কলেজ, টাঙ্গাইল - ঢাকা বোর্ড - মানবিক - ২০১২ - জিপিএ ৪.২৫ ; স্নাতক (পাস) / ডিগ্রি - সরকারি সা’দত কলেজ - জাতীয় বিশ্ববিদ্যালয় - বি.এ - ২০১৫ - ২য় বিভাগ",
+          professional_degrees: officeAsst.professional_degrees || "ডিপ্লোমা ইন কম্পিউটার - জাতীয় যুব উন্নয়ন অধিদপ্তর, টাঙ্গাইল - যুব ও ক্রীড়া মন্ত্রণালয় - কম্পিউটার অ্যাপ্লিকেশন ও ডাটাবেজ ম্যানেজমেন্ট - ২০১৬ - গ্রেড: এ+"
+        };
+
+        const officePhoto = officeAsst.photo_url || PHOTO_OFFICE_ASSISTANT;
+        const speechParas = [
+          'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের প্রশাসনিক দপ্তর শিক্ষার্থী, অভিভাবক ও সেবাগ্রহীতাদের আন্তরিক সেবা প্রদানে সর্বদা নিয়োজিত। আমাদের অফিস থেকে শিক্ষার্থী ভর্তি কার্যক্রম, বোর্ড পরীক্ষার ফরম পূরণ (eFF), প্রশংসাপত্র ও প্রত্যয়ন পত্র প্রদান, ক্যাশ কাউন্টার ফি আদায় এবং উপবৃত্তি সংক্রান্ত যাবতীয় তথ্য ও প্রাতিষ্ঠানিক সহায়তা দ্রুততার সাথে প্রদান করা হয়।',
+          'যেকোনো প্রাতিষ্ঠানিক তথ্য, সনদ ও সেবা সংক্রান্ত অনুসন্ধানে অফিস চলাকালীন (সকাল ৯:০০ টা হতে বিকাল ৪:০০ টা পর্যন্ত) সরাসরি প্রশাসনিক ভবনে অথবা উল্লেখিত মোবাইল নম্বরে যোগাযোগের জন্য বিনীত অনুরোধ জানানো হচ্ছে।'
+        ];
+        const officeJoiningDate = officeAsst.current_post_joining_date || officeAsst.joining_date || officeAsst.first_joining_date || '2016-02-15';
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(29,78,216,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🏢 প্রশাসনিক কর্মকর্তা ও অফিস সহকারী পরিচিতি
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #bfdbfe', flexWrap: 'wrap' }}>
+              <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(29,78,216,0.25)', border: '3px solid #2563eb', background: '#eff6ff' }}>
+                <img src={officePhoto} alt={officeAsst.name_bn || 'মোঃ আলমগীর হোসেন'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#2563eb', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                    Employee ID: {officeAsst.employee_id || 'STF-001'}
+                  </span>
+                  <span style={{ background: '#eff6ff', color: '#1d4ed8', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid #bfdbfe' }}>
+                    🏢 অফিস সহকারী ও কম্পিউটার অপারেটর
+                  </span>
+                  <span style={{ background: '#f1f5f9', color: '#334155', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
+                    📋 ছাত্র ও একাডেমিক সেবা ডেস্ক
+                  </span>
+                </div>
+                <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{officeAsst.name_bn || 'মোঃ আলমগীর হোসেন'}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{officeAsst.name_en || 'MD ALAMGIR HOSSAIN'}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#2563eb', fontWeight: 700, fontSize: '15px' }}>{officeAsst.designation || 'অফিস সহকারী কাম কম্পিউটার অপারেটর'}</p>
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                  {officeAsst.phone && <span>📱 {officeAsst.phone}</span>}
+                  {officeAsst.email && <span>✉️ {officeAsst.email}</span>}
+                  <span>📅 বর্তমান পদে যোগদান: {officeJoiningDate}</span>
+                </div>
+              </div>
+            </div>
+
+            {renderTeacherEducationTable(officeAsstWithEdu, '#2563eb', '#eff6ff', '#bfdbfe')}
+
+            <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #bfdbfe', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#1d4ed8', fontSize: '16px', fontWeight: 800 }}>
+                💬 অফিস সহকারী ও প্রশাসনিক সেবা ডেস্ক বার্তা:
+              </h4>
+              {speechParas.map((para, i) => (
+                <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // B.3. Contact & Address (যোগাযোগ ও ঠিকানা)
+      if (
+        menuKey === 'public.nav.contact.all' || 
+        menuKey === 'public.nav.contact' || 
+        title === 'যোগাযোগ ও ঠিকানা' || 
+        title === 'যোগাযোগ' ||
+        title?.includes('যোগাযোগ ও ঠিকানা')
+      ) {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawTeachers = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+
+        let liveStaff = [];
+        try { liveStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]'); } catch {}
+        const rawStaff = liveStaff.length ? liveStaff : MOCK_STAFF;
+
+        const head = rawTeachers.find(t => t && (t.public_contact_role === 'head_teacher' || (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) || t.employee_id === 'EMP-001')) || rawTeachers[0] || {};
+        const asst = rawTeachers.find(t => t && (t.public_contact_role === 'assistant_head_teacher' || (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) || t.employee_id === 'EMP-002')) || rawTeachers[1] || {};
+        const ict = rawTeachers.find(t => t && (t.public_contact_role === 'ict_teacher' || (t.designation && t.designation.includes('আইসিটি')) || (t.subject && t.subject.includes('আইসিটি')) || t.employee_id === 'EMP-006' || (t.name_bn && t.name_bn.includes('আবুবকর')))) || rawTeachers.find(t => t && t.employee_id === 'EMP-006') || {};
+        const officeAsst = rawStaff.find(s => s && (s.public_contact_role === 'office_assistant' || (s.designation && s.designation.includes('অফিস সহকারী')) || s.employee_id === 'STF-001' || (s.name_bn && s.name_bn.includes('আলমগীর')))) || rawStaff[0] || {};
+
+        const contacts = [
+          { role: 'প্রতিষ্ঠান প্রধান', person: head, photo: getTeacherPhoto(head), badgeColor: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
+          { role: 'সহকারী প্রতিষ্ঠান প্রধান', person: asst, photo: getTeacherPhoto(asst), badgeColor: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
+          { role: 'আইসিটি শিক্ষক ও ল্যাব ইনচার্জ', person: ict, photo: getTeacherPhoto(ict) || PHOTO_ICT_TEACHER, badgeColor: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
+          { role: 'অফিস সহকারী কাম কম্পিউটার অপারেটর', person: officeAsst, photo: officeAsst.photo_url || PHOTO_OFFICE_ASSISTANT, badgeColor: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+        ];
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(15,23,42,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                📞 যোগাযোগ ও প্রাতিষ্ঠানিক ঠিকানা
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            {/* Institutional Campus Address Card */}
+            <div style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', margin: '16px 0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 6px 0', color: '#0f172a', fontSize: '16px', fontWeight: 800 }}>🏫 ক্যাম্পাসের ঠিকানা ও অবস্থান</h4>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
+                    📍 গ্রাম: মগড়া, ডাকঘর: মগড়া (পোস্ট কোড: ১৯৬১)<br />
+                    উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল, ঢাকা বিভাগ, বাংলাদেশ।
+                  </p>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
+                    📌 EIIN: <b>114290</b> • বিদ্যালয় কোড: <b>4814</b> • কেন্দ্র কোড: <b>203</b>
+                  </p>
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 6px 0', color: '#0f172a', fontSize: '16px', fontWeight: 800 }}>🕒 অফিস সময় ও হেল্পলাইন</h4>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
+                    ⏰ রবিবার হতে বৃহস্পতিবার: সকাল ৯:০০ ঘটিকা — বিকাল ৪:০০ ঘটিকা<br />
+                    (শুক্রবার ও শনিবার এবং সরকারি ছুটির দিনে অফিস বন্ধ থাকে)
+                  </p>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#0369a1', fontWeight: 600 }}>
+                    ✉️ ইমেইল: magrapuhs.46@gmail.com
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 4-Person Contact Grid */}
+            <h4 style={{ margin: '20px 0 12px 0', color: '#0f172a', fontSize: '16px', fontWeight: 800 }}>
+              👥 দায়িত্বপ্রাপ্ত গুরুত্বপূর্ণ কর্মকর্তাবৃন্দের সাথে যোগাযোগ
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+              {contacts.map((c, idx) => (
+                <div key={idx} style={{ background: '#ffffff', borderRadius: '10px', border: `1px solid ${c.border}`, padding: '14px', display: 'flex', gap: '12px', alignItems: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `2px solid ${c.badgeColor}`, background: c.bg }}>
+                    <img src={c.photo} alt={c.person.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 700, color: c.badgeColor, background: c.bg, padding: '1px 6px', borderRadius: '3px', display: 'inline-block', marginBottom: '2px' }}>
+                      {c.role}
+                    </span>
+                    <h5 style={{ margin: '0 0 2px 0', fontSize: '14.5px', color: '#0f172a', fontWeight: 800 }}>{c.person.name_bn || c.person.name_en}</h5>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', color: '#64748b' }}>{c.person.designation}</p>
+                    <div style={{ fontSize: '12px', color: '#334155' }}>
+                      {c.person.phone && <div style={{ fontWeight: 700, color: c.badgeColor }}>📱 {c.person.phone}</div>}
+                      {c.person.email && <div style={{ fontSize: '11px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>✉️ {c.person.email}</div>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // C. Active Teachers (কর্মরত শিক্ষকবৃন্দ)
+      if (menuKey === 'public.nav.staff.active_teachers' || menuKey === 'public.nav.staff.active' || title === 'কর্মরত শিক্ষকবৃন্দ' || title === 'সক্রিয় শিক্ষকবৃন্দ') {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+        let listToDisplay = rawList.filter(t => {
+          if (!t) return false;
+          const isAct = t.status === 'active' || t.status === 'সক্রিয়' || !t.status;
+          const desig = (t.designation || '').toLowerCase();
+          const role = (t.role || t.public_contact_role || '').toLowerCase();
+          const empId = (t.employee_id || '').toUpperCase();
+          const isPresident = desig.includes('সভাপতি') || role.includes('president') || role === 'সভাপতি';
+          const isStaff = empId.startsWith('STF') || desig.includes('অফিস সহকারী') || desig.includes('হিসাব সহকারী') || desig.includes('অফিস সহায়ক') || desig.includes('এমএলএসএস') || desig.includes('mlss') || role.includes('staff');
+          return isAct && !isPresident && !isStaff;
+        });
+
+        listToDisplay = sortPeopleByEmployeeId(listToDisplay);
+
+        const filteredTeachers = listToDisplay.filter(t => {
+          if (selectedTeacherId && selectedTeacherId !== 'all') {
+            if (String(t.id) !== String(selectedTeacherId) && String(t.employee_id) !== String(selectedTeacherId)) {
+              return false;
+            }
+          }
+          if (!searchQuery) return true;
+          const q = searchQuery.toLowerCase();
+          return [
+            t.name_bn,
+            t.name_en,
+            t.employee_id,
+            t.mpo_index_no,
+            t.designation,
+            t.subject,
+            t.phone,
+            t.email,
+            t.educational_qualifications
+          ].filter(Boolean).some(val => String(val).toLowerCase().includes(q));
+        });
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+              <span>👨‍🏫 কর্মরত সম্মানিত শিক্ষকবৃন্দ ({filteredTeachers.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            {/* Search & Quick Dropdown Filter */}
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                placeholder="শিক্ষকের নাম / আইডি / পদবী / বিষয় / যোগ্যতা দিয়ে খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '220px', padding: '9px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13.5px' }}
+              />
+              <select
+                value={selectedTeacherId}
+                onChange={e => setSelectedTeacherId(e.target.value)}
+                style={{ padding: '9px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13.5px', background: '#fff', fontWeight: 600, color: '#334155' }}
+              >
+                <option value="all">👥 সকল কর্মরত শিক্ষক ({listToDisplay.length} জন)</option>
+                {listToDisplay.map((t, i) => (
+                  <option key={t.id || t.employee_id || i} value={t.id || t.employee_id}>
+                    {t.employee_id}: {t.name_bn} {t.designation ? `(${t.designation})` : ''}
+                  </option>
+                ))}
+              </select>
+              {(searchQuery || selectedTeacherId !== 'all') && (
+                <button
+                  type="button"
+                  onClick={() => { setSearchQuery(''); setSelectedTeacherId('all'); }}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '9px 14px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700, color: '#475569' }}
+                >
+                  ✕ রিসেট
+                </button>
+              )}
+            </div>
+
+            {filteredTeachers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>
+                🔍 কোনো শিক্ষকের তথ্য পাওয়া যায়নি। অনুগ্রহ করে অনুসন্ধান কীওয়ার্ড পরিবর্তন করুন।
+              </div>
+            ) : (
+              <div className="active-teachers-detailed-list" style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
+                {filteredTeachers.map((t, idx) => (
+                  <div 
+                    key={t.id || t.employee_id || idx}
+                    style={{ 
+                      background: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                      padding: '16px 18px 4px',
+                      position: 'relative'
+                    }}
+                  >
+                    {/* Profile Header Card */}
+                    <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '0 0 16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(13,148,136,0.25)', border: '3px solid #0d9488' }}>
+                        <img src={getTeacherPhoto(t)} alt={t.name_bn || t.name_en} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: '220px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                          <span style={{ background: '#0d9488', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                            Employee ID: {t.employee_id || `EMP-${String(idx + 1).padStart(3, '0')}`}
+                          </span>
+                          {t.mpo_index_no && (
+                            <span style={{ background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                              MPO Index: {t.mpo_index_no}
+                            </span>
+                          )}
+                        </div>
+                        <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{t.name_bn || t.name_en}</h3>
+                        {t.name_en && <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{t.name_en}</p>}
+                        <p style={{ margin: '0 0 4px 0', color: '#0d9488', fontWeight: 700, fontSize: '15px' }}>
+                          {t.designation || 'সহকারী শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                        </p>
+                        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                          {t.phone && <span>📱 {t.phone}</span>}
+                          {t.email && <span>✉️ {t.email}</span>}
+                          {t.current_post_joining_date && <span>📅 বর্তমান পদে যোগদান: {t.current_post_joining_date}</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Educational Qualification Table */}
+                    {renderTeacherEducationTable(t, '#0d9488', '#f0fdfa', '#99f6e4')}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // D. Active Staff (কর্মরত কর্মচারীবৃন্দ)
+      if (menuKey === 'public.nav.staff.active_staff' || menuKey === 'public.nav.staff.employees' || title === 'কর্মরত কর্মচারীবৃন্দ' || title === 'কর্মচারীবৃন্দ') {
+        let liveStaff = [];
+        try { liveStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]'); } catch {}
+        const staffList = liveStaff.length ? liveStaff : MOCK_STAFF;
+        const sortedStaff = sortPeopleByEmployeeId(staffList.filter(s => s && s.status !== 'inactive'));
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🧑‍💼 কর্মরত কর্মচারীবৃন্দ ({sortedStaff.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+              </span>
+            </div>
+            <p className="lead-text">বিদ্যালয়ের প্রশাসনিক, অফিস ও সেবামূলক কার্যক্রমে নিয়োজিত দায়িত্বশীল কর্মচারীবৃন্দ:</p>
+            <div className="teachers-modal-grid">
+              {sortedStaff.map((s, idx) => (
+                <div key={s.id || idx} className="teacher-modal-card" style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ width: '60px', height: '60px', minWidth: '60px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #2563eb', background: '#eff6ff', display: 'grid', placeItems: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                    {s.photo_url ? (
+                      <img src={s.photo_url} alt={s.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '26px' }}>🧑‍💼</span>
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px', flexWrap: 'wrap' }}>
+                      <span style={{ background: '#2563eb', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px' }}>ID: {s.employee_id}</span>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{s.name_bn || s.name_en}</h4>
+                    </div>
+                    <p style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#2563eb', fontWeight: 600 }}>{s.designation}</p>
+                    {s.phone && <small style={{ display: 'block', color: '#475569' }}>📱 {s.phone}</small>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // E. Former Head Teachers (প্রাক্তন প্রধান শিক্ষকবৃন্দ)
+      if (menuKey === 'public.nav.staff.former_heads' || title === 'প্রাক্তন প্রধান শিক্ষকবৃন্দ' || title?.includes('প্রাক্তন প্রধান শিক্ষক')) {
+        const formerHeads = formerPersonnel.former_heads || [];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🏛️ প্রাক্তন প্রধান শিক্ষকবৃন্দের তালিকা ({formerHeads.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                প্রতিষ্ঠাকাল: ১৯৪৬ খ্রি.
+              </span>
+            </div>
+            <p className="lead-text">
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ে প্রতিষ্ঠালগ্ন থেকে বিভিন্ন মেয়াদে নিষ্ঠা ও সুনামের সাথে দায়িত্ব পালনকারী শ্রদ্ধেয় প্রাক্তন প্রধান শিক্ষকবৃন্দ:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginTop: '14px' }}>
+              {formerHeads.map((fh, idx) => (
+                <div key={fh.id || idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '64px', height: '64px', minWidth: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #047857', background: '#ecfdf5', display: 'grid', placeItems: 'center' }}>
+                    {fh.photo_url ? (
+                      <img src={fh.photo_url} alt={fh.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '28px' }}>🎓</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 800 }}>{fh.name_bn}</h4>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '4px' }}>
+                        📅 {fh.tenure}
+                      </span>
+                    </div>
+                    {fh.name_en && <small style={{ color: '#64748b', display: 'block' }}>{fh.name_en}</small>}
+                    <p style={{ margin: '4px 0 2px 0', fontSize: '13px', color: '#047857', fontWeight: 700 }}>{fh.designation || 'প্রাক্তন প্রধান শিক্ষক'}</p>
+                    {fh.education && <small style={{ color: '#475569', display: 'block' }}>📜 {fh.education}</small>}
+                    {fh.notes && <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: '#64748b', lineHeight: 1.4 }}>{fh.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // F. Former Assistant Head Teachers (প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দ)
+      if (menuKey === 'public.nav.staff.former_assistants' || title === 'প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দ' || title?.includes('প্রাক্তন সহকারী প্রধান')) {
+        const formerAssistants = formerPersonnel.former_assistants || [];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🏛️ প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দের তালিকা ({formerAssistants.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+              </span>
+            </div>
+            <p className="lead-text">
+              বিদ্যালয়ে বিভিন্ন মেয়াদে প্রাত্যহিক একাডেমিক ও প্রশাসনিক পরিচালনায় নিষ্ঠার সাথে দায়িত্ব পালনকারী শ্রদ্ধেয় প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দ:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginTop: '14px' }}>
+              {formerAssistants.map((fa, idx) => (
+                <div key={fa.id || idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '64px', height: '64px', minWidth: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #0d9488', background: '#f0fdfa', display: 'grid', placeItems: 'center' }}>
+                    {fa.photo_url ? (
+                      <img src={fa.photo_url} alt={fa.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '28px' }}>📖</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 800 }}>{fa.name_bn}</h4>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#ccfbf1', color: '#0f766e', padding: '2px 8px', borderRadius: '4px' }}>
+                        📅 {fa.tenure}
+                      </span>
+                    </div>
+                    {fa.name_en && <small style={{ color: '#64748b', display: 'block' }}>{fa.name_en}</small>}
+                    <p style={{ margin: '4px 0 2px 0', fontSize: '13px', color: '#0d9488', fontWeight: 700 }}>{fa.designation || 'প্রাক্তন সহকারী প্রধান শিক্ষক'}</p>
+                    {fa.education && <small style={{ color: '#475569', display: 'block' }}>📜 {fa.education}</small>}
+                    {fa.notes && <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: '#64748b', lineHeight: 1.4 }}>{fa.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // G. Former Teachers (প্রাক্তন শিক্ষকবৃন্দ)
+      if (menuKey === 'public.nav.staff.former_teachers' || menuKey === 'public.nav.staff.former' || title === 'প্রাক্তন শিক্ষকবৃন্দ' || title === 'সাবেক শিক্ষকবৃন্দ') {
+        const formerTeachers = formerPersonnel.former_teachers || [];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>👨‍🏫 প্রাক্তন শিক্ষকবৃন্দের তালিকা ({formerTeachers.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                স্মরণীয় শিক্ষকবৃন্দ
+              </span>
+            </div>
+            <p className="lead-text">
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের প্রাক্তন ও অবসরপ্রাপ্ত সম্মানিত শিক্ষকবৃন্দ, যাঁদের অক্লান্ত পরিশ্রমে গড়ে উঠেছে হাজারো কৃতী শিক্ষার্থী:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginTop: '14px' }}>
+              {formerTeachers.map((ft, idx) => (
+                <div key={ft.id || idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '60px', height: '60px', minWidth: '60px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #047857', background: '#ecfdf5', display: 'grid', placeItems: 'center' }}>
+                    {ft.photo_url ? (
+                      <img src={ft.photo_url} alt={ft.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '26px' }}>👨‍🏫</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 800 }}>{ft.name_bn}</h4>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#ecfdf5', color: '#065f46', padding: '2px 8px', borderRadius: '4px' }}>
+                        📅 {ft.tenure}
+                      </span>
+                    </div>
+                    <p style={{ margin: '3px 0 2px 0', fontSize: '13px', color: '#047857', fontWeight: 700 }}>
+                      {ft.designation || 'প্রাক্তন শিক্ষক'} {ft.subject ? ('• বিষয়: ' + ft.subject) : ''}
+                    </p>
+                    {ft.education && <small style={{ color: '#475569', display: 'block' }}>🎓 {ft.education}</small>}
+                    {ft.notes && <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>{ft.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // H. Former Staff (প্রাক্তন কর্মচারীবৃন্দ)
+      if (menuKey === 'public.nav.staff.former_staff' || menuKey === 'public.nav.staff.formerEmployees' || title === 'প্রাক্তন কর্মচারীবৃন্দ' || title === 'সাবেক কর্মচারীবৃন্দ') {
+        const formerStaff = formerPersonnel.former_staff || [];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🧑‍💼 প্রাক্তন কর্মচারীবৃন্দের তালিকা ({formerStaff.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                শ্রদ্ধেয় কর্মচারীবৃন্দ
+              </span>
+            </div>
+            <p className="lead-text">
+              বিদ্যালয়ে অতীতে নিষ্ঠা ও আন্তরিকতার সাথে সেবা প্রদানকারী সম্মানিত প্রাক্তন কর্মচারীবৃন্দ:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginTop: '14px' }}>
+              {formerStaff.map((fs, idx) => (
+                <div key={fs.id || idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '56px', height: '56px', minWidth: '56px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #2563eb', background: '#eff6ff', display: 'grid', placeItems: 'center' }}>
+                    {fs.photo_url ? (
+                      <img src={fs.photo_url} alt={fs.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '24px' }}>🧑‍💼</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 800 }}>{fs.name_bn}</h4>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: '4px' }}>
+                        📅 {fs.tenure}
+                      </span>
+                    </div>
+                    <p style={{ margin: '3px 0 2px 0', fontSize: '13px', color: '#2563eb', fontWeight: 700 }}>
+                      {fs.designation || 'প্রাক্তন কর্মচারী'}
+                    </p>
+                    {fs.notes && <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>{fs.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+    }
+    // 3. Students
+    if (menuKey.startsWith('public.nav.students')) {
+      // 3.1 সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থী
+      if (menuKey === 'public.nav.students.govt_scholarship' || menuKey === 'public.nav.students.scholarship') {
+        const govtList = getStoredGovtScholarships();
+        const filteredGovt = govtList.filter(item => {
+          if (filterClass !== 'all' && !item.class_name.includes(filterClass)) return false;
+          if (!searchQuery) return true;
+          return [item.name_bn, item.student_id, item.scholarship_type, item.exam_type, item.academic_year].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        const handlePrintGovt = () => {
+          const w = window.open('', '_blank');
+          if (!w) return;
+          const rows = filteredGovt.map((r, i) => `
+            <tr>
+              <td style="text-align:center;">${i + 1}</td>
+              <td><b>${r.name_bn}</b><br><small>${r.student_id || '—'}</small></td>
+              <td style="text-align:center;">শ্রেণি ${r.class_name} (রোল ${r.roll_no || '—'})</td>
+              <td><b>${r.scholarship_type}</b><br><small>${r.exam_type}</small></td>
+              <td style="text-align:center;">${r.academic_year}</td>
+              <td style="text-align:center;font-weight:700;">৳ ${r.amount}</td>
+              <td>${r.provider}</td>
+              <td style="text-align:center;">${r.status}</td>
+            </tr>
+          `).join('');
+          w.document.write(`
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থী তালিকা</title>
+            <style>
+              body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+              .hdr { text-align: center; border-bottom: 2px double #0284c7; padding-bottom: 10px; margin-bottom: 15px; }
+              .hdr h1 { margin: 0; color: #15803d; font-size: 22px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+              th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+              th { background: #f8fafc; font-weight: 700; }
+            </style></head><body>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থীদের অফিসিয়াল রেজিস্ট্রি ও বিবরণ</p></div>
+            <table><thead><tr><th>ক্রম</th><th>শিক্ষার্থীর নাম</th><th>শ্রেণি ও রোল</th><th>বৃত্তির ধরন</th><th>শিক্ষাবর্ষ</th><th>অনুদান</th><th>কর্তৃপক্ষ</th><th>অবস্থা</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+            <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+            </body></html>
+          `);
+          w.document.close();
+        };
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div className="modal-hero-badge" style={{ margin: 0 }}>🎖️ সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থী ({filteredGovt.length} জন)</div>
+              <button
+                type="button"
+                onClick={handlePrintGovt}
+                style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট / PDF তালিকা
+              </button>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="শিক্ষার্থীর নাম / বৃত্তি / সাল খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি</option>
+                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৯ম">৯ম শ্রেণি</option>
+                <option value="১০ম">১০ম শ্রেণি</option>
+              </select>
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>শিক্ষার্থীর নাম ও আইডি</th>
+                  <th>শ্রেণি ও রোল</th>
+                  <th>বৃত্তির ক্যাটাগরি ও পরীক্ষা</th>
+                  <th>শিক্ষাবর্ষ</th>
+                  <th>অনুদানের হার</th>
+                  <th>প্রদানকারী কর্তৃপক্ষ</th>
+                  <th>অবস্থা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredGovt.map(item => (
+                  <tr key={item.id}>
+                    <td>
+                      <b>{item.name_bn}</b>
+                      {item.student_id && <small style={{ display: 'block', color: '#64748b' }}>{item.student_id}</small>}
+                    </td>
+                    <td>শ্রেণি {item.class_name} (রোল {item.roll_no || '—'})</td>
+                    <td>
+                      <span style={{
+                        background: item.scholarship_type.includes('ট্যালেন্টপুল') ? '#fef3c7' : '#e0f2fe',
+                        color: item.scholarship_type.includes('ট্যালেন্টপুল') ? '#b45309' : '#0369a1',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700
+                      }}>
+                        {item.scholarship_type}
+                      </span>
+                      <small style={{ display: 'block', color: '#475569', marginTop: '2px' }}>{item.exam_type}</small>
+                    </td>
+                    <td>{item.academic_year}</td>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>৳ {item.amount}</td>
+                    <td><small>{item.provider}</small></td>
+                    <td><span className="status-green">✓ {item.status}</span></td>
+                  </tr>
+                ))}
+                {!filteredGovt.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো সরকারি বৃত্তিপ্রাপ্ত শিক্ষার্থীর রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 3.2 উপবৃত্তি প্রাপ্ত শিক্ষার্থী (৭টি শিরোনামযুক্ত টেবিল ও সুনির্দিষ্ট সর্টিং)
+      if (menuKey === 'public.nav.students.stipend') {
+        const stipendList = getStoredStipendStudents();
+        const normCls = (cls) => {
+          if (!cls) return '';
+          return String(cls).replace(/শ্রেণি|শ্রেণী/g, '').trim();
+        };
+
+        const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+        const parseNum = (val) => {
+          if (!val && val !== 0) return 99999;
+          const str = String(val).trim();
+          const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+          const m = converted.match(/\d+/);
+          return m ? parseInt(m[0], 10) : 99999;
+        };
+
+        const getDepartmentName = (item) => {
+          const norm = normCls(item.class_name);
+          if (['6', '7', '8', '৬', '৭', '৮', '৬ষ্ঠ', '৭ম', '৮ম'].includes(norm)) {
+            return '—';
+          }
+          const str = [item.department, item.group_name, item.group, item.section, item.student_id, item.id]
+            .filter(Boolean)
+            .join(' ')
+            .replace(/য়/g, 'য়')
+            .toLowerCase();
+          if (str.includes('বিজ্ঞান') || str.includes('sci')) return 'বিজ্ঞান';
+          if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 'মানবিক';
+          if (str.includes('ব্যবসায়') || str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 'ব্যবসায় শিক্ষা';
+          return item.department ? String(item.department).replace(/য়/g, 'য়') : '—';
+        };
+
+        const getDeptPriority = (s) => {
+          const norm = normCls(s.class_name);
+          const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(norm);
+          if (!isSSC) return 0;
+          const dept = getDepartmentName(s);
+          if (dept === 'বিজ্ঞান') return 1;
+          if (dept === 'মানবিক') return 2;
+          if (dept === 'ব্যবসায় শিক্ষা') return 3;
+          return 4;
+        };
+
+        // Strict sorting: 9-10 (Science -> Humanities -> Business Studies, then roll 1,2,3...), 6-8 (roll 1,2,3...)
+        const sortStipendBeneficiaries = (list) => {
+          return [...list].sort((a, b) => {
+            const ca = parseNum(a.class_name);
+            const cb = parseNum(b.class_name);
+            if (ca !== cb) return ca - cb;
+
+            if (ca === 9 || ca === 10 || ['9', '10', '৯', '১০'].includes(String(ca))) {
+              const pa = getDeptPriority(a);
+              const pb = getDeptPriority(b);
+              if (pa !== pb) return pa - pb;
+            }
+
+            const ra = parseNum(a.roll_no);
+            const rb = parseNum(b.roll_no);
+            if (ra !== rb) return ra - rb;
+
+            return String(a.name_bn || '').localeCompare(String(b.name_bn || ''));
+          });
+        };
+
+        const filteredStipend = stipendList.filter(item => {
+          if (filterClass !== 'all') {
+            const fc = normCls(filterClass);
+            const ic = normCls(item.class_name);
+            if (ic !== fc && !item.class_name.includes(filterClass)) return false;
+          }
+          if (!searchQuery) return true;
+          return [item.name_bn, item.student_id, item.roll_no, item.guardian_name, item.scheme_name, item.section, item.department].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        const sortedStipend = sortStipendBeneficiaries(filteredStipend);
+
+        const handlePrintStipend = () => {
+          const w = window.open('', '_blank');
+          if (!w) return;
+          const rows = sortedStipend.map((r, i) => `
+            <tr>
+              <td><b>${r.name_bn}</b><br><small>${r.student_id || '—'}</small></td>
+              <td style="text-align:center;font-weight:700;padding:6px 4px;">${normCls(r.class_name)}</td>
+              <td style="text-align:center;padding:6px 4px;">${getDepartmentName(r)}</td>
+              <td style="text-align:center;font-weight:800;padding:6px 4px;">${toBn(r.roll_no || '—')}</td>
+              <td>${r.guardian_name || r.father_name || '—'}</td>
+              <td>${r.scheme_name || 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)'}</td>
+              <td style="text-align:center;color:#047857;font-weight:700;font-size:11px;padding:6px 4px;">✓ ${r.status || 'অনুমোদিত ও সক্রিয়'}</td>
+            </tr>
+          `).join('');
+          w.document.write(`
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>উপবৃত্তি সুবিধাভোগী শিক্ষার্থী তালিকা</title>
+            <style>
+              body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+              .hdr { text-align: center; border-bottom: 2px double #059669; padding-bottom: 10px; margin-bottom: 15px; }
+              .hdr h1 { margin: 0; color: #047857; font-size: 22px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+              th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+              th { background: #f0fdf4; font-weight: 700; color: #166534; }
+            </style></head><body>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>সমন্বিত উপবৃত্তি কর্মসূচি (HSP) ও ট্রাস্ট সুবিধাভোগী শিক্ষার্থী রেজিস্ট্রি</p></div>
+            <table><thead><tr><th style="min-width:200px;">শিক্ষার্থীর নাম ও আইডি</th><th style="text-align:center;width:48px;">শ্রেণি</th><th style="text-align:center;width:75px;">বিভাগ</th><th style="text-align:center;width:50px;">রোল নং</th><th>অভিভাবকের নাম</th><th>উপবৃত্তি প্রকল্প</th><th style="text-align:center;width:95px;">স্ট্যাটাস</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+            <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+            </body></html>
+          `);
+          w.document.close();
+        };
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div className="modal-hero-badge" style={{ margin: 0, background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>
+                💳 উপবৃত্তি প্রাপ্ত শিক্ষার্থী ({sortedStipend.length} জন)
+              </div>
+              <button
+                type="button"
+                onClick={handlePrintStipend}
+                style={{ background: '#059669', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট / PDF তালিকা
+              </button>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="শিক্ষার্থীর নাম / অভিভাবক / প্রকল্প / রোল খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি</option>
+                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৯ম">৯ম শ্রেণি</option>
+                <option value="১০ম">১০ম শ্রেণি</option>
+              </select>
+            </div>
+
+            <table className="modal-table" style={{ width: '100%', tableLayout: 'auto' }}>
+              <thead>
+                <tr>
+                  <th style={{ minWidth: '220px', width: '28%' }}>শিক্ষার্থীর নাম ও আইডি</th>
+                  <th style={{ textAlign: 'center', width: '48px', padding: '10px 4px', whiteSpace: 'nowrap' }}>শ্রেণি</th>
+                  <th style={{ textAlign: 'center', width: '75px', padding: '10px 4px', whiteSpace: 'nowrap' }}>বিভাগ</th>
+                  <th style={{ textAlign: 'center', width: '50px', padding: '10px 4px', whiteSpace: 'nowrap' }}>রোল নং</th>
+                  <th style={{ minWidth: '150px' }}>অভিভাবকের নাম</th>
+                  <th style={{ minWidth: '140px' }}>উপবৃত্তি প্রকল্প</th>
+                  <th style={{ textAlign: 'center', width: '95px', padding: '10px 4px', whiteSpace: 'nowrap' }}>স্ট্যাটাস</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedStipend.map(item => {
+                  const dept = getDepartmentName(item);
+                  return (
+                    <tr key={item.id || item.student_id}>
+                      <td style={{ padding: '10px 12px' }}>
+                        <b style={{ color: '#0f172a', fontSize: '13.5px', display: 'inline-block', lineHeight: 1.35 }}>{item.name_bn}</b>
+                        {item.student_id && <small style={{ display: 'block', color: '#64748b', fontSize: '11px', marginTop: '2px' }}>{item.student_id}</small>}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: 700, color: '#047857', padding: '9px 4px', whiteSpace: 'nowrap' }}>
+                        {normCls(item.class_name)}
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '9px 4px', whiteSpace: 'nowrap' }}>
+                        {dept !== '—' ? (
+                          <span style={{
+                            background: dept === 'বিজ্ঞান' ? '#e0f2fe' : dept === 'মানবিক' ? '#fef3c7' : '#f3e8ff',
+                            color: dept === 'বিজ্ঞান' ? '#0369a1' : dept === 'মানবিক' ? '#92400e' : '#6b21a8',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontWeight: 700,
+                            fontSize: '11.5px',
+                            display: 'inline-block'
+                          }}>
+                            {dept}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: 800, color: '#0f172a', padding: '9px 4px', whiteSpace: 'nowrap' }}>
+                        {toBn(item.roll_no)}
+                      </td>
+                      <td>
+                        <span style={{ color: '#1e293b' }}>{item.guardian_name || item.father_name || '—'}</span>
+                        {item.guardian_phone && (
+                          <small style={{ display: 'block', color: '#64748b' }}>📱 {item.guardian_phone}</small>
+                        )}
+                      </td>
+                      <td>
+                        <small style={{ fontWeight: 600, color: '#334155' }}>{item.scheme_name || 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)'}</small>
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '9px 4px' }}>
+                        <span className="status-green" style={{ fontSize: '11px', padding: '3px 6px', display: 'inline-block', lineHeight: 1.2 }}>
+                          ✓ {item.status || 'অনুমোদিত ও সক্রিয়'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {!sortedStipend.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '24px 16px', color: '#64748b' }}>কোনো উপবৃত্তি সুবিধাভোগীর রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 3.3 অধ্যয়নরত কৃতি শিক্ষার্থী (৭ম, ৮ম এবং ৯ম ও ১০ম শ্রেণির বিজ্ঞান বিভাগের রোল ১, ২, ৩)
+      if (menuKey === 'public.nav.students.meritorious' || menuKey === 'public.nav.students.distinguished') {
+        const meritList = getStoredMeritoriousStudents();
+        const filteredMerit = meritList.filter(item => {
+          if (filterClass !== 'all' && !item.class_name.includes(filterClass)) return false;
+          if (!searchQuery) return true;
+          return [item.name_bn, item.category, item.achievement_title, item.academic_year, item.student_id, item.roll_no, item.section].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        const handlePrintMerit = () => {
+          const w = window.open('', '_blank');
+          if (!w) {
+            alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজার পপ-আপ অনুমোদন করুন।');
+            return;
+          }
+          const rows = filteredMerit.map((r, i) => `
+            <tr>
+              <td style="text-align:center;font-weight:700;">${toBn(i + 1)}</td>
+              <td><b>${r.name_bn}</b><br><small style="color:#0369a1;font-family:monospace;font-weight:600;">ID: ${r.student_id || '—'}</small></td>
+              <td style="text-align:center;font-weight:700;color:#047857;">শ্রেণি ${r.class_name}</td>
+              <td style="text-align:center;">${r.section || '—'}</td>
+              <td style="text-align:center;font-weight:800;font-size:12px;color:#0f172a;">${toBn(r.roll_no || '—')}</td>
+              <td style="color:#b45309;font-weight:700;">${r.category}</td>
+              <td style="font-weight:600;color:#1e293b;">${r.achievement_title}</td>
+              <td style="text-align:center;font-weight:600;">${r.academic_year || '২০২৫-২০২৬'}</td>
+            </tr>
+          `).join('');
+
+          const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+          const yearBn = toBn(new Date().getFullYear());
+
+          w.document.write(`
+            <!DOCTYPE html>
+            <html lang="bn">
+            <head>
+              <meta charset="utf-8">
+              <title>অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা তালিকা - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+              <style>
+                ${SCHOOL_PAD_STYLES}
+
+                @page { size: A4 portrait; margin: 8mm 10mm; }
+                body {
+                  font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif;
+                  margin: 0;
+                  padding: 4px 8px;
+                  color: #0f172a;
+                  background: #fff;
+                  font-size: 11px;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                .cert-ref-date {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin: 2px 0 6px 0;
+                  font-size: 11px;
+                  font-weight: 700;
+                  color: #1e293b;
+                  border-bottom: 1px dashed #cbd5e1;
+                  padding-bottom: 3px;
+                }
+                .cert-ribbon-row {
+                  text-align: center;
+                  margin: 4px 0 8px 0;
+                }
+                .cert-type-ribbon {
+                  display: inline-block;
+                  background: #fef3c7;
+                  border: 1.5px solid #b45309;
+                  border-radius: 6px;
+                  padding: 3px 18px;
+                  box-shadow: 0 1px 3px rgba(180,83,9,0.12);
+                }
+                .ribbon-bn {
+                  font-size: 14.5px;
+                  font-weight: 900;
+                  color: #78350f;
+                  letter-spacing: 0.3px;
+                }
+                .ribbon-sub {
+                  font-size: 10px;
+                  font-weight: 700;
+                  color: #92400e;
+                  margin-top: 1px;
+                }
+                table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  margin-top: 4px;
+                  font-size: 11px;
+                }
+                th {
+                  background: #fef3c7 !important;
+                  color: #78350f !important;
+                  font-weight: 800 !important;
+                  border: 1px solid #cbd5e1;
+                  padding: 5px 4px;
+                  text-align: center;
+                  font-size: 10.5px;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                td {
+                  border: 1px solid #cbd5e1;
+                  padding: 4px 5px;
+                  vertical-align: middle;
+                  font-size: 10.5px;
+                }
+                tr:nth-child(even) {
+                  background-color: #fffbeb !important;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                .cert-footer-signs {
+                  margin-top: 38px;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: flex-end;
+                  padding: 0 40px;
+                  page-break-inside: avoid;
+                }
+                .sign-box {
+                  text-align: center;
+                  border-top: 1.5px solid #0f172a;
+                  width: 180px;
+                  padding-top: 4px;
+                }
+                .sign-title {
+                  font-size: 11.5px;
+                  font-weight: 800;
+                  color: #0f172a;
+                }
+                .sign-sub {
+                  font-size: 10px;
+                  color: #475569;
+                }
+                @media print {
+                  .no-print { display: none !important; }
+                  body { padding: 0; margin: 0; }
+                  tr { page-break-inside: avoid; }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="no-print" style="margin-bottom: 12px; display: flex; gap: 10px; justify-content: flex-end; background: #f0fdf4; padding: 8px 12px; border-radius: 8px; border: 1px solid #86efac;">
+                <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:7px 18px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13.5px;">🖨️ প্রিন্ট করুন / Save as PDF</button>
+                <button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13.5px;">✕ বন্ধ করুন</button>
+              </div>
+
+              <!-- Official School Pad Header (As used in certificates) -->
+              <div class="cert-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                ${SCHOOL_PAD_HEADER_HTML}
+              </div>
+
+              <!-- Reference & Date Line -->
+              <div class="cert-ref-date">
+                <div>স্মারক নংঃ <b>মপাউবি/প্রশা/কৃতি/${yearBn}-১০১</b></div>
+                <div>তারিখ: <b>${todayBn} খ্রি.</b></div>
+              </div>
+
+              <!-- Certificate Ribbon -->
+              <div class="cert-ribbon-row">
+                <div class="cert-type-ribbon">
+                  <div class="ribbon-bn">🏆 অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা তালিকা ও মেধা রেজিস্ট্রি</div>
+                  <div class="ribbon-sub">শিক্ষাবর্ষ: ২০২৫-২০২৬ • মোট কৃতি শিক্ষার্থী: ${toBn(filteredMerit.length)} জন</div>
+                </div>
+              </div>
+
+              <!-- Meritorious Students Table (Without Photo column for 1-page Portrait print) -->
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:30px;">ক্রম</th>
+                    <th>শিক্ষার্থীর নাম ও আইডি</th>
+                    <th style="width:65px;">শ্রেণি</th>
+                    <th style="width:85px;">বিভাগ/শাখা</th>
+                    <th style="width:38px;">রোল</th>
+                    <th style="width:165px;">মেধার ক্যাটাগরি</th>
+                    <th>বিশেষ কৃতিত্ব ও অর্জন</th>
+                    <th style="width:75px;">সেশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows || '<tr><td colspan="8" style="text-align:center;padding:18px;">কোনো কৃতি শিক্ষার্থীর রেকর্ড পাওয়া যায়নি</td></tr>'}
+                </tbody>
+              </table>
+
+              <!-- Two-signature official bottom section (Class teacher removed as list covers multiple classes) -->
+              <div class="cert-footer-signs">
+                <div class="sign-box">
+                  <div class="sign-title">সহকারী প্রধান শিক্ষক</div>
+                  <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+                </div>
+                <div class="sign-box">
+                  <div class="sign-title">প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
+                  <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+                </div>
+              </div>
+
+              <script>
+                window.onload = function() {
+                  setTimeout(function() { window.print(); }, 250);
+                };
+              </script>
+            </body>
+            </html>
+          `);
+          w.document.close();
+        };
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div className="modal-hero-badge" style={{ margin: 0, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                🏆 অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা গ্যালারি ({filteredMerit.length} জন)
+              </div>
+              <button
+                type="button"
+                onClick={handlePrintMerit}
+                style={{ background: '#b45309', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট সম্মাননা তালিকা
+              </button>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <input
+                placeholder="কৃতি শিক্ষার্থীর নাম / রোল / অর্জন খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি</option>
+                <option value="১০ম">১০ম শ্রেণি (বিজ্ঞান)</option>
+                <option value="৯ম">৯ম শ্রেণি (বিজ্ঞান)</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '14px' }}>
+              {filteredMerit.map(item => (
+                <div key={item.id} style={{
+                  background: '#ffffff',
+                  border: '1px solid #fde68a',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  boxShadow: '0 2px 8px rgba(180,83,9,0.06)',
+                  display: 'flex',
+                  gap: '14px',
+                  alignItems: 'flex-start',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                }}>
+                  <img
+                    src={getStudentPhoto(item) || item.photo_url || PHOTO_STUDENT_MALE_1}
+                    alt={item.name_bn}
+                    style={{ width: '68px', height: '68px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #fde68a', flexShrink: 0 }}
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = item.photo_url || PHOTO_STUDENT_MALE_1; }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px', flexWrap: 'wrap' }}>
+                      <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#1e293b', fontWeight: 800 }}>{item.name_bn}</h4>
+                      <span style={{ fontSize: '11px', color: '#92400e', fontWeight: 700, background: '#fef3c7', padding: '1px 6px', borderRadius: '4px' }}>
+                        রোল {toBn(item.roll_no)}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                      শ্রেণি {item.class_name} • {item.section || '—'}
+                    </span>
+                    <span style={{
+                      display: 'inline-block',
+                      background: '#ecfdf5',
+                      color: '#065f46',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      marginBottom: '6px',
+                      border: '1px solid #a7f3d0'
+                    }}>
+                      ⭐ {item.category}
+                    </span>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#047857', fontWeight: 600, lineHeight: 1.4 }}>
+                      {item.achievement_title}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {!filteredMerit.length && (
+              <p style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>কোনো কৃতি শিক্ষার্থীর রেকর্ড পাওয়া যায়নি।</p>
+            )}
+          </div>
+        );
+      }
+
+      // 3.4 সাবেক কৃতি শিক্ষার্থী
+      if (menuKey === 'public.nav.students.former_meritorious' || menuKey === 'public.nav.students.formerDistinguished') {
+        const formerMeritList = getStoredFormerMeritorious();
+        const filteredFormer = formerMeritList.filter(item => {
+          if (!searchQuery) return true;
+          return [item.name_bn, item.passing_year, item.exam_result, item.higher_education, item.current_status].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe', marginBottom: '14px' }}>
+              🌟 সাবেক কৃতি শিক্ষার্থী গৌরবগাঁথা ও অ্যালামনাই রেজিস্ট্রি ({filteredFormer.length} জন)
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <input
+                placeholder="সাবেক কৃতি শিক্ষার্থী / পাসের বছর / বিশ্ববিদ্যালয় / পেশা খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '220px' }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px' }}>
+              {filteredFormer.map(item => (
+                <div key={item.id} style={{
+                  background: '#ffffff',
+                  border: '1px solid #e9d5ff',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  boxShadow: '0 2px 8px rgba(109,40,217,0.06)',
+                  display: 'flex',
+                  gap: '14px',
+                  alignItems: 'flex-start'
+                }}>
+                  <img
+                    src={item.photo_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop'}
+                    alt={item.name_bn}
+                    style={{ width: '64px', height: '64px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #ddd6fe', flexShrink: 0 }}
+                  />
+                  <div>
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#1e293b' }}>{item.name_bn}</h4>
+                    <span style={{
+                      display: 'inline-block',
+                      background: '#f5f3ff',
+                      color: '#6d28d9',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      marginBottom: '6px'
+                    }}>
+                      🎓 {item.exam_result}
+                    </span>
+                    {item.higher_education && (
+                      <p style={{ margin: '0 0 3px 0', fontSize: '12px', color: '#334155' }}>
+                        <b>উচ্চশিক্ষা:</b> {item.higher_education}
+                      </p>
+                    )}
+                    {item.current_status && (
+                      <p style={{ margin: 0, fontSize: '12px', color: '#047857', fontWeight: 600 }}>
+                        <b>বর্তমান অবস্থান:</b> {item.current_status}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {!filteredFormer.length && (
+              <p style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>কোনো সাবেক কৃতি শিক্ষার্থীর রেকর্ড পাওয়া যায়নি।</p>
+            )}
+          </div>
+        );
+      }
+
+      // 3.5 শিক্ষার্থীর শ্রেণি ও আসন
+      if (menuKey === 'public.nav.students.class_seats' || menuKey === 'public.nav.students.seats') {
+        const seats = getStoredClassSeats();
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', marginBottom: '14px' }}>
+              🪑 শ্রেণিভিত্তিক আসন সংখ্যা ও ভর্তি ধারণক্ষমতা বিবরণী
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>শ্রেণি</th>
+                  <th>শাখা / বিভাগ</th>
+                  <th>অনুমোদিত মোট আসন</th>
+                  <th>ভর্তিকৃত ছাত্র</th>
+                  <th>ভর্তিকৃত ছাত্রী</th>
+                  <th>মোট শিক্ষার্থী</th>
+                  <th>অবশিষ্ট খালি আসন</th>
+                  <th>ভর্তি অবস্থা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {seats.map(c => (
+                  <tr key={c.class_id}>
+                    <td style={{ fontWeight: 700 }}>{c.class_name}</td>
+                    <td>{c.sections}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, fontSize: '14px' }}>{c.capacity}</td>
+                    <td style={{ textAlign: 'center', color: '#0369a1' }}>{c.boys}</td>
+                    <td style={{ textAlign: 'center', color: '#d97706' }}>{c.girls}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#1e3a8a' }}>{c.enrolled}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, color: c.vacant > 0 ? '#059669' : '#dc2626' }}>
+                      {c.vacant} টি
+                    </td>
+                    <td><span className="status-green">{c.admission_status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 3.6 Default: অধ্যয়নরত শিক্ষার্থী (Full Directory)
+      let liveStudents = [];
+      try {
+        const raw = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
+        liveStudents = Array.isArray(raw) && raw.length ? raw : (Array.isArray(MOCK_STUDENTS) ? MOCK_STUDENTS : []);
+      } catch {
+        liveStudents = Array.isArray(MOCK_STUDENTS) ? MOCK_STUDENTS : [];
+      }
+
+      const filteredList = sortStudentsList(liveStudents)
+        .filter(s => filterClass === 'all' || String(s.class_name) === String(filterClass))
+        .filter(s => {
+          if (filterGroup === 'all') return true;
+          const grp = (s.department || s.group_name || s.group || s.section || '').trim().toLowerCase();
+          const target = filterGroup.trim().toLowerCase();
+          if (target.includes('বিজ্ঞান')) return grp.includes('বিজ্ঞান');
+          if (target.includes('মানবিক')) return grp.includes('মানবিক');
+          if (target.includes('ব্যবসা')) return grp.includes('ব্যবসা');
+          return grp === target;
+        })
+        .filter(s => {
+          if (filterReligion === 'all') return true;
+          const rel = (s.religion || 'ইসলাম').trim();
+          return rel === filterReligion;
+        })
+        .filter(s => {
+          if (filterGender === 'all') return true;
+          const gen = (s.gender || 'male').toLowerCase();
+          if (filterGender === 'male') return gen.includes('পুরুষ') || gen.includes('male') || gen.includes('ছাত্র') || gen === 'm';
+          if (filterGender === 'female') return gen.includes('নারী') || gen.includes('female') || gen.includes('মহিলা') || gen.includes('ছাত্রী') || gen === 'f';
+          return true;
+        })
+        .filter(s => {
+          if (!searchQuery) return true;
+          const haystack = [s.student_id, s.name_bn, s.name_en, s.roll_no, s.guardian_name, s.father_name, s.mother_name, s.group_name, s.group, s.current_village, s.current_post_office, s.current_upazila, s.current_district, s.permanent_village, s.permanent_post_office, s.permanent_upazila, s.permanent_district, s.address].filter(Boolean).map(String).join(' ').toLowerCase();
+          return haystack.includes(searchQuery.toLowerCase());
+        });
+
+      const handlePrintPublicStudents = () => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+          alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। দয়া করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+          return;
+        }
+        const filterInfo = [];
+        if (filterClass !== 'all') filterInfo.push(`শ্রেণি: শ্রেণি ${filterClass}`);
+        if (filterGroup !== 'all') filterInfo.push(`বিভাগ: ${filterGroup}`);
+        if (filterReligion !== 'all') filterInfo.push(`ধর্ম: ${filterReligion}`);
+        if (filterGender !== 'all') filterInfo.push(`জেন্ডার: ${filterGender === 'male' ? 'ছাত্র' : 'ছাত্রী'}`);
+        const filterText = filterInfo.length ? filterInfo.join(' | ') : 'সকল শিক্ষার্থী (ফিল্টারহীন)';
+
+        const rowsHtml = filteredList.map((s, idx) => `
+          <tr>
+            <td style="text-align:center;font-weight:600;">${idx + 1}</td>
+            <td style="text-align:center;font-family:monospace;font-weight:600;">${s.student_id || '—'}</td>
+            <td style="text-align:center;font-weight:700;">${s.roll_no || '—'}</td>
+            <td style="font-weight:600;">${s.name_bn || s.name_en || '—'}</td>
+            <td style="text-align:center;">শ্রেণি ${s.class_name || '১০'}</td>
+            <td style="text-align:center;">${s.group_name || s.group || s.section || '—'}</td>
+            <td style="text-align:center;">${s.religion || 'ইসলাম'}</td>
+            <td>${s.guardian_name || s.father_name || '—'}</td>
+            <td>${s.current_village || s.permanent_village || '—'}</td>
+            <td>${s.current_post_office || s.permanent_post_office || '—'}</td>
+            <td>${s.current_upazila || s.permanent_upazila || '—'}</td>
+            <td style="text-align:center;font-family:monospace;">${s.guardian_phone || s.father_mobile || '—'}</td>
+          </tr>
+        `).join('');
+
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html lang="bn">
+          <head>
+            <meta charset="utf-8">
+            <title>অধ্যয়নরত শিক্ষার্থী তালিকা - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+            <style>
+              body {
+                font-family: 'SolaimanLipi', 'Kalpurush', 'Segoe UI', Tahoma, sans-serif;
+                margin: 0;
+                padding: 20px;
+                color: #1a202c;
+              }
+              .official-header {
+                text-align: center;
+                border-bottom: 2px double #0284c7;
+                padding-bottom: 12px;
+                margin-bottom: 16px;
+              }
+              .official-header h1 {
+                margin: 0;
+                font-size: 24px;
+                color: #15803d;
+                font-weight: 800;
+              }
+              .official-header p {
+                margin: 4px 0 0;
+                font-size: 13px;
+                color: #4b5563;
+              }
+              .report-title-badge {
+                text-align: center;
+                font-size: 16px;
+                font-weight: 700;
+                color: #1e3a8a;
+                margin-bottom: 8px;
+              }
+              .meta-box {
+                display: flex;
+                justify-content: space-between;
+                font-size: 12px;
+                color: #374151;
+                margin-bottom: 12px;
+                border-bottom: 1px dashed #cbd5e1;
+                padding-bottom: 6px;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 8px;
+                font-size: 11.5px;
+              }
+              th, td {
+                border: 1px solid #cbd5e1;
+                padding: 6px 8px;
+                text-align: left;
+              }
+              th {
+                background: #f1f5f9;
+                font-weight: 700;
+                color: #334155;
+              }
+              .footer-signs {
+                margin-top: 50px;
+                display: flex;
+                justify-content: space-between;
+                padding: 0 20px;
+              }
+              .sign-box {
+                border-top: 1px solid #000;
+                padding-top: 5px;
+                font-size: 12px;
+                font-weight: 600;
+                text-align: center;
+                min-width: 160px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="official-header">
+              <h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+              <p>ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল | EIIN: 114321</p>
+            </div>
+            <div class="report-title-badge">👥 অধ্যয়নরত শিক্ষার্থী তালিকা ও রেকর্ড</div>
+            <div class="meta-box">
+              <span><b>ফিল্টার:</b> ${filterText}</span>
+              <span><b>মোট শিক্ষার্থী:</b> ${filteredList.length} জন</span>
+              <span><b>প্রিন্টের তারিখ:</b> ${new Date().toLocaleDateString('bn-BD')}</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:30px;text-align:center;">ক্রম</th>
+                  <th style="width:75px;text-align:center;">Student ID</th>
+                  <th style="width:40px;text-align:center;">রোল</th>
+                  <th>শিক্ষার্থীর নাম</th>
+                  <th style="width:55px;text-align:center;">শ্রেণি</th>
+                  <th style="width:75px;text-align:center;">বিভাগ/শাখা</th>
+                  <th style="width:50px;text-align:center;">ধর্ম</th>
+                  <th>অভিভাবকের নাম</th>
+                  <th>গ্রাম</th>
+                  <th>ডাকঘর</th>
+                  <th>উপজেলা</th>
+                  <th style="width:90px;text-align:center;">মোবাইল</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml || '<tr><td colspan="12" style="text-align:center;padding:20px;">কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি</td></tr>'}
+              </tbody>
+            </table>
+            <div class="footer-signs">
+              <div class="sign-box">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+              <div class="sign-box">সহকারী প্রধান শিক্ষক</div>
+              <div class="sign-box">প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
+            </div>
+            <script>
+              window.onload = function() {
+                setTimeout(function() { window.print(); }, 250);
+              };
+            </script>
+          </body>
+          </html>
+        `;
+        printWindow.document.open();
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+      };
+
+      return (
+        <div className="submenu-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0 }}>👥 অধ্যয়নরত শিক্ষার্থী তালিকা ({filteredList.length} জন)</div>
+            <button
+              type="button"
+              onClick={handlePrintPublicStudents}
+              style={{
+                background: '#047857',
+                color: '#fff',
+                border: 'none',
+                padding: '7px 16px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '13px',
+                boxShadow: '0 2px 4px rgba(4,120,87,0.2)'
+              }}
+            >
+              🖨️ প্রিন্ট / PDF রিপোর্ট
+            </button>
+          </div>
+          <div className="filter-bar-modal" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+            <input
+              placeholder="শিক্ষার্থীর নাম / Student ID / পিতা / গ্রাম খুঁজুন..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, minWidth: '180px' }}
+            />
+            <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="6">শ্রেণি ৬</option>
+              <option value="7">শ্রেণি ৭</option>
+              <option value="8">শ্রেণি ৮</option>
+              <option value="9">শ্রেণি ৯</option>
+              <option value="10">শ্রেণি ১০</option>
+            </select>
+            <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)}>
+              <option value="all">📚 সকল বিভাগ</option>
+              <option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option>
+              <option value="মানবিক বিভাগ">মানবিক বিভাগ</option>
+              <option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা</option>
+            </select>
+            <select value={filterReligion} onChange={e => setFilterReligion(e.target.value)}>
+              <option value="all">☪️ 🕉️ সকল ধর্ম</option>
+              <option value="ইসলাম">ইসলাম</option>
+              <option value="হিন্দু">হিন্দু</option>
+              <option value="বৌদ্ধ">বৌদ্ধ</option>
+              <option value="খ্রিষ্টান">খ্রিষ্টান</option>
+            </select>
+            <select value={filterGender} onChange={e => setFilterGender(e.target.value)}>
+              <option value="all">👥 সকল জেন্ডার</option>
+              <option value="male">ছাত্র (পুরুষ)</option>
+              <option value="female">ছাত্রী (নারী)</option>
+            </select>
+          </div>
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>রোল</th>
+                <th>শিক্ষার্থীর নাম</th>
+                <th>শ্রেণি</th>
+                <th>শাখা/বিভাগ</th>
+                <th>ধর্ম</th>
+                <th>অভিভাবকের নাম</th>
+                <th>গ্রাম</th>
+                <th>ডাকঘর</th>
+                <th>উপজেলা</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredList.map(s => (
+                <tr key={s.id}>
+                  <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{s.student_id || '—'}</td>
+                  <td style={{ fontWeight: 700 }}>{s.roll_no || '—'}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img
+                        src={getStudentPhoto(s)}
+                        alt=""
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #cbd5e1', flexShrink: 0 }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PHOTO_STUDENT_MALE_1; }}
+                      />
+                      <b>{s.name_bn || s.name_en}</b>
+                    </div>
+                  </td>
+                  <td>শ্রেণি {s.class_name || '১০'}</td>
+                  <td>{s.group_name || s.group || s.section || '—'}</td>
+                  <td>{s.religion || 'ইসলাম'}</td>
+                  <td>{s.guardian_name || s.father_name || '—'}</td>
+                  <td>{s.current_village || s.permanent_village || '—'}</td>
+                  <td>{s.current_post_office || s.permanent_post_office || '—'}</td>
+                  <td>{s.current_upazila || s.permanent_upazila || '—'}</td>
+                </tr>
+              ))}
+              {!filteredList.length && (
+                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '18px', color: '#718096' }}>কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি।</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // 4.0 পাবলিক পরীক্ষার ফলাফল সরাসরি ম্যাচিং (Direct catch for Public Exam Results)
+    if (
+      menuKey === 'public.nav.results.public_exams' ||
+      menuKey === 'public_exams' ||
+      (typeof menuKey === 'string' && menuKey.includes('public_exam')) ||
+      (typeof title === 'string' && title.includes('পাবলিক পরীক্ষা'))
+    ) {
+      if (!isResultFeatureEnabled(menuKey)) {
+        return renderUnpublishedNotice();
+      }
+      return <PublicExamResultsView />;
+    }
+
+    // 4. Results (Strictly mapped to the 6 submenus and class rules)
+    if (menuKey.startsWith('public.nav.results')) {
+      if (!isResultFeatureEnabled(menuKey)) {
+        return renderUnpublishedNotice();
+      }
+      // 4.1 ভর্তি পরীক্ষার ফলাফল
+      if (menuKey === 'public.nav.results.admission') {
+        const admList = getStoredAdmissionResults();
+        const filtered = admList.filter(item => {
+          if (filterClass !== 'all' && item.applied_class !== filterClass) return false;
+          if (!searchQuery) return true;
+          return [item.applicant_name, item.roll_no, item.application_no, item.status].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div className="modal-hero-badge" style={{ margin: 0, background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd' }}>
+                📝 ভর্তি পরীক্ষার ফলাফল ও মেধা তালিকা ({filtered.length} জন)
+              </div>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="পরীক্ষার্থীর নাম / রোল / আবেদন নম্বর খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি</option>
+                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৯ম">৯ম শ্রেণি</option>
+              </select>
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>ভর্তি রোল</th>
+                  <th>পরীক্ষার্থীর নাম ও আইডি</th>
+                  <th>ভর্তিকৃত শ্রেণি</th>
+                  <th>প্রাপ্ত নম্বর</th>
+                  <th>মেধা স্থান</th>
+                  <th>ফলাফল অবস্থা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td>
+                      <b>{item.applicant_name}</b>
+                      {item.application_no && <small style={{ display: 'block', color: '#64748b' }}>{item.application_no}</small>}
+                    </td>
+                    <td>শ্রেণি {item.applied_class}</td>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>{item.marks} / ১০০</td>
+                    <td><b style={{ color: '#0369a1' }}>#{item.merit_position || '—'}</b></td>
+                    <td>
+                      <span style={{
+                        background: item.status.includes('নির্বাচিত') ? '#dcfce7' : '#fef3c7',
+                        color: item.status.includes('নির্বাচিত') ? '#14532d' : '#92400e',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700
+                      }}>
+                        {item.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '16px' }}>কোনো ভর্তি পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.2 অর্ধ-বার্ষিক পরীক্ষার ফলাফল (৬ষ্ঠ-১০ম শ্রেণি)
+      if (menuKey === 'public.nav.results.half_yearly' || menuKey === 'public.nav.results.internal') {
+        const hyList = getStoredHalfYearlyResults();
+        const filtered = hyList.filter(item => {
+          if (filterClass !== 'all' && item.class_name !== filterClass) return false;
+          if (!searchQuery) return true;
+          return [item.name_bn, item.roll_no, item.section, item.grade].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <div className="modal-hero-badge" style={{ margin: 0 }}>📊 অর্ধ-বার্ষিক পরীক্ষার ফলাফল ({filtered.length} জন)</div>
+                <small style={{ color: '#0369a1', fontWeight: 600, display: 'block', marginTop: '4px' }}>
+                  * ৬ষ্ঠ থেকে ১০ম শ্রেণি পর্যন্ত অনুষ্ঠিত অর্ধ-বার্ষিক পরীক্ষার ফলাফল
+                </small>
+              </div>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="শিক্ষার্থীর নাম / রোল খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি (৬ষ্ঠ-১০ম)</option>
+                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৯ম">৯ম শ্রেণি</option>
+                <option value="১০ম">১০ম শ্রেণি</option>
+              </select>
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>রোল</th>
+                  <th>শিক্ষার্থীর নাম</th>
+                  <th>শ্রেণি ও শাখা</th>
+                  <th>মোট প্রাপ্ত নম্বর</th>
+                  <th>GPA ও গ্রেড</th>
+                  <th>মেধা স্থান</th>
+                  <th>ফলাফল অবস্থা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td><b>{item.name_bn}</b></td>
+                    <td>শ্রেণি {item.class_name} ({item.section || '—'})</td>
+                    <td>{item.marks}</td>
+                    <td>
+                      <b style={{ color: '#047857' }}>{item.gpa}</b>
+                      <span style={{ marginLeft: '6px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 700 }}>
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td><b style={{ color: '#0369a1' }}>#{item.merit_pos || '—'}</b></td>
+                    <td><span className="status-green">✓ {item.status}</span></td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো অর্ধ-বার্ষিক পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.3 বার্ষিক পরীক্ষার ফলাফল (৬ষ্ঠ-৯ম শ্রেণি strictly)
+      if (menuKey === 'public.nav.results.annual') {
+        const anList = getStoredAnnualResults();
+        const filtered = anList.filter(item => {
+          if (filterClass !== 'all' && item.class_name !== filterClass) return false;
+          if (!searchQuery) return true;
+          return [item.name_bn, item.roll_no, item.promotion_status].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <div className="modal-hero-badge" style={{ margin: 0, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                  🏆 বার্ষিক পরীক্ষার ফলাফল ও প্রমোশন তালিকা ({filtered.length} জন)
+                </div>
+                <small style={{ color: '#b45309', fontWeight: 700, display: 'block', marginTop: '4px' }}>
+                  * বার্ষিক পরীক্ষা শুধুমাত্র ৬ষ্ঠ থেকে ৯ম শ্রেণির শিক্ষার্থীদের জন্য (১০ম শ্রেণির জন্য প্রাক-নির্বাচনী ও নির্বাচনী পরীক্ষা)
+                </small>
+              </div>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="শিক্ষার্থীর নাম / রোল খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি (৬ষ্ঠ-৯ম)</option>
+                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৯ম">৯ম শ্রেণি</option>
+              </select>
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>রোল</th>
+                  <th>শিক্ষার্থীর নাম</th>
+                  <th>শ্রেণি</th>
+                  <th>মোট প্রাপ্ত নম্বর</th>
+                  <th>GPA ও গ্রেড</th>
+                  <th>মেধা স্থান</th>
+                  <th>প্রমোশন স্ট্যাটাস</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td><b>{item.name_bn}</b></td>
+                    <td>শ্রেণি {item.class_name}</td>
+                    <td>{item.marks}</td>
+                    <td>
+                      <b style={{ color: '#047857' }}>{item.gpa}</b>
+                      <span style={{ marginLeft: '6px', background: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 700 }}>
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td><b style={{ color: '#b45309' }}>#{item.merit_pos || '—'}</b></td>
+                    <td><span className="status-green">✓ {item.promotion_status}</span></td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো বার্ষিক পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.4 প্রাক-নির্বাচনী পরীক্ষার ফলাফল (১০ম শ্রেণি strictly)
+      if (menuKey === 'public.nav.results.pre_test') {
+        const ptList = getStoredPreTestResults();
+        const filtered = ptList.filter(item => {
+          if (filterGroup && filterGroup !== 'all') {
+            const grp = filterGroup.trim().toLowerCase();
+            const matchesGroup = (item.section && item.section.toLowerCase().includes(grp)) ||
+                                 (item.department && item.department.toLowerCase().includes(grp));
+            if (!matchesGroup) return false;
+          }
+          if (!searchQuery) return true;
+          return [item.name_bn, item.roll_no, item.section, item.status, item.notes].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <div className="modal-hero-badge" style={{ margin: 0, background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe' }}>
+                  📑 প্রাক-নির্বাচনী (Pre-Test) পরীক্ষার ফলাফল ({filtered.length} জন){filterGroup !== 'all' ? ` • ${filterGroup} বিভাগ` : ''}
+                </div>
+                <small style={{ color: '#6d28d9', fontWeight: 700, display: 'block', marginTop: '4px' }}>
+                  * শুধুমাত্র ১০ম শ্রেণির শিক্ষার্থীদের এসএসসি প্রস্তুতিমূলক প্রাক-নির্বাচনী পরীক্ষা
+                </small>
+              </div>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+              <input
+                placeholder="১০ম শ্রেণির শিক্ষার্থীর নাম / রোল খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select 
+                value={filterGroup} 
+                onChange={e => setFilterGroup(e.target.value)}
+                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff', fontWeight: 600, color: '#334155' }}
+              >
+                <option value="all">🌐 সকল বিভাগ (১০ম শ্রেণি)</option>
+                <option value="বিজ্ঞান">🔬 বিজ্ঞান বিভাগ</option>
+                <option value="মানবিক">📚 মানবিক বিভাগ</option>
+                <option value="ব্যবসায় শিক্ষা">💼 ব্যবসায় শিক্ষা শাখা</option>
+              </select>
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>রোল</th>
+                  <th>পরীক্ষার্থীর নাম</th>
+                  <th>বিভাগ / শাখা</th>
+                  <th>প্রাপ্ত নম্বর</th>
+                  <th>GPA ও গ্রেড</th>
+                  <th>প্রস্তুতি মূল্যায়ন অবস্থা</th>
+                  <th>বিশেষ দিকনির্দেশনা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td><b>{item.name_bn}</b></td>
+                    <td>{item.section}</td>
+                    <td>{item.marks}</td>
+                    <td>
+                      <b style={{ color: '#047857' }}>{item.gpa}</b>
+                      <span style={{ marginLeft: '6px', background: '#f5f3ff', color: '#6d28d9', padding: '1px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 700 }}>
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td><span className="badge">{item.status}</span></td>
+                    <td><small>{item.notes || '—'}</small></td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো প্রাক-নির্বাচনী পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.5 নির্বাচনী পরীক্ষার ফলাফল (১০ম শ্রেণি strictly)
+      if (menuKey === 'public.nav.results.test') {
+        const testList = getStoredTestResults();
+        const filtered = testList.filter(item => {
+          if (filterGroup && filterGroup !== 'all') {
+            const grp = filterGroup.trim().toLowerCase();
+            const matchesGroup = (item.section && item.section.toLowerCase().includes(grp)) ||
+                                 (item.department && item.department.toLowerCase().includes(grp));
+            if (!matchesGroup) return false;
+          }
+          if (!searchQuery) return true;
+          return [item.name_bn, item.roll_no, item.section, item.ssc_clearance].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <div className="modal-hero-badge" style={{ margin: 0, background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0' }}>
+                  🎯 নির্বাচনী (Test) পরীক্ষার ফলাফল ও এসএসসি ছাড়পত্র ({filtered.length} জন){filterGroup !== 'all' ? ` • ${filterGroup} বিভাগ` : ''}
+                </div>
+                <small style={{ color: '#065f46', fontWeight: 700, display: 'block', marginTop: '4px' }}>
+                  * শুধুমাত্র ১০ম শ্রেণির এসএসসি পরীক্ষার্থীদের নির্বাচনী পরীক্ষার ফলাফল ও ফরমপূরণ অনুমোদন
+                </small>
+              </div>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+              <input
+                placeholder="১০ম শ্রেণির শিক্ষার্থীর নাম / রোল খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select 
+                value={filterGroup} 
+                onChange={e => setFilterGroup(e.target.value)}
+                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff', fontWeight: 600, color: '#334155' }}
+              >
+                <option value="all">🌐 সকল বিভাগ (১০ম শ্রেণি)</option>
+                <option value="বিজ্ঞান">🔬 বিজ্ঞান বিভাগ</option>
+                <option value="মানবিক">📚 মানবিক বিভাগ</option>
+                <option value="ব্যবসায় শিক্ষা">💼 ব্যবসায় শিক্ষা শাখা</option>
+              </select>
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>রোল</th>
+                  <th>পরীক্ষার্থীর নাম</th>
+                  <th>বিভাগ / শাখা</th>
+                  <th>প্রাপ্ত নম্বর</th>
+                  <th>GPA ও গ্রেড</th>
+                  <th>এসএসসি পরীক্ষার ছাড়পত্র অবস্থা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td><b>{item.name_bn}</b></td>
+                    <td>{item.section}</td>
+                    <td>{item.marks}</td>
+                    <td>
+                      <b style={{ color: '#047857' }}>{item.gpa}</b>
+                      <span style={{ marginLeft: '6px', background: '#ecfdf5', color: '#065f46', padding: '1px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 700 }}>
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td><span className="status-green">✓ {item.ssc_clearance}</span></td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '16px' }}>কোনো নির্বাচনী পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.6 পাবলিক পরীক্ষার ফলাফল (SSC ও JSC আর্কাইভ) — বিজ্ঞান, মানবিক ও ব্যবসায় শিক্ষা শাখা ভিত্তিক
+      return <PublicExamResultsView />;
+    }
+
+
+    // ==========================================
+    // 5. শিক্ষার্থীর গাইড (STUDENT GUIDE SUBMENUS)
+    // ==========================================
+
+    // 5.1 ক্লাস রুটিন (Class Routine)
+    if (menuKey === 'public.nav.guide.class_routine' || title?.includes('ক্লাস রুটিন')) {
+      const routines = getStoredClassRoutines();
+      const filtered = routines.filter(r => {
+        if (classFilter !== 'all' && r.class_name !== classFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return [r.subject_name, r.teacher_name, r.day_of_week, r.room_no, r.period].filter(Boolean).join(' ').toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      const handlePrintRoutine = () => {
+        const w = window.open('', '_blank');
+        if (!w) return;
+        const rows = filtered.map((r, i) => `
+          <tr>
+            <td style="text-align:center;">${i + 1}</td>
+            <td style="text-align:center;font-weight:700;">${r.class_name} শ্রেণি (${r.section})</td>
+            <td style="text-align:center;font-weight:700;color:#047857;">${r.day_of_week}</td>
+            <td style="text-align:center;">${r.period} (${r.start_time} - ${r.end_time})</td>
+            <td><b>${r.subject_name}</b> ${r.subject_code ? '<small>(' + r.subject_code + ')</small>' : ''}</td>
+            <td>${r.teacher_name}</td>
+            <td style="text-align:center;font-weight:700;">${r.room_no}</td>
+          </tr>
+        `).join('');
+        w.document.write(`
+          <!DOCTYPE html><html><head><meta charset="utf-8"><title>দৈনিক শ্রেণি পাঠদান রুটিন ও সময়সূচি</title>
+          <style>
+            body { font-family: 'SolaimanLipi', sans-serif; padding: 24px; color: #1e293b; }
+            .hdr { text-align: center; border-bottom: 2px double #047857; padding-bottom: 12px; margin-bottom: 16px; }
+            .hdr h1 { margin: 0; color: #047857; font-size: 22px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background: #ecfdf5; font-weight: 700; color: #065f46; }
+          </style></head><body>
+          <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>দৈনিক শ্রেণি পাঠদান রুটিন ও শিক্ষক সময়সূচি — ২০২৬</p></div>
+          <table><thead><tr><th>ক্রম</th><th>শ্রেণি ও শাখা</th><th>বার</th><th>পিরিয়ড ও সময়</th><th>বিষয়</th><th>শিক্ষক</th><th>কক্ষ</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+          <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+          </body></html>
+        `);
+        w.document.close();
+      };
+
+      return (
+        <div className="submenu-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
+              🗓️ প্রাতিষ্ঠানিক ক্লাস রুটিন ও সময়সূচি ২০২৬
+            </div>
+            <button
+              type="button"
+              onClick={handlePrintRoutine}
+              style={{ background: '#15803d', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+            >
+              🖨️ প্রিন্ট ক্লাস রুটিন
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <input
+              type="text"
+              placeholder="বিষয়, শিক্ষক, বার বা কক্ষ খুঁজুন..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, minWidth: '200px', padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+            />
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>শ্রেণি</th>
+                <th>বার</th>
+                <th>পিরিয়ড</th>
+                <th>সময়</th>
+                <th>বিষয়</th>
+                <th>শিক্ষক</th>
+                <th>কক্ষ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(r => (
+                <tr key={r.id}>
+                  <td style={{ fontWeight: 800 }}>{r.class_name} শ্রেণি ({r.section})</td>
+                  <td style={{ color: '#047857', fontWeight: 700 }}>{r.day_of_week}</td>
+                  <td>{r.period}</td>
+                  <td><span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>{r.start_time} - {r.end_time}</span></td>
+                  <td><b>{r.subject_name}</b> {r.subject_code && <small style={{ color: '#64748b' }}>({r.subject_code})</small>}</td>
+                  <td style={{ color: '#0369a1', fontWeight: 600 }}>{r.teacher_name}</td>
+                  <td><b style={{ color: '#b45309' }}>{r.room_no}</b></td>
+                </tr>
+              ))}
+              {!filtered.length && (
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো ক্লাস রুটিন পাওয়া যায়নি।</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // 5.2 পরীক্ষার রুটিন (Exam Routine)
+    if (menuKey === 'public.nav.guide.exam_routine' || title?.includes('পরীক্ষার রুটিন')) {
+      const examRoutines = getStoredExamRoutines();
+      const filtered = examRoutines.filter(r => {
+        if (classFilter !== 'all' && r.class_name !== classFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return [r.exam_name, r.subject_name, r.exam_date, r.day_name, r.room_nos].filter(Boolean).join(' ').toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      const handlePrintExamRoutine = () => {
+        const w = window.open('', '_blank');
+        if (!w) return;
+        const rows = filtered.map((r, i) => `
+          <tr>
+            <td style="text-align:center;">${i + 1}</td>
+            <td><b>${r.exam_name}</b></td>
+            <td style="text-align:center;font-weight:700;">${r.class_name} শ্রেণি</td>
+            <td style="text-align:center;font-weight:700;color:#b45309;">${r.exam_date} (${r.day_name})</td>
+            <td style="text-align:center;">${r.time_slot}</td>
+            <td><b>${r.subject_name}</b> ${r.subject_code ? '<small>(' + r.subject_code + ')</small>' : ''}</td>
+            <td style="text-align:center;">${r.room_nos}</td>
+          </tr>
+        `).join('');
+        w.document.write(`
+          <!DOCTYPE html><html><head><meta charset="utf-8"><title>পরীক্ষার সময়সূচি ও রুটিন</title>
+          <style>
+            body { font-family: 'SolaimanLipi', sans-serif; padding: 24px; color: #1e293b; }
+            .hdr { text-align: center; border-bottom: 2px double #b45309; padding-bottom: 12px; margin-bottom: 16px; }
+            .hdr h1 { margin: 0; color: #b45309; font-size: 22px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background: #fef3c7; font-weight: 700; color: #92400e; }
+          </style></head><body>
+          <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>পরীক্ষার সময়সূচি, আসন বিন্যাস ও পরীক্ষার রুটিন — ২০২৬</p></div>
+          <table><thead><tr><th>ক্রম</th><th>পরীক্ষার নাম</th><th>শ্রেণি</th><th>তারিখ ও বার</th><th>সময়</th><th>বিষয়</th><th>পরীক্ষার কক্ষ</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+          <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+          </body></html>
+        `);
+        w.document.close();
+      };
+
+      return (
+        <div className="submenu-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+              📝 পরীক্ষার রুটিন ও আসন বণ্টন ২০২৬
+            </div>
+            <button
+              type="button"
+              onClick={handlePrintExamRoutine}
+              style={{ background: '#b45309', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+            >
+              🖨️ প্রিন্ট পরীক্ষার রুটিন
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <input
+              type="text"
+              placeholder="পরীক্ষা, বিষয়, তারিখ বা কক্ষ খুঁজুন..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, minWidth: '200px', padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+            />
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>পরীক্ষার নাম</th>
+                <th>শ্রেণি</th>
+                <th>তারিখ ও বার</th>
+                <th>সময়</th>
+                <th>বিষয়</th>
+                <th>পরীক্ষার কক্ষ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(r => (
+                <tr key={r.id}>
+                  <td><b>{r.exam_name}</b></td>
+                  <td style={{ fontWeight: 800 }}>{r.class_name} শ্রেণি</td>
+                  <td style={{ color: '#b45309', fontWeight: 700 }}>{r.exam_date} <small>({r.day_name})</small></td>
+                  <td><span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>{r.time_slot}</span></td>
+                  <td><b>{r.subject_name}</b> {r.subject_code && <small style={{ color: '#64748b' }}>({r.subject_code})</small>}</td>
+                  <td><span style={{ background: '#ecfdf5', color: '#065f46', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>{r.room_nos}</span></td>
+                </tr>
+              ))}
+              {!filtered.length && (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '16px' }}>কোনো পরীক্ষার রুটিন পাওয়া যায়নি।</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // 5.3 সিলেবাস (Syllabus)
+    if (menuKey === 'public.nav.guide.syllabus' || title?.includes('সিলেবাস')) {
+      const syls = getStoredSyllabuses();
+      const filtered = syls.filter(s => {
+        if (classFilter !== 'all' && s.class_name !== classFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return [s.subject_name, s.exam_type, s.total_chapters, s.chapters_detail].filter(Boolean).join(' ').toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#eff6ff', color: '#1e3a8a', border: '1px solid #bfdbfe' }}>
+            📚 বিষয়ভিত্তিক একাডেমিক সিলেবাস ও মূল্যায়ন পরিকল্পনা ২০২৬
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <input
+              type="text"
+              placeholder="বিষয়, অধ্যায় বা বিবরণ খুঁজুন..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, minWidth: '200px', padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+            />
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+            {filtered.map(s => (
+              <div key={s.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ background: '#0284c7', color: '#fff', fontSize: '12px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
+                    {s.class_name} শ্রেণি
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>{s.exam_type}</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '16px', color: '#0f172a' }}>{s.subject_name}</h4>
+                <div style={{ fontSize: '12.5px', color: '#0369a1', fontWeight: 700, marginBottom: '6px' }}>
+                  📌 পরিধি: {s.total_chapters}
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: '8px 10px', borderRadius: '6px' }}>
+                  {s.chapters_detail}
+                </p>
+                <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                  <button type="button" onClick={() => alert('সিলেবাস পিডিএফ কপি প্রস্তুত আছে। সরাসরি ডাউনলোড শুরু হচ্ছে...')} style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '5px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    📥 সিলেবাস PDF
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 5.4 ডিজিটাল লার্নিং (Digital Learning)
+    if (menuKey === 'public.nav.guide.learning' || title?.includes('ডিজিটাল লার্নিং') || title?.includes('ডিজিটাল শিক্ষা')) {
+      const items = getStoredDigitalLearning();
+      const filtered = items.filter(it => classFilter === 'all' || it.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe' }}>
+            💻 মাল্টিমিডিয়া ডিজিটাল কনটেন্ট ও স্মার্ট ক্লাস ভিডিও
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>শিক্ষার্থীদের ঘরে বসে সহজবোধ্যভাবে শেখার জন্য স্মার্ট ক্লাস ভিডিও ও অ্যানিমেশন লেকচার।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px' }}>
+            {filtered.map(it => (
+              <div key={it.id} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ background: '#8b5cf6', color: '#fff', fontSize: '11.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
+                    {it.class_name} শ্রেণি • {it.subject_name}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>⏱️ {it.duration}</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '15.5px', color: '#0f172a' }}>{it.title}</h4>
+                <div style={{ fontSize: '12.5px', color: '#475569', marginBottom: '10px' }}>
+                  👨‍🏫 শিক্ষক: <b>{it.teacher_name}</b>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alert('ভিডিও লেকচার প্লেয়ার প্রস্তুত: ' + it.title)}
+                  style={{ width: '100%', background: '#6d28d9', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+                >
+                  ▶️ ভিডিও লেকচার দেখুন
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 5.5 নোট/লেকচার (Notes/Lectures)
+    if (menuKey === 'public.nav.guide.notes' || title?.includes('নোট/লেকচার') || title?.includes('নোট ও লেকচার') || title?.includes('নোট')) {
+      const uniqueSubjects = ['all', ...Array.from(new Set(notesList.map(n => n.subject_name).filter(Boolean)))];
+      const filtered = notesList.filter(n => {
+        if (classFilter !== 'all' && String(n.class_name) !== String(classFilter)) return false;
+        if (noteSubjectFilter !== 'all' && n.subject_name !== noteSubjectFilter) return false;
+        if (noteSearchText) {
+          const q = noteSearchText.toLowerCase();
+          const searchBlob = [n.title_bn, n.title, n.subject_name, n.chapter, n.author_teacher, n.summary, n.doc_type].filter(Boolean).join(' ').toLowerCase();
+          if (!searchBlob.includes(q)) return false;
+        }
+        return true;
+      });
+
+      return (
+        <div className="submenu-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>
+              📝 অভিজ্ঞ শিক্ষকবৃন্দের প্রস্তুতকৃত হ্যান্ডনোট ও PDF লেকচার শিট (মোট: {toBn(notesList.length)} টি)
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowNoteUploadDrawer(!showNoteUploadDrawer)}
+              style={{
+                background: showNoteUploadDrawer ? '#e11d48' : '#0284c7',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '13px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 5px rgba(2, 132, 199, 0.25)'
+              }}
+            >
+              {showNoteUploadDrawer ? '✕ আপলোড উইন্ডো বন্ধ করুন' : '📤 নতুন PDF নোট আপলোড করুন'}
+            </button>
+          </div>
+
+          {/* Upload Drawer Form */}
+          {showNoteUploadDrawer && (
+            <div style={{
+              background: '#f8fafc',
+              border: '2px dashed #0284c7',
+              borderRadius: '10px',
+              padding: '18px 20px',
+              marginBottom: '20px',
+              animation: 'fadeIn 0.25s ease'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+                <h3 style={{ margin: 0, color: '#0369a1', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  📤 নতুন PDF নোট বা লেকচার শিট আপলোড
+                </h3>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>যে কোনো শ্রেণি ও বিষয়ের PDF ফাইল আপলোড করা যাবে</span>
+              </div>
+
+              <form onSubmit={handleSaveUploadedNote}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      শ্রেণি নির্বাচন *
+                    </label>
+                    <select
+                      value={noteUploadForm.class_name}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, class_name: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                      required
+                    >
+                      <option value="৬">৬ষ্ঠ শ্রেণি</option>
+                      <option value="৭">৭ম শ্রেণি</option>
+                      <option value="৮">৮ম শ্রেণি</option>
+                      <option value="৯">৯ম শ্রেণি</option>
+                      <option value="১০">১০ম শ্রেণি</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      বিষয় *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: পদার্থবিজ্ঞান, বাংলা, উচ্চতর গণিত..."
+                      value={noteUploadForm.subject_name}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, subject_name: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      অধ্যায় / পাঠের নাম
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: ৪র্থ অধ্যায় - কাজ, ক্ষমতা ও শক্তি"
+                      value={noteUploadForm.chapter}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, chapter: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      ডকুমেন্ট টাইপ
+                    </label>
+                    <select
+                      value={noteUploadForm.doc_type}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, doc_type: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                    >
+                      <option value="PDF লেকচার শিট">PDF লেকচার শিট</option>
+                      <option value="হ্যান্ডনোট">হ্যান্ডনোট</option>
+                      <option value="পরীক্ষার চূড়ান্ত সাজেশন">পরীক্ষার চূড়ান্ত সাজেশন</option>
+                      <option value="গাণিতিক সমস্যা ও সমাধান">গাণিতিক সমস্যা ও সমাধান</option>
+                      <option value="বোর্ড প্রশ্ন সমাধান">বোর্ড প্রশ্ন সমাধান</option>
+                    </select>
+                  </div>
+
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      নোটের পূর্ণাঙ্গ শিরোনাম *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: কাজ, ক্ষমতা ও শক্তি সূত্রের প্রমাণ এবং সকল বোর্ড সৃজনশীল সমাধান"
+                      value={noteUploadForm.title_bn}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, title_bn: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      প্রণয়নকারী শিক্ষক *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="শিক্ষকের নাম ও পদবি"
+                      value={noteUploadForm.author_teacher}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, author_teacher: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      নোটের বিষয়বস্তু / মূল সারসংক্ষেপ
+                    </label>
+                    <textarea
+                      rows="2"
+                      placeholder="এই নোটটিতে কী কী বিষয় আলোচনা করা হয়েছে এবং শিক্ষার্থীদের কীভাবে সহায়তা করবে..."
+                      value={noteUploadForm.summary}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, summary: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
+
+                  {/* PDF File Input */}
+                  <div style={{ gridColumn: '1 / -1', background: '#f0f9ff', padding: '14px 16px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: '#0369a1' }}>
+                      📄 PDF নোট / লেকচার ফাইল নির্বাচন করুন (.pdf ফাইল, সর্বোচ্চ ১৫ মেগাবাইট)
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={handlePdfUploadSelect}
+                      style={{ fontSize: '13px', cursor: 'pointer' }}
+                    />
+                    {noteUploadForm.file_name ? (
+                      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#047857', fontWeight: 600 }}>
+                        <span>✅ নির্বাচিত ফাইল:</span>
+                        <b>{noteUploadForm.file_name}</b>
+                        <span style={{ background: '#dcfce7', padding: '2px 8px', borderRadius: '4px', color: '#166534', fontSize: '11.5px' }}>
+                          {noteUploadForm.file_size}
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: '4px', fontSize: '11.5px', color: '#64748b' }}>
+                        * ফাইল আপলোড না করলে স্বয়ংক্রিয় অফিশিয়াল প্যাড ফরম্যাটে প্রিন্ট/পিডিএফ ডাউনলোড প্রযোজ্য হবে।
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowNoteUploadDrawer(false)}
+                    style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+                  >
+                    বাতিল
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '8px 22px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 4px rgba(2, 132, 199, 0.3)' }}
+                  >
+                    💾 PDF নোট আপলোড ও প্রকাশ করুন
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Filtering and Search Bar */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px', alignItems: 'center' }}>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff', fontWeight: 600 }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+
+            <select
+              value={noteSubjectFilter}
+              onChange={e => setNoteSubjectFilter(e.target.value)}
+              style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">📚 সকল বিষয়</option>
+              {uniqueSubjects.filter(s => s !== 'all').map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+
+            <input
+              type="text"
+              placeholder="🔍 বিষয়, অধ্যায়, শিরোনাম বা শিক্ষক খুঁজুন..."
+              value={noteSearchText}
+              onChange={e => setNoteSearchText(e.target.value)}
+              style={{ flex: 1, minWidth: '220px', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            />
+
+            {(classFilter !== 'all' || noteSubjectFilter !== 'all' || noteSearchText) && (
+              <button
+                type="button"
+                onClick={() => { setClassFilter('all'); setNoteSubjectFilter('all'); setNoteSearchText(''); }}
+                style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+              >
+                ফিল্টার রিসেট
+              </button>
+            )}
+          </div>
+
+          {/* Notes Table */}
+          {filtered.length === 0 ? (
+            <div style={{ padding: '36px 20px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📂</div>
+              <p style={{ margin: 0, fontWeight: 700, color: '#334155' }}>কোনো নোট বা লেকচার শিট পাওয়া যায়নি।</p>
+              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>অন্য শ্রেণি বা বিষয় নির্বাচন করে দেখুন অথবা নতুন নোট আপলোড করুন।</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="modal-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f1f5f9' }}>
+                    <th style={{ width: '80px' }}>শ্রেণি</th>
+                    <th style={{ width: '130px' }}>বিষয়</th>
+                    <th>নোটের শিরোনাম ও বিবরণ</th>
+                    <th style={{ width: '120px' }}>অধ্যায়/পাঠ</th>
+                    <th style={{ width: '140px' }}>শিক্ষক</th>
+                    <th style={{ width: '75px', textAlign: 'center' }}>সাইজ</th>
+                    <th style={{ width: '70px', textAlign: 'center' }}>ডাউনলোড</th>
+                    <th style={{ width: '150px', textAlign: 'right' }}>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(n => (
+                    <tr key={n.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ fontWeight: 800, color: '#0f172a' }}>
+                        {n.class_name} শ্রেণি
+                      </td>
+                      <td>
+                        <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
+                          {n.subject_name}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '13.5px' }}>
+                          {n.title_bn || n.title}
+                        </div>
+                        {n.summary && (
+                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', lineHeight: 1.4 }}>
+                            {n.summary}
+                          </div>
+                        )}
+                        <div style={{ display: 'inline-flex', gap: '6px', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', background: '#f8fafc', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px', color: '#475569' }}>
+                            {n.doc_type || 'PDF লেকচার শিট'}
+                          </span>
+                          {n.pdf_file_data && (
+                            <span style={{ fontSize: '11px', background: '#dcfce7', border: '1px solid #86efac', padding: '1px 6px', borderRadius: '4px', color: '#166534', fontWeight: 600 }}>
+                              ✓ আসল PDF সংযুক্ত
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>
+                          {n.chapter || '—'}
+                        </span>
+                      </td>
+                      <td style={{ color: '#0369a1', fontWeight: 600, fontSize: '12.5px' }}>
+                        {n.author_teacher}
+                      </td>
+                      <td style={{ textAlign: 'center', fontSize: '12px', color: '#64748b' }}>
+                        {n.file_size || 'PDF'}
+                      </td>
+                      <td style={{ textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#047857' }}>
+                        {toBn(n.download_count || 0)} বার
+                      </td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadNote(n)}
+                            title="সরাসরি PDF ডাউনলোড করুন"
+                            style={{
+                              background: '#047857',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '5px 10px',
+                              borderRadius: '5px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            📥 ডাউনলোড
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => printOrDownloadNoteDoc(n, 'view')}
+                            title="নোটটি দেখুন বা প্রিন্ট করুন"
+                            style={{
+                              background: '#f1f5f9',
+                              color: '#334155',
+                              border: '1px solid #cbd5e1',
+                              padding: '5px 8px',
+                              borderRadius: '5px',
+                              fontSize: '12px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            👁️
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteNote(n.id)}
+                            title="নোট মুছে ফেলুন"
+                            style={{
+                              background: '#fff1f2',
+                              color: '#e11d48',
+                              border: '1px solid #fecdd3',
+                              padding: '5px 8px',
+                              borderRadius: '5px',
+                              fontSize: '12px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 5.6 প্রশ্নব্যাংক ও মডেল প্রশ্ন (Question Bank)
+    if (menuKey === 'public.nav.guide.question' || title?.includes('প্রশ্নব্যাংক')) {
+      const questions = getStoredQuestions();
+      const filtered = questions.filter(q => classFilter === 'all' || q.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #ffedd5' }}>
+            ❓ প্রশ্নব্যাংক, অধ্যায়ভিত্তিক প্রশ্ন ও পূর্ণাঙ্গ মডেল প্রশ্নপত্র
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>সৃজনশীল (CQ), বহুনির্বাচনী (MCQ) এবং বোর্ড স্ট্যান্ডার্ড মডেল প্রশ্নমালা।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+            {filtered.map(q => (
+              <div key={q.id} style={{ background: '#fff', border: '1px solid #fed7aa', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ background: '#ea580c', color: '#fff', fontSize: '11.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
+                    {q.class_name} শ্রেণি • {q.subject_name}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#7c2d12', fontWeight: 700 }}>পূর্ণমান: {q.marks}</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '15.5px', color: '#0f172a' }}>{q.title}</h4>
+                <div style={{ fontSize: '12.5px', color: '#c2410c', fontWeight: 600, marginBottom: '8px' }}>
+                  🏷️ টাইপ: {q.type} | {q.chapter}
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#475569', background: '#fffbeb', padding: '8px 10px', borderRadius: '6px', border: '1px solid #fef3c7' }}>
+                  {q.question_preview}
+                </p>
+                <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                  <button type="button" onClick={() => alert('মডেল প্রশ্ন প্রিন্ট ভিউ প্রস্তুত: ' + q.title)} style={{ background: '#ea580c', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '5px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    🖨️ প্রিন্ট প্রশ্নপত্র
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 5.7 অ্যাসাইনমেন্ট ও মক টেস্ট (Assignments)
+    if (menuKey === 'public.nav.guide.assignment' || title?.includes('অ্যাসাইনমেন্ট')) {
+      const assignments = getStoredAssignments();
+      const filtered = assignments.filter(a => classFilter === 'all' || a.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd' }}>
+            📘 সাপ্তাহিক অ্যাসাইনমেন্ট, বাড়ির কাজ ও অনলাইন মক টেস্ট
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>নিয়মিত মূল্যায়নের জন্য নির্ধারিত অ্যাসাইনমেন্ট ও জমাদানের চূড়ান্ত তারিখ।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>শ্রেণি</th>
+                <th>বিষয়</th>
+                <th>অ্যাসাইনমেন্ট শিরোনাম</th>
+                <th>জমাদানের শেষ তারিখ</th>
+                <th>পূর্ণমান</th>
+                <th>স্ট্যাটাস</th>
+                <th>কাজ শিট</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(a => (
+                <tr key={a.id}>
+                  <td style={{ fontWeight: 800 }}>{a.class_name} শ্রেণি</td>
+                  <td><b>{a.subject_name}</b></td>
+                  <td>{a.title}</td>
+                  <td style={{ color: '#b91c1c', fontWeight: 700 }}>📅 {a.deadline}</td>
+                  <td>{a.marks} নম্বর</td>
+                  <td><span className="status-green">সক্রিয়</span></td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => alert('অ্যাসাইনমেন্ট কাজের শিট ও নির্দেশনা ডাউনলোড হচ্ছে: ' + a.title)}
+                      style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      📥 টাস্ক শিট
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // 5.8 অনলাইন পরীক্ষা (Online Exam)
+    if (menuKey === 'public.nav.guide.online' || title?.includes('অনলাইন পরীক্ষা')) {
+      const exams = getStoredOnlineExams();
+      const filtered = exams.filter(e => classFilter === 'all' || e.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#faf5ff', color: '#7e22ce', border: '1px solid #e9d5ff' }}>
+            🧪 লাইভ অনলাইন MCQ পরীক্ষা ও তাৎক্ষণিক ফলাফল মূল্যায়ন
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>টাইমার ভিত্তিক অনলাইন পরীক্ষা দিন এবং সাথে সাথে সঠিক উত্তর ও প্রোগ্রেস কার্ড দেখুন।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+            {filtered.map(ex => (
+              <div key={ex.id} style={{ background: '#fff', border: '1px solid #e9d5ff', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ background: '#9333ea', color: '#fff', fontSize: '11.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
+                    {ex.class_name} শ্রেণি • {ex.subject_name}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: 700 }}>● {ex.status}</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '15.5px', color: '#0f172a' }}>{ex.title}</h4>
+                <div style={{ display: 'flex', gap: '12px', fontSize: '12.5px', color: '#6b21a8', marginBottom: '12px' }}>
+                  <span>⏱️ সময়: <b>{ex.duration_minutes} মিনিট</b></span>
+                  <span>❓ প্রশ্ন: <b>{ex.total_questions} টি MCQ</b></span>
+                  <span>🏆 পূর্ণমান: <b>{ex.total_marks}</b></span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alert('অনলাইন পরীক্ষা পোর্টাল প্রস্তুত! আপনার টাইমার শুরু হচ্ছে: ' + ex.title)}
+                  style={{ width: '100%', background: '#7e22ce', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+                >
+                  🚀 পরীক্ষায় অংশ নিন
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 5.9 AI শিক্ষা সহকারী (AI Study Assistant & Teacher Copilot)
+    if (menuKey === 'public.nav.guide.ai' || title?.includes('AI শিক্ষা সহকারী') || title?.includes('AI শিক্ষা')) {
+      const presets = AI_TEACHER_ASSISTANT_PRESETS;
+      return (
+        <div className="submenu-content">
+          <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)', color: '#fff', padding: '18px 20px', borderRadius: '12px', marginBottom: '16px', boxShadow: '0 4px 12px rgba(49,46,129,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+              <span style={{ fontSize: '24px' }}>🤖</span>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#fff' }}>স্মার্ট AI শিক্ষা সহকারী ও শিক্ষক পাওয়ার টুলস</h3>
+            </div>
+            <p style={{ margin: 0, fontSize: '13px', opacity: 0.9, lineHeight: 1.5 }}>
+              শিক্ষকবৃন্দ এখান থেকেই সরাসরি তাদের বিষয়ভিত্তিক লেসন প্ল্যান, ডিজিটাল মাল্টিমিডিয়া কন্টেন্ট আইডিয়া, ক্লাসরুম ম্যানেজমেন্ট স্ট্র্যাটেজি সহ প্রযুক্তি নির্ভর সকল পাঠদান উপকরণ ১-ক্লিকে তৈরি ও প্রিন্ট করে নিতে পারেন।
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+            <div style={{ background: '#fff', border: '1px solid #c7d2fe', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '20px' }}>📋</span>
+                <h4 style={{ margin: 0, fontSize: '15px', color: '#312e81' }}>১-ক্লিক লেসন প্ল্যান জেনারেটর</h4>
+              </div>
+              <p style={{ fontSize: '12.5px', color: '#475569', marginBottom: '12px' }}>
+                জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) কারিকুলাম অনুযায়ী ৪৫ মিনিটের পূর্ণাঙ্গ ৫-ধাপ পাঠ পরিকল্পনা।
+              </p>
+              {presets.lesson_plans.slice(0, 2).map((lp, i) => (
+                <div key={i} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px', marginBottom: '8px' }}>
+                  <b style={{ fontSize: '13px', color: '#1e293b' }}>{lp.subject} ({lp.class_name} শ্রেণি)</b>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>পাঠ: {lp.chapter} • সময়: {lp.period || '৪৫ মিনিট'}</div>
+                  <div style={{ fontSize: '12px', color: '#047857', marginTop: '4px' }}><b>শিখনফল:</b> {lp.plan?.split('\n')?.[1]?.replace('২. শিখনফল:', '')?.trim() || 'বোর্ড কারিকুলাম শিখনফল'}</div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => alert('লেসন প্ল্যান তৈরি সম্পন্ন! শিক্ষক এডমিন প্যানেল থেকে প্রিন্ট ও ডাউনলোড করুন।')}
+                style={{ width: '100%', background: '#4338ca', color: '#fff', border: 'none', padding: '7px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', marginTop: '4px' }}
+              >
+                ✨ নতুন লেসন প্ল্যান তৈরি করুন
+              </button>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '20px' }}>🖥️</span>
+                <h4 style={{ margin: 0, fontSize: '15px', color: '#065f46' }}>ডিজিটাল মাল্টিমিডিয়া স্লাইড রূপরেখা</h4>
+              </div>
+              <p style={{ fontSize: '12.5px', color: '#475569', marginBottom: '12px' }}>
+                মাল্টিমিডিয়া ক্লাসরুম ও প্রজেক্টরের জন্য স্লাইড-বাই-স্লাইড ইন্টারঅ্যাক্টিভ রূপরেখা।
+              </p>
+              {presets.digital_content_ideas.slice(0, 2).map((dc, i) => (
+                <div key={i} style={{ background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '6px', padding: '10px', marginBottom: '8px' }}>
+                  <b style={{ fontSize: '13px', color: '#14532d' }}>{dc.topic} ({dc.class_name} শ্রেণি)</b>
+                  <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#166534' }}>
+                    {(dc.slides || []).slice(0, 2).map((so, j) => <li key={j}>{so}</li>)}
+                  </ul>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => alert('স্লাইড রূপরেখা কপি করা হয়েছে।')}
+                style={{ width: '100%', background: '#059669', color: '#fff', border: 'none', padding: '7px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', marginTop: '4px' }}
+              >
+                📊 স্লাইড স্ট্রাকচার কপি করুন
+              </button>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #fed7aa', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '20px' }}>🎯</span>
+                <h4 style={{ margin: 0, fontSize: '15px', color: '#9a3412' }}>ক্লাসরুম ম্যানেজমেন্ট স্ট্র্যাটেজি</h4>
+              </div>
+              <p style={{ fontSize: '12.5px', color: '#475569', marginBottom: '12px' }}>
+                শিক্ষার্থীদের পূর্ণ মনোযোগ, কোলাহল নিয়ন্ত্রণ ও পেছিয়ে পড়া শিক্ষার্থীদের সক্রিয় করার আধুনিক কৌশল।
+              </p>
+              {presets.classroom_management.map((cm, i) => (
+                <div key={i} style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '6px', padding: '10px', marginBottom: '8px' }}>
+                  <b style={{ fontSize: '12.5px', color: '#9a3412' }}>💡 {cm.scenario}</b>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7c2d12', lineHeight: 1.4 }}>{cm.strategy}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default Fallback
+    return (
+      <div className="submenu-content">
+        <div className="modal-hero-badge">ℹ️ {title}</div>
+        <h3>{title}</h3>
+        <p className="lead-text">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের {title} সম্পর্কিত তথ্য ও আপডেট।</p>
+      </div>
+    );
+  };
+
+    const isClubModal = menuKey === 'public.nav.sport.clubs' || title?.includes('ভাষা ও সাহিত্য') || title?.includes('সাহিত্য') || title?.includes('ক্লাব');
+  const isWideModal = isClubModal || 
+    menuKey?.startsWith('public.nav.sport') || 
+    menuKey?.startsWith('public.nav.guide') || 
+    title?.includes('ক্রীড়া') || 
+    title?.includes('সাংস্কৃতিক') || 
+    title?.includes('সংস্কৃতি') || 
+    title?.includes('অর্জন') || 
+    title?.includes('পুরস্কার') || 
+    title?.includes('শিক্ষা সফর');
+
+  return (
+    <div className="submenu-modal-overlay" onClick={onClose}>
+      <div className="submenu-modal-card" style={isWideModal ? { maxWidth: '1100px', width: '96%' } : undefined} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{cleanTitle}</h2>
+          <button className="modal-close-btn" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+        <div className="modal-body">
+          {renderContent()}
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>বন্ধ করুন</button>
+        </div>
+      </div>
+
+      {pdfPreviewModal && (
+        <div
+          className="submenu-modal-overlay"
+          style={{ zIndex: 999999, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(3px)' }}
+          onClick={() => setPdfPreviewModal(null)}
+        >
+          <div
+            className="submenu-modal-card"
+            style={{ maxWidth: '950px', width: '96%', maxHeight: '92vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="modal-header" style={{ background: '#0284c7', color: '#fff', borderBottom: 'none', padding: '14px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '20px' }}>📄</span>
+                <div>
+                  <h3 style={{ margin: 0, color: '#fff', fontSize: '16px', fontWeight: 700 }}>
+                    {pdfPreviewModal.title_bn || pdfPreviewModal.title}
+                  </h3>
+                  <small style={{ color: '#e0f2fe', fontSize: '12px' }}>
+                    {pdfPreviewModal.class_name}ম শ্রেণি • {pdfPreviewModal.subject_name} • শিক্ষক: {pdfPreviewModal.author_teacher}
+                  </small>
+                </div>
+              </div>
+              <button className="modal-close-btn" style={{ color: '#fff', fontSize: '18px' }} onClick={() => setPdfPreviewModal(null)}>✕</button>
+            </div>
+
+            <div style={{ flex: 1, minHeight: '520px', background: '#f8fafc', padding: 0, position: 'relative' }}>
+              {pdfPreviewModal.pdf_file_data ? (
+                <iframe
+                  src={pdfPreviewModal.pdf_file_data}
+                  title="PDF Document Preview"
+                  style={{ width: '100%', height: '560px', border: 'none' }}
+                />
+              ) : (
+                <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>📑</div>
+                  <h3 style={{ color: '#0f172a', marginBottom: '8px' }}>অফিসিয়াল লেকচার নোট</h3>
+                  <p style={{ maxWidth: '500px', margin: '0 auto 20px', color: '#64748b', fontSize: '14px', lineHeight: 1.6 }}>
+                    এই নোটটির সরাসরি প্রিন্ট ও ডাউনলোড ভার্সন প্রস্তুত রয়েছে। ব্রাউজার প্রিন্ট ডায়ের মাধ্যমে সরাসরি PDF হিসেবে সেভ বা প্রিন্ট করা যাবে।
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => printOrDownloadNoteDoc(pdfPreviewModal, 'download')}
+                    style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '14px' }}
+                  >
+                    🖨️ প্রিন্ট ও PDF সেভ করুন
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f5f9', borderTop: '1px solid #e2e8f0', padding: '12px 20px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => handleDownloadNote(pdfPreviewModal)}
+                  style={{ background: '#047857', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  📥 সরাসরি PDF ডাউনলোড
+                </button>
+                <button
+                  type="button"
+                  onClick={() => printOrDownloadNoteDoc(pdfPreviewModal, 'view')}
+                  style={{ background: '#fff', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+                >
+                  🖨️ প্রিন্ট মোড
+                </button>
+              </div>
+              <button className="btn btn-ghost" onClick={() => setPdfPreviewModal(null)}>বন্ধ করুন</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

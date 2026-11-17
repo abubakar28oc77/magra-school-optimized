@@ -1,0 +1,430 @@
+// Default Institutional Data for Magra Pals Union High School
+// Covers all 12 submenus of "প্রাতিষ্ঠানিক তথ্য"
+
+export const DEFAULT_INSTITUTION_DATA = {
+  about: {
+    name_bn: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়',
+    name_en: 'Magra Pals Union High School',
+    eiin: '114290',
+    mpo: '4206071302',
+    board_code: '4621',
+    established: '১৯৪৬',
+    address: 'গ্রাম ও ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল',
+    phone: '01712-345678',
+    email: 'magrapuhs.46@gmail.com',
+    website: 'https://abubakar28oc77.github.io/magra-school-management/',
+    profile_text: 'টাঙ্গাইল জেলার কালিহাতি উপজেলার ঐতিহ্যবাহী বিদ্যাপীঠ মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় ১৯৪৬ খ্রিষ্টাব্দে প্রতিষ্ঠিত হয়ে দীর্ঘ আট দশক ধরে এই জনপদে শিক্ষার আলো ছড়িয়ে আসছে। মানসম্মত শিক্ষা, সুশৃঙ্খল পরিবেশ, আধুনিক তথ্যপ্রযুক্তির ব্যবহার এবং সহশিক্ষা কার্যক্রমে অত্র বিদ্যালয়টি একটি শীর্ষস্থানীয় আদর্শ প্রতিষ্ঠান।',
+    stats: {
+      students: '১২৫০+',
+      teachers: '২৮',
+      staff: '৬',
+      land_area: '৩.৫০ একর',
+      buildings: '৩টি বহুতল ভবন',
+      classrooms: '২৪টি',
+      pass_rate: '৯৮.৫%'
+    }
+  },
+  history: {
+    founding_story: 'ব্রিটিশ শাসনামলের শেষলগ্নে ১৯৪৬ খ্রিষ্টাব্দে টাঙ্গাইল জেলার কালিহাতি উপজেলার মগড়া ইউনিয়নের শিক্ষানুরাগী ও বিশিষ্ট ব্যক্তিবর্গের ঐকান্তিক প্রচেষ্টায় এই বিদ্যাপীঠ প্রতিষ্ঠিত হয়। তৎকালীন সময়ে এলাকার সাধারণ পরিবারগুলোর মাঝে শিক্ষার আলো পৌঁছে দেওয়ার লক্ষ্যে স্থানীয় দানশীল ও বিদ্যোৎসাহী ব্যক্তিবর্গ নিজেদের ভূমি ও সম্পদ দান করে এই বিদ্যালয়ের সূচনা করেন।',
+    liberation_war: '১৯৭১ সালের মহান মুক্তিযুদ্ধে অত্র বিদ্যালয়ের শিক্ষক, তৎকালীন ছাত্র ও স্থানীয় বীর মুক্তিযোদ্ধারা সক্রিয়ভাবে পাকিস্তানি হানাদার বাহিনীর বিরুদ্ধে প্রতিরোধ গড়ে তোলেন। বিদ্যালয় ক্যাম্পাসটি মুক্তিবাহিনীর অন্যতম আশ্রয় ও যোগাযোগ কেন্দ্র হিসেবে ব্যবহৃত হয়েছিল। মুক্তিযুদ্ধে এই প্রতিষ্ঠানের ত্যাগ চিরস্মরণীয়।',
+    modernization: 'কাঁচা টিনশেড ঘর থেকে আজ সুবিশাল বহুতল একাডেমিক ভবন, আধুনিক বিজ্ঞানাগার, শেখ রাসেল ডিজিটাল কম্পিউটার ল্যাব ও সম্পূর্ণ স্বয়ংক্রিয় অনলাইন স্কুল ম্যানেজমেন্ট সিস্টেম সমৃদ্ধ প্রতিষ্ঠানে রূপান্তর লাভ করেছে। আধুনিক তথ্যপ্রযুক্তিভিত্তিক শিক্ষাদানে প্রতিষ্ঠানটি অত্র অঞ্চলে পথিকৃৎ।',
+    milestones: [
+      { year: '১৯৪৬', title: 'বিদ্যালয় প্রতিষ্ঠা', desc: 'স্থানীয় বিদ্যোৎসাহী ব্যক্তিবর্গের ঐকান্তিক প্রচেষ্টায় যাত্রা শুরু।' },
+      { year: '১৯৭১', title: 'মহান মুক্তিযুদ্ধে ঐতিহাসিক ভূমিকা', desc: 'মুক্তিযোদ্ধাদের ক্যাম্প ও প্রতিরোধ কেন্দ্র হিসেবে অনন্য অবদান।' },
+      { year: '১৯৮২', title: 'এমপিওভুক্তি ও স্বীকৃতি', desc: 'মাধ্যমিক শিক্ষা কার্যক্রমে পূর্ণ সরকারি এমপিওভুক্তি লাভ।' },
+      { year: '২০১৬', title: 'শেখ রাসেল ডিজিটাল ল্যাব স্থাপন', desc: 'আধুনিক কম্পিউটার ল্যাব ও আইসিটি ক্লাসরুম উদ্বোধন।' },
+      { year: '২০২৬', title: 'স্মার্ট স্কুল ম্যানেজমেন্ট ও অটোমেশন', desc: 'অনলাইন ভর্তি, ডিজিটাল উপস্থিতি ও স্বয়ংক্রিয় ফলাফল ব্যবস্থা প্রবর্তন।' }
+    ]
+  },
+  committee: {
+    active_type: 'regular',
+    tenure: '২০২৪–২০২৬',
+    regular: {
+      title: 'নিয়মিত ম্যানেজিং কমিটি',
+      tenure: '২০২৪–২০২৬',
+      approval_memo: 'মাউশি/বোর্ড স্মারক নং: ৩৭.০২.০০০০.১০৬... তারিখ: ১৫-০১-২০২৪',
+      members: [
+        { name_bn: 'নেয়ামুল হক খান', role: 'সভাপতি', designation: 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক', mobile: '01711-XXXXXX', photo: '' },
+        { name_bn: 'মুহাম্মদ শফিকুল ইসলাম', role: 'সদস্য সচিব', designation: 'প্রধান শিক্ষক, মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়', mobile: '01712-XXXXXX', photo: '' },
+        { name_bn: 'আলহাজ্ব মোঃ আব্দুল লতিফ', role: 'দাতা সদস্য', designation: 'ভূমি ও তহবিল দাতা', mobile: '01713-XXXXXX', photo: '' },
+        { name_bn: 'মোঃ রফিকুল ইসলাম তালুকদার', role: 'অভিভাবক প্রতিনিধি', designation: 'সম্মানিত অভিভাবক', mobile: '01714-XXXXXX', photo: '' },
+        { name_bn: 'বেগম ফরিদা ইয়াসমিন', role: 'সংরক্ষিত মহিলা অভিভাবক প্রতিনিধি', designation: 'সম্মানিত অভিভাবক', mobile: '01715-XXXXXX', photo: '' },
+        { name_bn: 'তাপসী সরকার', role: 'শিক্ষক প্রতিনিধি', designation: 'সহকারী প্রধান শিক্ষক', mobile: '01716-XXXXXX', photo: '' },
+        { name_bn: 'মুহাম্মদ আবুবকর সিদ্দিক', role: 'শিক্ষক প্রতিনিধি', designation: 'সহকারী শিক্ষক (আইসিটি)', mobile: '01717-XXXXXX', photo: '' },
+        { name_bn: 'ডাঃ আশরাফুল আলম', role: 'হিতৈষী সদস্য', designation: 'বিশিষ্ট চিকিৎসক ও সমাজসেবক', mobile: '01718-XXXXXX', photo: '' }
+      ]
+    },
+    adhoc: {
+      title: 'এডহক কমিটি',
+      tenure: '২০২৬ (৬ মাস মেয়াদি)',
+      approval_memo: 'শিক্ষা বোর্ড অনুমোদন স্মারক নং: ১৮.০৪.০০০... তারিখ: ১০-০১-২০২৬',
+      members: [
+        { name_bn: 'মোঃ খোরশেদ আলম', role: 'সভাপতি', designation: 'উপজেলা নির্বাহী কর্মকর্তা / মনোনীত সভাপতি', mobile: '01710-XXXXXX', photo: '' },
+        { name_bn: 'মুহাম্মদ শফিকুল ইসলাম', role: 'সদস্য সচিব', designation: 'প্রধান শিক্ষক, মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়', mobile: '01712-XXXXXX', photo: '' },
+        { name_bn: 'মোঃ মজিবুর রহমান', role: 'অভিভাবক সদস্য', designation: 'মনোনীত অভিভাবক প্রতিনিধি', mobile: '01719-XXXXXX', photo: '' },
+        { name_bn: 'তাপসী সরকার', role: 'শিক্ষক প্রতিনিধি', designation: 'সহকারী প্রধান শিক্ষক', mobile: '01716-XXXXXX', photo: '' }
+      ]
+    },
+    members: [
+      { name_bn: 'নেয়ামুল হক খান', role: 'সভাপতি', designation: 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক', mobile: '01711-XXXXXX', photo: '' },
+      { name_bn: 'মুহাম্মদ শফিকুল ইসলাম', role: 'সদস্য সচিব', designation: 'প্রধান শিক্ষক, মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়', mobile: '01712-XXXXXX', photo: '' },
+      { name_bn: 'আলহাজ্ব মোঃ আব্দুল লতিফ', role: 'দাতা সদস্য', designation: 'ভূমি ও তহবিল দাতা', mobile: '01713-XXXXXX', photo: '' },
+      { name_bn: 'মোঃ রফিকুল ইসলাম তালুকদার', role: 'অভিভাবক প্রতিনিধি', designation: 'সম্মানিত অভিভাবক', mobile: '01714-XXXXXX', photo: '' },
+      { name_bn: 'বেগম ফরিদা ইয়াসমিন', role: 'সংরক্ষিত মহিলা অভিভাবক প্রতিনিধি', designation: 'সম্মানিত অভিভাবক', mobile: '01715-XXXXXX', photo: '' },
+      { name_bn: 'তাপসী সরকার', role: 'শিক্ষক প্রতিনিধি', designation: 'সহকারী প্রধান শিক্ষক', mobile: '01716-XXXXXX', photo: '' },
+      { name_bn: 'মুহাম্মদ আবুবকর সিদ্দিক', role: 'শিক্ষক প্রতিনিধি', designation: 'সহকারী শিক্ষক (আইসিটি)', mobile: '01717-XXXXXX', photo: '' },
+      { name_bn: 'ডাঃ আশরাফুল আলম', role: 'হিতৈষী সদস্য', designation: 'বিশিষ্ট চিকিৎসক ও সমাজসেবক', mobile: '01718-XXXXXX', photo: '' }
+    ]
+  },
+  donors: {
+    active_type: 'life',
+    life_donors: [
+      {
+        id: 'ld-1',
+        name_bn: 'আলহাজ্ব মোঃ আব্দুল লতিফ',
+        name_en: 'Alhaj Md. Abdul Latif',
+        designation: 'বিশিষ্ট দানবীর ও শিক্ষানুরাগী',
+        donation_amount: '১,০০,০০০/- টাকা ও ৫০ শতক জমি',
+        year: '১৯৮২',
+        address: 'মগড়া, টাঙ্গাইল সদর',
+        mobile: '01713-XXXXXX',
+        status: 'আজীবন দাতা সদস্য',
+        remarks: 'বিদ্যালয় প্রতিষ্ঠার প্রাথমিক পর্যায়ে ক্যাম্পাস সম্প্রসারণে জমি ও স্থায়ী তহবিল অনুদান প্রদান করেন।',
+        photo: ''
+      },
+      {
+        id: 'ld-2',
+        name_bn: 'হাজী মোঃ নুরুল ইসলাম',
+        name_en: 'Haji Md. Nurul Islam',
+        designation: 'বিশিষ্ট সমাজসেবক ও প্রবাসী হিতৈষী',
+        donation_amount: '২,৫০,০০০/- টাকা',
+        year: '১৯৯৫',
+        address: 'রসুলপুর, মগড়া, টাঙ্গাইল',
+        mobile: '01715-XXXXXX',
+        status: 'আজীবন দাতা সদস্য',
+        remarks: 'বিদ্যালয়ের একাডেমিক ভবন নির্মাণ ও দরিদ্র শিক্ষার্থী তহবিল গঠনে বিশেষ অবদান।',
+        photo: ''
+      },
+      {
+        id: 'ld-3',
+        name_bn: 'বেগম রাবেয়া খাতুন',
+        name_en: 'Begum Rabeya Khatun',
+        designation: 'শিক্ষানুরাগী ও সাবেক শিক্ষিকা',
+        donation_amount: '৩০ শতক জমি ও ১,৫০,০০০/- টাকা',
+        year: '২০০৫',
+        address: 'মগড়া পূর্ব পাড়া, টাঙ্গাইল',
+        mobile: '01718-XXXXXX',
+        status: 'আজীবন দাতা সদস্য',
+        remarks: 'ছাত্রীদের বিজ্ঞান শিক্ষা ও খেলাধুলার মাঠ সম্প্রসারণে জমি দান করেন।',
+        photo: ''
+      }
+    ],
+    one_time_donors: [
+      {
+        id: 'otd-1',
+        name_bn: 'ডাঃ আশরাফুল আলম',
+        name_en: 'Dr. Ashraful Alam',
+        designation: 'বিশিষ্ট চিকিৎসক ও সমাজসেবক',
+        donation_amount: '১,০০,০০০/- টাকা',
+        year: '২০২৩',
+        address: 'টাঙ্গাইল শহর',
+        mobile: '01718-XXXXXX',
+        status: 'এককালীন দাতা সদস্য',
+        remarks: 'বিদ্যালয়ের শিক্ষার্থীদের জন্য বিনামূল্যে স্বাস্থ্য পরীক্ষা ক্যাম্প ও বিজ্ঞান ল্যাবে আধুনিক যন্ত্রপাতি অনুদান।',
+        photo: ''
+      },
+      {
+        id: 'otd-2',
+        name_bn: 'প্রকৌশলী মশিউর রহমান',
+        name_en: 'Engr. Moshiur Rahman',
+        designation: 'উপদেষ্টা প্রকৌশলী ও প্রাক্তন ছাত্র',
+        donation_amount: '১,৫০,০০০/- টাকা',
+        year: '২০২৪',
+        address: 'ঢাকা (স্থায়ী: মগড়া)',
+        mobile: '01719-XXXXXX',
+        status: 'এককালীন দাতা সদস্য',
+        remarks: 'আইসিটি ক্লাসরুমে ৫টি উচ্চক্ষমতাসম্পন্ন কম্পিউটার ও ইউপিএস প্রদান করেন।',
+        photo: ''
+      },
+      {
+        id: 'otd-3',
+        name_bn: 'জনাব কাজী আনোয়ার হোসেন',
+        name_en: 'Mr. Kazi Anwar Hossain',
+        designation: 'বিশিষ্ট ব্যবসায়ী ও সমাজসেবক',
+        donation_amount: '৭৫,০০০/- টাকা',
+        year: '২০২৫',
+        address: 'মগড়া বাজার, টাঙ্গাইল',
+        mobile: '01720-XXXXXX',
+        status: 'এককালীন দাতা সদস্য',
+        remarks: 'বঙ্গবন্ধু ও মুক্তিযুদ্ধ কর্নার এবং শিক্ষার্থীদের সহপাঠ্য বইয়ের জন্য বিশেষ অনুদান।',
+        photo: ''
+      },
+      {
+        id: 'otd-4',
+        name_bn: 'আলহাজ্ব মোকাররম হোসেন',
+        name_en: 'Alhaj Mokarram Hossain',
+        designation: 'প্রবাসী দানবীর ও সমাজহিতৈষী',
+        donation_amount: '৮০,০০০/- টাকা',
+        year: '২০২৫',
+        address: 'কুয়েত প্রবাসী (গ্রাম: মগড়া)',
+        mobile: '01722-XXXXXX',
+        status: 'এককালীন দাতা সদস্য',
+        remarks: 'ক্যাম্পাসে শিক্ষার্থীদের জন্য সার্বক্ষণিক নিরাপদ ও সুপেয় পানির প্ল্যান্ট স্থাপন।',
+        photo: ''
+      }
+    ]
+  },
+  regulations: {
+    overview: 'মাধ্যমিক ও উচ্চশিক্ষা অধিদপ্তর (মাউশি) এবং মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকার সর্বশেষ বিধিমালা অনুযায়ী পরিচালিত প্রাতিষ্ঠানিক নীতিসমূহ:',
+    rules: [
+      { title: 'ভর্তি নীতিমালা', detail: 'সরকারি প্রজ্ঞাপন অনুযায়ী নির্ধারিত সময়সীমার মধ্যে অনলাইন ও ম্যানুয়াল পদ্ধতিতে স্বচ্ছতার সাথে ভর্তি কার্যক্রম পরিচালিত হয়।' },
+      { title: 'উপস্থিতি ও হাজিরা বিধি', detail: 'প্রতিটি শিক্ষার্থীর বার্ষিক পরীক্ষায় অংশগ্রহণের জন্য ন্যূনতম ৭৫% ক্লাসে উপস্থিতি বাধ্যতামূলক। বিনা অনুমতিতে অনুপস্থিতি গ্রহণযোগ্য নয়।' },
+      { title: 'পরীক্ষা ও মূল্যায়ন বিধি', detail: 'জাতীয় শিক্ষাক্রমের আলোকে শিখনকালীন ধারাবাহিক মূল্যায়ন (CA) এবং সামষ্টিক পরীক্ষা সুষ্ঠুভাবে গ্রহণ করা হয়।' },
+      { title: 'ফি ও আর্থিক স্বচ্ছতা', detail: 'সকল প্রকার টিউশন ফি ও পরীক্ষা ফি রসিদের মাধ্যমে ও ডিজিটাল ট্র্যাকারে নথিভুক্ত করা হয়। অতিরিক্ত কোনো ফি নেওয়া হয় না।' },
+      { title: 'সনদ ও ছাড়পত্র (TC) প্রদান', detail: 'যাবতীয় বকেয়া পরিশোধ সাপেক্ষে প্রধান শিক্ষকের অনুমোদনক্রমে বিধি মোতাবেক অফিশিয়াল ছাড়পত্র ও প্রশংসাপত্র প্রদান করা হয়।' }
+    ]
+  },
+  code_of_conduct: {
+    student_conduct: [
+      'নির্ধারিত স্কুল ইউনিফর্ম ও পরিচয়পত্র (আইডি কার্ড) পরিধান করে ক্যাম্পাসে প্রবেশ বাধ্যতামূলক।',
+      'প্রতিদিন সকাল ৯:৪৫ মিনিটের মধ্যে প্রাত্যহিক সমাবেশে (অ্যাসেম্বলি) উপস্থিত থাকতে হবে।',
+      'শ্রেণিকক্ষে এবং ক্যাম্পাস প্রাঙ্গণে মোবাইল ফোন বা কোনো ইলেকট্রনিক ডিভাইস আনা সম্পূর্ণ নিষিদ্ধ।',
+      'শিক্ষক, কর্মচারী এবং সহপাঠীদের প্রতি সর্বদা মার্জিত ও সম্মানজনক আচরণ প্রদর্শন করতে হবে।',
+      'বিদ্যালয়ের আসবাবপত্র, ল্যাব ও লাইব্রেরির সম্পদ রক্ষা করা প্রতিটি শিক্ষার্থীর দায়িত্ব।'
+    ],
+    guardian_conduct: [
+      'সন্তানের নিয়মিত উপস্থিতি ও বাড়ির কাজের প্রতি প্রতিদিন খেয়াল রাখুন।',
+      'ত্রৈমাসিক অভিভাবক-শিক্ষক মতবিনিময় সভায় নিয়মিত উপস্থিত থাকুন।',
+      'যেকোনো জরুরি বিষয়ে সরাসরি প্রধান শিক্ষক বা শ্রেণি শিক্ষকের সাথে যোগাযোগ করুন।'
+    ],
+    teacher_conduct: [
+      'নির্দিষ্ট সময়ের পূর্বে বিদ্যালয়ে উপস্থিতি এবং আন্তরিকতার সাথে পাঠদান সম্পন্ন করা।',
+      'সকল শিক্ষার্থীর প্রতি স্নেহশীল ও নিরপেক্ষ দৃষ্টিভঙ্গি বজায় রাখা।'
+    ]
+  },
+  master_plan: {
+    overview: 'আগামী শিক্ষাবর্ষগুলোতে গুণগত শিক্ষা ও ক্যাম্পাস উন্নয়নে গৃহীত প্রাতিষ্ঠানিক মহাপরিকল্পনা:',
+    plans: [
+      { icon: '💻', title: '১০০% স্মার্ট ক্লাসরুম রূপান্তর', desc: 'সকল শ্রেণিকক্ষে প্রজেক্টর, ইন্টারেক্টিভ স্মার্ট ডিসপ্লে ও দ্রুতগতির ইন্টারনেট নিশ্চিতকরণ।' },
+      { icon: '🔬', title: 'বিজ্ঞানাগার ও ইনোভেশন ল্যাব সম্প্রসারণ', desc: 'হাতে-কলমে আধুনিক বিজ্ঞানচর্চা, রোবোটিক্স ও কোডিং ল্যাব সম্প্রসারণ।' },
+      { icon: '🏆', title: 'শতভাগ জিপিএ-৫ লক্ষ্যমাত্রা', desc: 'দুর্বল শিক্ষার্থীদের নিবিড় প্রতিকারমূলক ক্লাস (Remedial Class) ও ধারাবাহিক মডেল টেস্ট।' },
+      { icon: '🏛️', title: 'আধুনিক অডিটোরিয়াম ও ক্রীড়া কমপ্লেক্স', desc: 'সাংস্কৃতিক চর্চা ও আন্তঃস্কুল টুর্নামেন্ট আয়োজনের জন্য বহুমুখী মিলনায়তন স্থাপন।' },
+      { icon: '🌿', title: 'সবুজ ও পরিবেশবান্ধব ইকো-ক্যাম্পাস', desc: 'বৃক্ষরোপণ, বর্জ্য ব্যবস্থাপনা ও সোলার এনার্জি চালুর মাধ্যমে পরিবেশবান্ধব সবুজ ক্যাম্পাস গড়া।' }
+    ]
+  },
+  library: {
+    summary: 'বিদ্যালয়ের সমৃদ্ধ কেন্দ্রীয় লাইব্রেরিতে পাঠ্যবই, রেফারেন্স বই, সাহিত্য, বিজ্ঞান ও মুক্তিযুদ্ধ বিষয়ক সহস্রাধিক মূল্যবান গ্রন্থ রয়েছে।',
+    reading_hours: 'সকাল ১০:০০ টা হতে বিকাল ৪:০০ টা (কর্মদিবসে)',
+    total_books: '৩,৫০০+ টি',
+    sections: [
+      { name: 'বঙ্গবন্ধু ও মুক্তিযুদ্ধ কর্নার', count: '৩৫০ টি' },
+      { name: 'বাংলা ও বিশ্ব সাহিত্য', count: '১২০০ টি' },
+      { name: 'বিজ্ঞান, গণিত ও প্রযুক্তি', count: '৮৫০ টি' },
+      { name: 'সাধারণ জ্ঞান ও রেফারেন্স বুক', count: '৬০০ টি' },
+      { name: 'ধর্ম ও নৈতিক শিক্ষা', count: '৫০০ টি' }
+    ],
+    rules: 'লাইব্রেরি কার্ডের মাধ্যমে শিক্ষার্থীরা এককালীন ২টি বই সর্বোচ্চ ৭ দিনের জন্য ধার নিতে পারবে। বইয়ের কোনো পৃষ্ঠা ছেঁড়া বা দাগ দেওয়া সম্পূর্ণ নিষিদ্ধ।'
+  },
+  curriculum: {
+    overview: 'জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) অনুমোদিত আধুনিক শিক্ষাক্রম রূপরেখা অনুযায়ী শ্রেণিভিত্তিক পাঠদান ও শিখনফল মূল্যায়ন পরিচালিত হয়:',
+    lower_secondary: '৬ষ্ঠ হতে ৮ম শ্রেণি: বাংলা, ইংরেজি, গণিত, বিজ্ঞান, ইতিহাস ও সামাজিক বিজ্ঞান, ডিজিটাল প্রযুক্তি, জীবন ও জীবিকা, স্বাস্থ্য সুরক্ষা, ধর্ম ও নৈতিক শিক্ষা, শিল্প ও সংস্কৃতি।',
+    secondary_science: '৯ম ও ১০ম শ্রেণি (বিজ্ঞান বিভাগ): বাংলা, ইংরেজি, গণিত, পদার্থবিজ্ঞান, রসায়ন, জীববিজ্ঞান, উচ্চতর গণিত/কৃষি শিক্ষা, তথ্য ও যোগাযোগ প্রযুক্তি, ধর্ম ও নৈতিক শিক্ষা।',
+    secondary_humanities: '৯ম ও ১০ম শ্রেণি (মানবিক বিভাগ): বাংলা, ইংরেজি, গণিত, বাংলাদেশের ইতিহাস ও বিশ্বসভ্যতা, ভূগোল ও পরিবেশ, পৌরনীতি ও নাগরিকতা, অর্থনীতি/কৃষি শিক্ষা, সাধারণ বিজ্ঞান, ধর্ম।',
+    secondary_business: '৯ম ও ১০ম শ্রেণি (ব্যবসায় শিক্ষা শাখা): বাংলা, ইংরেজি, গণিত, হিসাববিজ্ঞান, ফিন্যান্স ও ব্যাংকিং, ব্যবসায় উদ্যোগ, সাধারণ বিজ্ঞান, তথ্য ও যোগাযোগ প্রযুক্তি, ধর্ম।'
+  },
+  syllabus: {
+    year: '২০২৬',
+    classes: [
+      { class_name: '৬ষ্ঠ শ্রেণি', syllabus_title: '২০২৬ শিক্ষাবর্ষের ৬ষ্ঠ শ্রেণির বাৎসরিক শিখন পরিকল্পনা ও সিলেবাস', pdf_link: '#', status: 'অনুমোদিত' },
+      { class_name: '৭ম শ্রেণি', syllabus_title: '২০২৬ শিক্ষাবর্ষের ৭ম শ্রেণির বাৎসরিক শিখন পরিকল্পনা ও সিলেবাস', pdf_link: '#', status: 'অনুমোদিত' },
+      { class_name: '৮ম শ্রেণি', syllabus_title: '২০২৬ শিক্ষাবর্ষের ৮ম শ্রেণির বাৎসরিক শিখন পরিকল্পনা ও সিলেবাস', pdf_link: '#', status: 'অনুমোদিত' },
+      { class_name: '৯ম শ্রেণি', syllabus_title: '২০২৬ শিক্ষাবর্ষের ৯ম শ্রেণির বিভাগভিত্তিক পাঠ্যতালিকা ও প্রাক-নির্বাচনী সিলেবাস', pdf_link: '#', status: 'অনুমোদিত' },
+      { class_name: '১০ম শ্রেণি (SSC)', syllabus_title: '২০২৬ সালের এসএসসি নির্বাচনি ও চূড়ান্ত প্রস্তুতিমূলক টেস্ট সিলেবাস', pdf_link: '#', status: 'অনুমোদিত' }
+    ]
+  },
+  publications: {
+    summary: 'শিক্ষার্থীদের সৃজনশীল লেখালেখি, কবিতা, চিত্রাঙ্কন ও প্রাতিষ্ঠানিক স্মরণিকা প্রকাশের নিয়মিত উদ্যোগ:',
+    items: [
+      { title: "বার্ষিক স্কুল ম্যাগাজিন 'মগড়া প্রভাত'", type: 'বার্ষিকী', desc: 'শিক্ষক ও ছাত্র-ছাত্রীদের সৃজনশীল সাহিত্যকর্ম, বিদ্যালয় বার্ষিকী ও ফলাফলের স্মারক প্রকাশনা।' },
+      { title: "ত্রৈমাসিক দেয়াল পত্রিকা 'কিশোর আলো'", type: 'দেয়াল পত্রিকা', desc: 'ভাষা ও সাহিত্য ক্লাবের উদ্যোগে প্রতি তিন মাস অন্তর দেয়াল পত্রিকা ও বিশেষ ক্রোড়পত্র উন্মোচন।' },
+      { title: "জাতীয় দিবস বিশেষ স্মরণিকা 'স্মৃতি অম্লান'", type: 'স্মরণিকা', desc: '২১শে ফেব্রুয়ারি, ২৬শে মার্চ ও ১৬ই ডিসেম্বর উপলক্ষে বিশেষ প্রবন্ধ ও স্মৃতিচারণ প্রকাশনা।' }
+    ]
+  },
+  hostel: {
+    name: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় আবাসিক ছাত্রাবাস',
+    superintendent: 'মোঃ আব্দুল কাদের (সিনিয়র শিক্ষক) • মোবাইল: 01713-XXXXXX',
+    capacity: '৬০ জন শিক্ষার্থী',
+    features: [
+      { title: 'আবাসন ও নিরিবিলি পড়ার পরিবেশ', desc: 'পর্যাপ্ত আলো-বাতাসপূর্ণ পরিচ্ছন্ন কক্ষ, পৃথক পড়ার টেবিল ও নিরিবিলি পড়ার সুব্যবস্থা।' },
+      { title: 'স্বাস্থ্যসম্মত খাবার', desc: 'পুষ্টিকর ও স্বাস্থ্যসম্মত খাবারের সার্বক্ষণিক ডাইনিং ব্যবস্থা এবং বিশুদ্ধ পানীয় জল।' },
+      { title: 'সার্বক্ষণিক নিরাপত্তা', desc: 'হোস্টেল সুপারিনটেনডেন্ট কর্তৃক নিবিড় তত্ত্বাবধান ও সার্বক্ষণিক নিরাপত্তা কর্মী নিয়োজিত।' },
+      { title: 'সান্ধ্যকালীন বিশেষ কোচিং', desc: 'নিয়মিত শিক্ষকবৃন্দের তত্ত্বাবধানে সান্ধ্যকালীন স্টাডি আওয়ার ও পড়ালেখার মনিটরিং।' }
+    ],
+    fees: 'আবাসিক সিট ভাড়া ও মিল চার্জ সাশ্রয়ী ও ভর্তুকিমূল্যে নির্ধারিত।'
+  },
+  transport: {
+    road_connectivity: 'কালিহাতি উপজেলার মগড়া ইউনিয়ন ও পার্শ্ববর্তী গ্রামগুলো থেকে পাকা সড়কপথে সুলভ যোগাযোগের সুবিধা বিদ্যমান।',
+    bicycle_shed: 'দূরদূরান্ত থেকে বাইসাইকেলে আগত শিক্ষার্থীদের জন্য ক্যাম্পাসে নিরাপদ ও সুপরিসর সাইকেল শেড ব্যবস্থা রয়েছে।',
+    safety_guidelines: [
+      'ক্যাম্পাস সংলগ্ন যোগাযোগ: পাকা সড়কপথে সুলভ যোগাযোগের সুব্যবস্থা।',
+      'সাইকেল ও ব্যক্তিগত যানবাহন শেড: শিক্ষার্থীদের জন্য ক্যাম্পাসে নিরাপদ ও সুপরিসর শেড ব্যবস্থা রয়েছে।',
+      'সড়ক নিরাপত্তা ও ট্রাফিক শৃঙ্খলা: বিদ্যালয় শুরু ও ছুটির সময় রাস্তা পারাপারে বিশেষ সতর্কতামূলক নিরাপত্তা নির্দেশনা নিশ্চিত করা হয়।',
+      'ভবিষ্যৎ বাস সার্ভিস পরিকল্পনা: শিক্ষার্থীদের সুবিধার্থে প্রাতিষ্ঠানিক মিনিবাস/পরিবহণ সার্ভিস চালুর উদ্যোগ প্রক্রিয়াধীন রয়েছে।'
+    ]
+  }
+};
+
+export function getStoredInstitutionData() {
+  try {
+    let raw = null;
+    try {
+      raw = localStorage.getItem('magra_institution_info');
+    } catch (_) {}
+    if (!raw) {
+      try {
+        raw = sessionStorage.getItem('magra_institution_info');
+      } catch (_) {}
+    }
+
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const merged = { ...DEFAULT_INSTITUTION_DATA, ...parsed };
+
+      // Normalize committee structure to guarantee both ad-hoc and regular divisions exist
+      if (merged.committee) {
+        if (!merged.committee.regular) {
+          merged.committee.regular = {
+            title: 'নিয়মিত ম্যানেজিং কমিটি',
+            tenure: merged.committee.tenure || DEFAULT_INSTITUTION_DATA.committee.regular.tenure,
+            approval_memo: DEFAULT_INSTITUTION_DATA.committee.regular.approval_memo,
+            members: Array.isArray(merged.committee.members) && merged.committee.members.length
+              ? merged.committee.members
+              : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.committee.regular.members))
+          };
+        }
+        if (!merged.committee.adhoc) {
+          merged.committee.adhoc = JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.committee.adhoc));
+        }
+        if (!merged.committee.active_type) {
+          merged.committee.active_type = 'regular';
+        }
+
+        // Mirror active members to committee.members and committee.tenure for backward compatibility
+        const activeGroup = merged.committee.active_type === 'adhoc' ? merged.committee.adhoc : merged.committee.regular;
+        merged.committee.members = activeGroup?.members || [];
+        merged.committee.tenure = activeGroup?.tenure || merged.committee.tenure;
+      }
+
+      // Ensure donors structure exists
+      if (!merged.donors || !merged.donors.life_donors || !merged.donors.one_time_donors) {
+        merged.donors = {
+          active_type: merged.donors?.active_type || DEFAULT_INSTITUTION_DATA.donors.active_type,
+          life_donors: (Array.isArray(merged.donors?.life_donors) && merged.donors.life_donors.length)
+            ? merged.donors.life_donors
+            : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.life_donors)),
+          one_time_donors: (Array.isArray(merged.donors?.one_time_donors) && merged.donors.one_time_donors.length)
+            ? merged.donors.one_time_donors
+            : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.one_time_donors))
+        };
+      }
+
+      return merged;
+    }
+  } catch (e) {
+    console.error('Failed to load institution data from localStorage', e);
+  }
+  return DEFAULT_INSTITUTION_DATA;
+}
+
+export function saveStoredInstitutionData(data) {
+  if (!data || typeof data !== 'object') {
+    return false;
+  }
+  try {
+    // Keep committee.members and committee.tenure mirrored to active committee
+    if (data && data.committee) {
+      const c = data.committee;
+      const activeGroup = c.active_type === 'adhoc' ? c.adhoc : c.regular;
+      if (activeGroup) {
+        c.members = activeGroup.members || [];
+        c.tenure = activeGroup.tenure || c.tenure;
+      }
+    }
+
+    // Ensure donors structure is complete
+    if (data && data.donors) {
+      if (!Array.isArray(data.donors.life_donors)) {
+        data.donors.life_donors = JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.life_donors));
+      }
+      if (!Array.isArray(data.donors.one_time_donors)) {
+        data.donors.one_time_donors = JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.one_time_donors));
+      }
+    }
+
+    const jsonStr = JSON.stringify(data);
+    let savedSuccessfully = false;
+
+    // 1. Direct attempt to localStorage
+    try {
+      localStorage.setItem('magra_institution_info', jsonStr);
+      savedSuccessfully = true;
+    } catch (quotaErr) {
+      console.warn('Direct localStorage save failed (QuotaExceeded). Pruning temporary caches...', quotaErr);
+
+      // Quota Recovery: prune transient student photo caches and temp data
+      try {
+        const keysToPrune = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (
+            k.startsWith('magra_photo_') ||
+            k.startsWith('magra_temp_') ||
+            k.startsWith('magra_cache_') ||
+            k.startsWith('magra_db_results_')
+          )) {
+            keysToPrune.push(k);
+          }
+        }
+        for (const k of keysToPrune) {
+          try { localStorage.removeItem(k); } catch (_) {}
+        }
+
+        // Retry saving after pruning caches
+        localStorage.setItem('magra_institution_info', jsonStr);
+        savedSuccessfully = true;
+      } catch (retryErr) {
+        console.warn('Storage still full. Pruning oversized base64 images from payload...', retryErr);
+
+        // Strip oversized base64 images (>50KB) to ensure all core textual records are preserved
+        try {
+          const stripped = JSON.parse(jsonStr, (key, value) => {
+            if (typeof value === 'string' && value.startsWith('data:image') && value.length > 50000) {
+              return '';
+            }
+            return value;
+          });
+          localStorage.setItem('magra_institution_info', JSON.stringify(stripped));
+          savedSuccessfully = true;
+        } catch (strippedErr) {
+          console.error('localStorage completely exhausted. Using sessionStorage fallback.', strippedErr);
+        }
+      }
+    }
+
+    // Always mirror to sessionStorage as secondary storage
+    try {
+      sessionStorage.setItem('magra_institution_info', jsonStr);
+      savedSuccessfully = true;
+    } catch (_) {}
+
+    // Dispatch custom event to notify all active views/modals
+    try {
+      window.dispatchEvent(new CustomEvent('magra_institution_change', { detail: data }));
+    } catch (_) {}
+
+    return savedSuccessfully;
+  } catch (e) {
+    console.error('Failed to save institution data', e);
+    return false;
+  }
+}
