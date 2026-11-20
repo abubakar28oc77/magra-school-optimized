@@ -493,6 +493,153 @@ export function categorizeFeeHead(headName = '') {
   return 'অন্যান্য খাত';
 }
 
+// Helper to allocate waiver/discount across fee heads according to school policy:
+// 1. If paidAmount >= examFee, exam fee gets ZERO waiver (completely collected).
+// 2. Waiver is deducted FIRST from fines/penalties (জরিমানা / বিলম্ব ফি).
+// 3. Any excess waiver is NEXT deducted from tuition fees (মাসিক বেতন).
+// 4. Any further excess waiver is deducted from session charge / other heads.
+// 5. Finally, only if paidAmount < examFee (extreme edge case), exam fee absorbs remaining deficit.
+export function allocateReceiptHeadDiscounts(receiptOrItems, totalDiscount = null, totalPaid = null, totalGross = null) {
+  let items = [];
+  let discount = 0;
+  let paid = 0;
+  let gross = 0;
+
+  if (Array.isArray(receiptOrItems)) {
+    items = receiptOrItems;
+    discount = Number(totalDiscount) || 0;
+    paid = Number(totalPaid) || 0;
+    gross = Number(totalGross) || items.reduce((s, it) => s + (Number(it.amount || it.original_amount) || 0), 0);
+  } else if (receiptOrItems && typeof receiptOrItems === 'object') {
+    const r = receiptOrItems;
+    items = (Array.isArray(r.items) && r.items.length > 0)
+      ? r.items
+      : [{ name: 'মাসিক বেতন', amount: r.paid_amount || r.gross_total || 0 }];
+    discount = Number(r.discount) || 0;
+    paid = Number(r.paid_amount) || 0;
+    gross = Number(r.gross_total) || items.reduce((s, it) => s + (Number(it.amount || it.original_amount) || 0), 0);
+  }
+
+  // Normalize items
+  const normalizedItems = items.map(it => {
+    const rawAmt = Number(it.original_amount !== undefined ? it.original_amount : it.amount) || 0;
+    const cat = it.category || categorizeFeeHead(it.name);
+    return {
+      name: it.name,
+      category: cat,
+      original_amount: rawAmt,
+      discount_amount: 0,
+      net_amount: rawAmt,
+      note: it.note || '',
+      is_free: it.is_free || false
+    };
+  });
+
+  if (discount <= 0) {
+    const catTotals = normalizedItems.reduce((acc, it) => {
+      acc[it.category] = (acc[it.category] || 0) + it.net_amount;
+      return acc;
+    }, {
+      'বেতন খাত': 0,
+      'পরীক্ষার ফি খাত': 0,
+      'জরিমানা খাত': 0,
+      'সেশন চার্জ খাত': 0,
+      'অন্যান্য খাত': 0
+    });
+
+    return {
+      items: normalizedItems,
+      discountBreakdown: {
+        'জরিমানা খাত': 0,
+        'বেতন খাত': 0,
+        'সেশন চার্জ খাত': 0,
+        'অন্যান্য খাত': 0,
+        'পরীক্ষার ফি খাত': 0
+      },
+      summaryText: '',
+      categoryNetTotals: catTotals
+    };
+  }
+
+  const fineItems = normalizedItems.filter(it => it.category === 'জরিমানা খাত');
+  const tuitionItems = normalizedItems.filter(it => it.category === 'বেতন খাত');
+  const sessionItems = normalizedItems.filter(it => it.category === 'সেশন চার্জ খাত');
+  const otherItems = normalizedItems.filter(it => it.category === 'অন্যান্য খাত');
+  const examItems = normalizedItems.filter(it => it.category === 'পরীক্ষার ফি খাত');
+
+  let remDiscount = discount;
+  const discountByCat = {
+    'জরিমানা খাত': 0,
+    'বেতন খাত': 0,
+    'সেশন চার্জ খাত': 0,
+    'অন্যান্য খাত': 0,
+    'পরীক্ষার ফি খাত': 0
+  };
+
+  const allocateToGroup = (itemList, categoryName) => {
+    if (remDiscount <= 0 || itemList.length === 0) return;
+    for (const it of itemList) {
+      if (remDiscount <= 0) break;
+      const alloc = Math.min(remDiscount, it.original_amount - it.discount_amount);
+      if (alloc > 0) {
+        it.discount_amount += alloc;
+        it.net_amount = Math.max(0, it.original_amount - it.discount_amount);
+        remDiscount -= alloc;
+        discountByCat[categoryName] = (discountByCat[categoryName] || 0) + alloc;
+      }
+    }
+  };
+
+  // Rule 2: Deduct FIRST from fine / penalty
+  allocateToGroup(fineItems, 'জরিমানা খাত');
+
+  // Rule 3: Deduct NEXT from tuition
+  allocateToGroup(tuitionItems, 'বেতন খাত');
+
+  // Rule 4: Deduct from session & other heads
+  allocateToGroup(sessionItems, 'সেশন চার্জ খাত');
+  allocateToGroup(otherItems, 'অন্যান্য খাত');
+
+  // Rule 5: Only if remaining discount still exists, deduct from exam fee
+  allocateToGroup(examItems, 'পরীক্ষার ফি খাত');
+
+  // Human readable summary
+  const summaryParts = [];
+  if (discountByCat['জরিমানা খাত'] > 0) {
+    summaryParts.push(`জরিমানা মওকুফ: ৳${toBnDigits(discountByCat['জরিমানা খাত'])}`);
+  }
+  if (discountByCat['বেতন খাত'] > 0) {
+    summaryParts.push(`বেতন মওকুফ: ৳${toBnDigits(discountByCat['বেতন খাত'])}`);
+  }
+  if (discountByCat['সেশন চার্জ খাত'] > 0) {
+    summaryParts.push(`সেশন চার্জ মওকুফ: ৳${toBnDigits(discountByCat['সেশন চার্জ খাত'])}`);
+  }
+  if (discountByCat['অন্যান্য খাত'] > 0) {
+    summaryParts.push(`অন্যান্য মওকুফ: ৳${toBnDigits(discountByCat['অন্যান্য খাত'])}`);
+  }
+  if (discountByCat['পরীক্ষার ফি খাত'] > 0) {
+    summaryParts.push(`পরীক্ষার ফি মওকুফ: ৳${toBnDigits(discountByCat['পরীক্ষার ফি খাত'])}`);
+  }
+
+  const categoryNetTotals = normalizedItems.reduce((acc, it) => {
+    acc[it.category] = (acc[it.category] || 0) + it.net_amount;
+    return acc;
+  }, {
+    'বেতন খাত': 0,
+    'পরীক্ষার ফি খাত': 0,
+    'জরিমানা খাত': 0,
+    'সেশন চার্জ খাত': 0,
+    'অন্যান্য খাত': 0
+  });
+
+  return {
+    items: normalizedItems,
+    discountBreakdown: discountByCat,
+    summaryText: summaryParts.join(', '),
+    categoryNetTotals
+  };
+}
+
 // Initial Sample Fee Deposits to Office Assistant (Cleared for original collections)
 const SEED_FEE_DEPOSITS = [];
 
@@ -1373,6 +1520,13 @@ export function FinancePanel({ sub }) {
 
     const receiptNo = generateClassReceiptNo(selectedStudent.class_name, feeRecords);
 
+    const alloc = allocateReceiptHeadDiscounts(
+      activeFeeItems.map(i => ({ name: i.label, amount: i.amount, is_free: i.is_free, note: i.note })),
+      discountAmount,
+      paidAmount,
+      grossTotal
+    );
+
     const newTransaction = {
       id: `FEE-${Date.now()}`,
       receipt_no: receiptNo,
@@ -1387,10 +1541,21 @@ export function FinancePanel({ sub }) {
       is_scholarship: isScholarship,
       tuition_months: selectedMonths,
       tuition_amount: tuitionEffectiveAmount,
-      items: activeFeeItems.map(i => ({ name: i.label, amount: i.amount, is_free: i.is_free, note: i.note })),
+      items: alloc.items.map(i => ({
+        name: i.name,
+        amount: i.original_amount,
+        original_amount: i.original_amount,
+        discount_amount: i.discount_amount,
+        net_amount: i.net_amount,
+        category: i.category,
+        is_free: i.is_free,
+        note: i.note
+      })),
       gross_total: grossTotal,
       discount: Number(discountAmount) || 0,
       discount_reason: discountReason || '',
+      discount_breakdown: alloc.discountBreakdown,
+      waiver_summary: alloc.summaryText,
       net_payable: netPayable,
       paid_amount: Number(paidAmount) || 0,
       due_amount: dueAmount,
@@ -2999,9 +3164,8 @@ export function FinancePanel({ sub }) {
     const renderSlip = (r) => {
       if (!r) return '';
       const inWords = numberToWordsBn(r.paid_amount);
-      const items = (r.items && r.items.length > 0) ? r.items : [
-        { name: 'মাসিক বেতন', amount: r.paid_amount }
-      ];
+      const alloc = allocateReceiptHeadDiscounts(r);
+      const items = alloc.items;
       const slipTeacher = getClassTeacher(r.class_name, r.group, classTeachers);
       const teacherName = r.class_teacher_name || slipTeacher?.teacher_name || r.received_by || 'শ্রেণি শিক্ষক';
       const teacherTitle = r.class_teacher_designation || `শ্রেণি শিক্ষক (${slipTeacher?.class_name || `${toBnDigits(r.class_name)}ম শ্রেণি`})`;
@@ -3063,9 +3227,22 @@ export function FinancePanel({ sub }) {
                     <td style="text-align: center;">${toBnDigits(idx + 1)}</td>
                     <td>
                       <b>${it.name}</b>
+                      ${it.discount_amount > 0 ? `
+                        <div style="font-size: 10px; color: #b45309; margin-top: 2px;">
+                          নির্ধারিত: ৳ ${toBnDigits(it.original_amount)} &nbsp;|&nbsp; 
+                          <span style="color: #dc2626; font-weight: 700;">মওকুফ: - ৳ ${toBnDigits(it.discount_amount)}</span>
+                        </div>
+                      ` : ''}
                       ${it.note ? `<small style="display:block;color:#64748b;font-size:10px;margin-top:2px;">${it.note}</small>` : ''}
                     </td>
-                    <td style="text-align: right; font-weight: 700;">${formatMoney(it.amount)}</td>
+                    <td style="text-align: right; font-weight: 700;">
+                      ${it.discount_amount > 0 ? `
+                        <span style="color: #047857; font-size: 11.5px; display: block;">${formatMoney(it.net_amount)}</span>
+                        <small style="display: block; font-size: 9.5px; color: #94a3b8; text-decoration: line-through;">${formatMoney(it.original_amount)}</small>
+                      ` : `
+                        ${formatMoney(it.net_amount || it.amount)}
+                      `}
+                    </td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -3076,8 +3253,11 @@ export function FinancePanel({ sub }) {
                 </tr>
                 ${r.discount > 0 ? `
                   <tr class="row-discount">
-                    <td colspan="2" style="text-align: right;">মওকুফ / ছাড় (প্রধান শিক্ষক কর্তৃক):</td>
-                    <td style="text-align: right;">- ${formatMoney(r.discount)}</td>
+                    <td colspan="2" style="text-align: right;">
+                      মওকুফ / ছাড় (প্রধান শিক্ষক কর্তৃক):
+                      ${alloc.summaryText ? `<div style="font-size: 9.5px; color: #b45309; font-weight: normal; margin-top: 2px;">(${alloc.summaryText})</div>` : ''}
+                    </td>
+                    <td style="text-align: right; color: #dc2626; font-weight: 700;">- ${formatMoney(r.discount)}</td>
                   </tr>
                 ` : ''}
                 <tr class="row-paid">
@@ -3548,21 +3728,29 @@ export function FinancePanel({ sub }) {
       'সেশন চার্জ খাত': 0,
       'অন্যান্য খাত': 0
     };
+    const discountBreakdown = {
+      'জরিমানা খাত': 0,
+      'বেতন খাত': 0,
+      'সেশন চার্জ খাত': 0,
+      'অন্যান্য খাত': 0,
+      'পরীক্ষার ফি খাত': 0
+    };
     let total = 0;
+    let totalDiscount = 0;
 
     selectedRecs.forEach(r => {
       total += (Number(r.paid_amount) || 0);
-      const items = (Array.isArray(r.items) && r.items.length > 0) ? r.items : [
-        { name: 'মাসিক বেতন', amount: r.paid_amount }
-      ];
-      items.forEach(it => {
-        const amt = Number(it.amount) || 0;
-        const cat = categorizeFeeHead(it.name);
-        breakdown[cat] = (breakdown[cat] || 0) + amt;
+      totalDiscount += (Number(r.discount) || 0);
+      const alloc = allocateReceiptHeadDiscounts(r);
+      Object.keys(alloc.categoryNetTotals).forEach(cat => {
+        breakdown[cat] = (breakdown[cat] || 0) + (alloc.categoryNetTotals[cat] || 0);
+      });
+      Object.keys(alloc.discountBreakdown).forEach(cat => {
+        discountBreakdown[cat] = (discountBreakdown[cat] || 0) + (alloc.discountBreakdown[cat] || 0);
       });
     });
 
-    return { selectedRecs, breakdown, total };
+    return { selectedRecs, breakdown, discountBreakdown, total, totalDiscount };
   }, [feeRecords, selectedReceiptIdsForDeposit]);
 
   // Auto-calculated per-class deposit challan number for currently selected records
@@ -3623,6 +3811,7 @@ export function FinancePanel({ sub }) {
       student_count: liveDepositBreakdown.selectedRecs.length,
       receipt_ids: [...selectedReceiptIdsForDeposit],
       head_breakdown: { ...liveDepositBreakdown.breakdown },
+      discount_breakdown: { ...liveDepositBreakdown.discountBreakdown },
       total_amount: liveDepositBreakdown.total,
       payment_method: newPaymentMethod || 'cash',
       remarks: newDepositRemarks || `${toBnDigits(liveDepositBreakdown.selectedRecs.length)} জন শিক্ষার্থীর ফি আদায় জমা`,
@@ -3697,6 +3886,37 @@ export function FinancePanel({ sub }) {
     const school = MOCK_SCHOOL;
     const includedRecords = feeRecords.filter(r => (dep.receipt_ids || []).includes(r.id));
     const inWords = numberToWordsBn(dep.total_amount);
+
+    // Calculate accurate net head breakdown & discount breakdown across included records
+    let computedBreakdown = {
+      'বেতন খাত': 0,
+      'পরীক্ষার ফি খাত': 0,
+      'জরিমানা খাত': 0,
+      'সেশন চার্জ খাত': 0,
+      'অন্যান্য খাত': 0
+    };
+    let computedDiscountBreakdown = {
+      'জরিমানা খাত': 0,
+      'বেতন খাত': 0,
+      'সেশন চার্জ খাত': 0,
+      'অন্যান্য খাত': 0,
+      'পরীক্ষার ফি খাত': 0
+    };
+    let totalDiscountInBatch = 0;
+
+    includedRecords.forEach(r => {
+      totalDiscountInBatch += (Number(r.discount) || 0);
+      const alloc = allocateReceiptHeadDiscounts(r);
+      Object.keys(alloc.categoryNetTotals).forEach(cat => {
+        computedBreakdown[cat] = (computedBreakdown[cat] || 0) + (alloc.categoryNetTotals[cat] || 0);
+      });
+      Object.keys(alloc.discountBreakdown).forEach(cat => {
+        computedDiscountBreakdown[cat] = (computedDiscountBreakdown[cat] || 0) + (alloc.discountBreakdown[cat] || 0);
+      });
+    });
+
+    const effectiveBreakdown = (includedRecords.length > 0) ? computedBreakdown : (dep.head_breakdown || {});
+    const effectiveDiscountBreakdown = (includedRecords.length > 0) ? computedDiscountBreakdown : (dep.discount_breakdown || {});
     const printDate = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
     const effectiveReceivedBy = ((!dep.received_by || dep.received_by.includes('আলমগীর')) && !liveOfficePerson.name.includes('আলমগীর'))
       ? liveOfficePerson.fullNameWithDesig
@@ -3781,24 +4001,29 @@ export function FinancePanel({ sub }) {
           <div class="breakdown-grid">
             <div class="head-pill">
               <span>📚 বেতন খাত</span>
-              <b>${formatMoney(dep.head_breakdown?.['বেতন খাত'] || 0)}</b>
+              <b>${formatMoney(effectiveBreakdown?.['বেতন খাত'] || 0)}</b>
+              ${effectiveDiscountBreakdown?.['বেতন খাত'] > 0 ? `<small style="display:block; color:#dc2626; font-size:9.5px; font-weight:700;">(মওকুফ: -${formatMoney(effectiveDiscountBreakdown['বেতন খাত'])})</small>` : ''}
             </div>
             <div class="head-pill">
               <span>📝 পরীক্ষার ফি খাত</span>
-              <b>${formatMoney(dep.head_breakdown?.['পরীক্ষার ফি খাত'] || 0)}</b>
+              <b>${formatMoney(effectiveBreakdown?.['পরীক্ষার ফি খাত'] || 0)}</b>
+              ${effectiveDiscountBreakdown?.['পরীক্ষার ফি খাত'] > 0 ? `<small style="display:block; color:#dc2626; font-size:9.5px; font-weight:700;">(মওকুফ: -${formatMoney(effectiveDiscountBreakdown['পরীক্ষার ফি খাত'])})</small>` : ''}
             </div>
             <div class="head-pill">
               <span>⚠️ জরিমানা খাত</span>
-              <b>${formatMoney(dep.head_breakdown?.['জরিমানা খাত'] || 0)}</b>
+              <b>${formatMoney(effectiveBreakdown?.['জরিমানা খাত'] || 0)}</b>
+              ${effectiveDiscountBreakdown?.['জরিমানা খাত'] > 0 ? `<small style="display:block; color:#dc2626; font-size:9.5px; font-weight:700;">(মওকুফ: -${formatMoney(effectiveDiscountBreakdown['জরিমানা খাত'])})</small>` : ''}
             </div>
             <div class="head-pill">
               <span>🏛️ সেশন চার্জ খাত</span>
-              <b>${formatMoney(dep.head_breakdown?.['সেশন চার্জ খাত'] || 0)}</b>
+              <b>${formatMoney(effectiveBreakdown?.['সেশন চার্জ খাত'] || 0)}</b>
+              ${effectiveDiscountBreakdown?.['সেশন চার্জ খাত'] > 0 ? `<small style="display:block; color:#dc2626; font-size:9.5px; font-weight:700;">(মওকুফ: -${formatMoney(effectiveDiscountBreakdown['সেশন চার্জ খাত'])})</small>` : ''}
             </div>
-            ${dep.head_breakdown?.['অন্যান্য খাত'] ? `
+            ${effectiveBreakdown?.['অন্যান্য খাত'] ? `
               <div class="head-pill">
                 <span>📌 অন্যান্য খাত</span>
-                <b>${formatMoney(dep.head_breakdown['অন্যান্য খাত'])}</b>
+                <b>${formatMoney(effectiveBreakdown['অন্যান্য খাত'])}</b>
+                ${effectiveDiscountBreakdown?.['অন্যান্য খাত'] > 0 ? `<small style="display:block; color:#dc2626; font-size:9.5px; font-weight:700;">(মওকুফ: -${formatMoney(effectiveDiscountBreakdown['অন্যান্য খাত'])})</small>` : ''}
               </div>
             ` : ''}
             <div class="head-pill" style="background:#ecfdf5;border-color:#059669">
@@ -3806,6 +4031,17 @@ export function FinancePanel({ sub }) {
               <b style="color:#047857">${formatMoney(dep.total_amount)}</b>
             </div>
           </div>
+          ${totalDiscountInBatch > 0 ? `
+            <div style="margin-top: 8px; padding: 6px 10px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; font-size: 10px; color: #92400e; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+              <div>
+                <b>✨ প্রধান শিক্ষক কর্তৃক সমন্বিত মোট মওকুফ:</b> ${formatMoney(totalDiscountInBatch)}
+                <span style="color: #64748b; margin-left: 6px;">
+                  (${effectiveDiscountBreakdown['জরিমানা খাত'] > 0 ? `জরিমানা মওকুফ: ${formatMoney(effectiveDiscountBreakdown['জরিমানা খাত'])}, ` : ''}${effectiveDiscountBreakdown['বেতন খাত'] > 0 ? `বেতন মওকুফ: ${formatMoney(effectiveDiscountBreakdown['বেতন খাত'])}` : ''}${effectiveDiscountBreakdown['সেশন চার্জ খাত'] > 0 ? `, সেশন চার্জ মওকুফ: ${formatMoney(effectiveDiscountBreakdown['সেশন চার্জ খাত'])}` : ''})
+                </span>
+              </div>
+              <span style="color: #065f46; font-weight: 700;">✓ পরীক্ষার ফি সম্পূর্ণ অক্ষত</span>
+            </div>
+          ` : ''}
         </div>
 
         <table>
@@ -3822,9 +4058,7 @@ export function FinancePanel({ sub }) {
           </thead>
           <tbody>
             ${includedRecords.map((r, idx) => {
-              const itemsList = Array.isArray(r.items) && r.items.length > 0 ? r.items : [
-                { name: 'মাসিক বেতন', amount: r.paid_amount }
-              ];
+              const alloc = allocateReceiptHeadDiscounts(r);
               return `
                 <tr>
                   <td class="center">${toBnDigits(idx + 1)}</td>
@@ -3836,9 +4070,12 @@ export function FinancePanel({ sub }) {
                     <small style="display:block;color:#64748b">রোল: ${toBnDigits(r.roll_no)}</small>
                   </td>
                   <td>
-                    ${itemsList.map(it => `
-                      <span style="display:inline-block; margin-right:6px; background:#f1f5f9; padding:1px 5px; border-radius:3px; font-size:9.5px;">
-                        ${it.name}: <b>${formatMoney(it.amount)}</b>
+                    ${alloc.items.map(it => `
+                      <span style="display:inline-block; margin-right:6px; margin-bottom:2px; background:#f1f5f9; padding:2px 6px; border-radius:3px; font-size:9.5px;">
+                        ${it.name}: <b>${formatMoney(it.net_amount)}</b>
+                        ${it.discount_amount > 0 ? `
+                          <span style="color:#dc2626; font-weight:700; margin-left:2px;">(মওকুফ: -${formatMoney(it.discount_amount)})</span>
+                        ` : ''}
                       </span>
                     `).join('')}
                   </td>
@@ -4797,6 +5034,24 @@ export function FinancePanel({ sub }) {
                     placeholder="মওকুফের কারণ"
                     style={{ width: '100%', marginTop: '6px', padding: '4px 6px', borderRadius: '4px', border: '1px solid #fcd34d', fontSize: '11px' }}
                   />
+                  {discountAmount > 0 && (() => {
+                    const liveAlloc = allocateReceiptHeadDiscounts(
+                      activeFeeItems.map(i => ({ name: i.label, amount: i.amount, is_free: i.is_free, note: i.note })),
+                      discountAmount,
+                      paidAmount,
+                      grossTotal
+                    );
+                    return (
+                      <div style={{ marginTop: '8px', padding: '6px 8px', background: '#fffbeb', borderRadius: '5px', border: '1px solid #fde68a', fontSize: '10.5px', color: '#92400e', lineHeight: 1.35 }}>
+                        <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                          <span>ℹ️</span> <b>মওকুফ খাতভিত্তিক সমন্বয়:</b>
+                        </div>
+                        <div>
+                          {liveAlloc.summaryText ? `${liveAlloc.summaryText} (পরীক্ষার ফি সম্পূর্ণ অক্ষত)` : 'পরীক্ষার ফি থেকে কোনো মওকুফ হবে না'}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* গৃহীত টাকার পরিমাণ */}
@@ -6062,37 +6317,83 @@ export function FinancePanel({ sub }) {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '7px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                           <span style={{ fontSize: '12px', color: '#1e293b', fontWeight: 600 }}>📚 বেতন খাত:</span>
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#0369a1' }}>
-                            {formatMoney(liveDepositBreakdown.breakdown['বেতন খাত'])}
-                          </span>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#0369a1' }}>
+                              {formatMoney(liveDepositBreakdown.breakdown['বেতন খাত'])}
+                            </span>
+                            {liveDepositBreakdown.discountBreakdown?.['বেতন খাত'] > 0 && (
+                              <small style={{ display: 'block', fontSize: '9.5px', color: '#dc2626', fontWeight: 700 }}>
+                                (মওকুফ: -{formatMoney(liveDepositBreakdown.discountBreakdown['বেতন খাত'])})
+                              </small>
+                            )}
+                          </div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '7px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                           <span style={{ fontSize: '12px', color: '#1e293b', fontWeight: 600 }}>📝 পরীক্ষার ফি খাত:</span>
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#7c3aed' }}>
-                            {formatMoney(liveDepositBreakdown.breakdown['পরীক্ষার ফি খাত'])}
-                          </span>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#7c3aed' }}>
+                              {formatMoney(liveDepositBreakdown.breakdown['পরীক্ষার ফি খাত'])}
+                            </span>
+                            {liveDepositBreakdown.discountBreakdown?.['পরীক্ষার ফি খাত'] > 0 && (
+                              <small style={{ display: 'block', fontSize: '9.5px', color: '#dc2626', fontWeight: 700 }}>
+                                (মওকুফ: -{formatMoney(liveDepositBreakdown.discountBreakdown['পরীক্ষার ফি খাত'])})
+                              </small>
+                            )}
+                          </div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '7px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                           <span style={{ fontSize: '12px', color: '#1e293b', fontWeight: 600 }}>⚠️ জরিমানা খাত:</span>
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#dc2626' }}>
-                            {formatMoney(liveDepositBreakdown.breakdown['জরিমানা খাত'])}
-                          </span>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#dc2626' }}>
+                              {formatMoney(liveDepositBreakdown.breakdown['জরিমানা খাত'])}
+                            </span>
+                            {liveDepositBreakdown.discountBreakdown?.['জরিমানা খাত'] > 0 && (
+                              <small style={{ display: 'block', fontSize: '9.5px', color: '#dc2626', fontWeight: 700 }}>
+                                (মওকুফ: -{formatMoney(liveDepositBreakdown.discountBreakdown['জরিমানা খাত'])})
+                              </small>
+                            )}
+                          </div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '7px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                           <span style={{ fontSize: '12px', color: '#1e293b', fontWeight: 600 }}>🏛️ সেশন চার্জ খাত:</span>
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#b45309' }}>
-                            {formatMoney(liveDepositBreakdown.breakdown['সেশন চার্জ খাত'])}
-                          </span>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#b45309' }}>
+                              {formatMoney(liveDepositBreakdown.breakdown['সেশন চার্জ খাত'])}
+                            </span>
+                            {liveDepositBreakdown.discountBreakdown?.['সেশন চার্জ খাত'] > 0 && (
+                              <small style={{ display: 'block', fontSize: '9.5px', color: '#dc2626', fontWeight: 700 }}>
+                                (মওকুফ: -{formatMoney(liveDepositBreakdown.discountBreakdown['সেশন চার্জ খাত'])})
+                              </small>
+                            )}
+                          </div>
                         </div>
                         {liveDepositBreakdown.breakdown['অন্যান্য খাত'] > 0 && (
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '7px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                             <span style={{ fontSize: '12px', color: '#1e293b', fontWeight: 600 }}>📌 অন্যান্য খাত:</span>
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>
-                              {formatMoney(liveDepositBreakdown.breakdown['অন্যান্য খাত'])}
-                            </span>
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>
+                                {formatMoney(liveDepositBreakdown.breakdown['অন্যান্য খাত'])}
+                              </span>
+                              {liveDepositBreakdown.discountBreakdown?.['অন্যান্য খাত'] > 0 && (
+                                <small style={{ display: 'block', fontSize: '9.5px', color: '#dc2626', fontWeight: 700 }}>
+                                  (মওকুফ: -{formatMoney(liveDepositBreakdown.discountBreakdown['অন্যান্য খাত'])})
+                                </small>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
+
+                      {liveDepositBreakdown.totalDiscount > 0 && (
+                        <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '6px', padding: '6px 8px', marginTop: '8px', fontSize: '10.5px', color: '#92400e', lineHeight: 1.35 }}>
+                          <b style={{ display: 'block', marginBottom: '2px' }}>✨ প্রধান শিক্ষক কর্তৃক মোট মওকুফ সমন্বয়:</b>
+                          {liveDepositBreakdown.discountBreakdown['জরিমানা খাত'] > 0 && <div>• জরিমানা খাত থেকে মওকুফ: <b>{formatMoney(liveDepositBreakdown.discountBreakdown['জরিমানা খাত'])}</b></div>}
+                          {liveDepositBreakdown.discountBreakdown['বেতন খাত'] > 0 && <div>• বেতন খাত থেকে মওকুফ: <b>{formatMoney(liveDepositBreakdown.discountBreakdown['বেতন খাত'])}</b></div>}
+                          {liveDepositBreakdown.discountBreakdown['সেশন চার্জ খাত'] > 0 && <div>• সেশন চার্জ থেকে মওকুফ: <b>{formatMoney(liveDepositBreakdown.discountBreakdown['সেশন চার্জ খাত'])}</b></div>}
+                          {liveDepositBreakdown.discountBreakdown['অন্যান্য খাত'] > 0 && <div>• অন্যান্য খাত থেকে মওকুফ: <b>{formatMoney(liveDepositBreakdown.discountBreakdown['অন্যান্য খাত'])}</b></div>}
+                          <div style={{ color: '#047857', fontWeight: 700, marginTop: '2px' }}>✓ পরীক্ষার ফি সম্পূর্ণ অক্ষত</div>
+                        </div>
+                      )}
 
                       {/* Grand Total Callout */}
                       <div style={{ background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '8px', padding: '10px 12px', marginTop: '10px', textAlign: 'center' }}>
@@ -6400,23 +6701,41 @@ export function FinancePanel({ sub }) {
                           </span>
                         </td>
                         <td style={{ padding: '9px 10px' }}>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                            {Object.entries(dep.head_breakdown || {}).filter(([_, amt]) => amt > 0).map(([k, amt]) => (
-                              <span
-                                key={k}
-                                style={{
-                                  background: '#f8fafc',
-                                  color: '#334155',
-                                  border: '1px solid #cbd5e1',
-                                  borderRadius: '4px',
-                                  padding: '1px 5px',
-                                  fontSize: '10px'
-                                }}
-                              >
-                                {k}: <b>৳{toBnDigits(amt)}</b>
-                              </span>
-                            ))}
-                          </div>
+                          {(() => {
+                            let effBreakdown = dep.head_breakdown || {};
+                            if (Array.isArray(dep.receipt_ids) && dep.receipt_ids.length > 0) {
+                              const included = feeRecords.filter(r => dep.receipt_ids.includes(r.id));
+                              if (included.length > 0) {
+                                const b = { 'বেতন খাত': 0, 'পরীক্ষার ফি খাত': 0, 'জরিমানা খাত': 0, 'সেশন চার্জ খাত': 0, 'অন্যান্য খাত': 0 };
+                                included.forEach(r => {
+                                  const alloc = allocateReceiptHeadDiscounts(r);
+                                  Object.keys(alloc.categoryNetTotals).forEach(cat => {
+                                    b[cat] = (b[cat] || 0) + (alloc.categoryNetTotals[cat] || 0);
+                                  });
+                                });
+                                effBreakdown = b;
+                              }
+                            }
+                            return (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                                {Object.entries(effBreakdown).filter(([_, amt]) => amt > 0).map(([k, amt]) => (
+                                  <span
+                                    key={k}
+                                    style={{
+                                      background: '#f8fafc',
+                                      color: '#334155',
+                                      border: '1px solid #cbd5e1',
+                                      borderRadius: '4px',
+                                      padding: '1px 5px',
+                                      fontSize: '10px'
+                                    }}
+                                  >
+                                    {k}: <b>৳{toBnDigits(amt)}</b>
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td style={{ textAlign: 'right', padding: '9px 10px', fontWeight: 900, color: '#047857', fontSize: '13px', whiteSpace: 'nowrap' }}>
                           {formatMoney(dep.total_amount)}
@@ -8287,49 +8606,72 @@ export function FinancePanel({ sub }) {
                 )}
 
                 {/* Items Table */}
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '16px' }}>
-                  <thead>
-                    <tr style={{ background: '#f0fdf4' }}>
-                      <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', width: '35px', textAlign: 'center', color: '#047857' }}>ক্র.</th>
-                      <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', color: '#047857' }}>ফি-এর বিবরণ / খাত</th>
-                      <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '120px', color: '#047857' }}>পরিমাণ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(activeReceipt.items || []).map((it, idx) => (
-                      <tr key={idx}>
-                        <td style={{ border: '1px solid #cbd5e1', textAlign: 'center', padding: '6px' }}>{toBnDigits(idx + 1)}</td>
-                        <td style={{ border: '1px solid #cbd5e1', padding: '6px' }}>
-                          <b>{it.name}</b>
-                          {it.note && <small style={{ display: 'block', color: '#64748b', fontSize: '10.5px' }}>{it.note}</small>}
-                        </td>
-                        <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', fontWeight: 700 }}>{formatMoney(it.amount)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan="2" style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px' }}><b>মোট নির্ধারিত পাওনা:</b></td>
-                      <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', fontWeight: 800 }}>{formatMoney(activeReceipt.gross_total)}</td>
-                    </tr>
-                    {activeReceipt.discount > 0 && (
-                      <tr style={{ color: '#b45309' }}>
-                        <td colSpan="2" style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px' }}>মওকুফ / ছাড় (প্রধান শিক্ষক কর্তৃক):</td>
-                        <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', fontWeight: 700 }}>- {formatMoney(activeReceipt.discount)}</td>
-                      </tr>
-                    )}
-                    <tr style={{ background: '#f0fdf4', fontSize: '13px' }}>
-                      <td colSpan="2" style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', color: '#047857' }}><b>সর্বমোট গৃহীত টাকা:</b></td>
-                      <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', color: '#047857', fontWeight: 900 }}>{formatMoney(activeReceipt.paid_amount)}</td>
-                    </tr>
-                    {activeReceipt.due_amount > 0 && (
-                      <tr style={{ color: '#dc2626' }}>
-                        <td colSpan="2" style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px' }}>অবশিষ্ট বকেয়া:</td>
-                        <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', fontWeight: 800 }}>{formatMoney(activeReceipt.due_amount)}</td>
-                      </tr>
-                    )}
-                  </tfoot>
-                </table>
+                {(() => {
+                  const alloc = allocateReceiptHeadDiscounts(activeReceipt);
+                  return (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '16px' }}>
+                      <thead>
+                        <tr style={{ background: '#f0fdf4' }}>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', width: '35px', textAlign: 'center', color: '#047857' }}>ক্র.</th>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', color: '#047857' }}>ফি-এর বিবরণ / খাত</th>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '120px', color: '#047857' }}>পরিমাণ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {alloc.items.map((it, idx) => (
+                          <tr key={idx}>
+                            <td style={{ border: '1px solid #cbd5e1', textAlign: 'center', padding: '6px' }}>{toBnDigits(idx + 1)}</td>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '6px' }}>
+                              <b>{it.name}</b>
+                              {it.discount_amount > 0 && (
+                                <div style={{ fontSize: '10.5px', color: '#b45309', marginTop: '2px' }}>
+                                  নির্ধারিত: {formatMoney(it.original_amount)} &nbsp;|&nbsp; 
+                                  <span style={{ color: '#dc2626', fontWeight: 700 }}>মওকুফ: -{formatMoney(it.discount_amount)}</span>
+                                </div>
+                              )}
+                              {it.note && <small style={{ display: 'block', color: '#64748b', fontSize: '10.5px' }}>{it.note}</small>}
+                            </td>
+                            <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', fontWeight: 700 }}>
+                              {it.discount_amount > 0 ? (
+                                <div>
+                                  <span style={{ color: '#047857', fontWeight: 800 }}>{formatMoney(it.net_amount)}</span>
+                                  <small style={{ display: 'block', color: '#94a3b8', textDecoration: 'line-through', fontSize: '10px' }}>{formatMoney(it.original_amount)}</small>
+                                </div>
+                              ) : (
+                                <span>{formatMoney(it.net_amount)}</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td colSpan="2" style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px' }}><b>মোট নির্ধারিত পাওনা:</b></td>
+                          <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', fontWeight: 800 }}>{formatMoney(activeReceipt.gross_total)}</td>
+                        </tr>
+                        {activeReceipt.discount > 0 && (
+                          <tr style={{ color: '#b45309' }}>
+                            <td colSpan="2" style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px' }}>
+                              মওকুফ / ছাড় (প্রধান শিক্ষক কর্তৃক):
+                              {alloc.summaryText && <div style={{ fontSize: '10px', color: '#b45309', fontWeight: 'normal', marginTop: '1px' }}>({alloc.summaryText})</div>}
+                            </td>
+                            <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', fontWeight: 700, color: '#dc2626' }}>- {formatMoney(activeReceipt.discount)}</td>
+                          </tr>
+                        )}
+                        <tr style={{ background: '#f0fdf4', fontSize: '13px' }}>
+                          <td colSpan="2" style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', color: '#047857' }}><b>সর্বমোট গৃহীত টাকা:</b></td>
+                          <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', color: '#047857', fontWeight: 900 }}>{formatMoney(activeReceipt.paid_amount)}</td>
+                        </tr>
+                        {activeReceipt.due_amount > 0 && (
+                          <tr style={{ color: '#dc2626' }}>
+                            <td colSpan="2" style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px' }}>অবশিষ্ট বকেয়া:</td>
+                            <td style={{ border: '1px solid #cbd5e1', textAlign: 'right', padding: '6px', fontWeight: 800 }}>{formatMoney(activeReceipt.due_amount)}</td>
+                          </tr>
+                        )}
+                      </tfoot>
+                    </table>
+                  );
+                })()}
 
                 <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '6px 12px', borderRadius: '6px', fontSize: '11.5px', marginBottom: '20px' }}>
                   <b>কথায় (In Words):</b> {numberToWordsBn(activeReceipt.paid_amount)}
