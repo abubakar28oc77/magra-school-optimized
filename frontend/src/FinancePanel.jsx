@@ -3931,33 +3931,33 @@ export function FinancePanel({ sub }) {
         <meta charset="utf-8">
         <title>ফি জমার চালান ও খতিয়ান বিবরণী - ${dep.deposit_no} - ${school.nameBn}</title>
         <style>
-          @page { size: A4 portrait; margin: 10mm 12mm 10mm 12mm; }
+          @page { size: A4 landscape; margin: 8mm 10mm 8mm 10mm; }
           *, *::before, *::after { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          body { font-family: 'SolaimanLipi', Arial, sans-serif; margin: 0; padding: 10px; font-size: 11px; color: #0f172a; line-height: 1.35; }
-          .header-box { display: flex; align-items: center; justify-content: center; gap: 14px; border-bottom: 2.5px solid #047857; padding-bottom: 8px; margin-bottom: 12px; }
-          .header-logo { width: 55px; height: 55px; object-fit: contain; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; margin: 0; padding: 6px; font-size: 11px; color: #0f172a; line-height: 1.35; width: 100%; }
+          .header-box { display: flex; align-items: center; justify-content: center; gap: 14px; border-bottom: 2.5px solid #047857; padding-bottom: 6px; margin-bottom: 8px; }
+          .header-logo { width: 50px; height: 50px; object-fit: contain; }
           .header-text { text-align: center; }
-          .header-text h1 { margin: 0; font-size: 21px; color: #047857; font-weight: 800; letter-spacing: -0.2px; }
+          .header-text h1 { margin: 0; font-size: 20px; color: #047857; font-weight: 800; letter-spacing: -0.2px; }
           .header-text h3 { margin: 2px 0; font-size: 12px; color: #334155; font-weight: 600; }
           .header-text p { margin: 1px 0; font-size: 10.5px; color: #64748b; }
 
-          .title-banner { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; text-align: center; }
-          .title-banner h2 { margin: 0; font-size: 14.5px; color: #065f46; font-weight: 800; }
+          .title-banner { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 6px; padding: 6px 14px; margin-bottom: 8px; text-align: center; }
+          .title-banner h2 { margin: 0; font-size: 14px; color: #065f46; font-weight: 800; }
           .title-banner p { margin: 2px 0 0; font-size: 11px; color: #475569; }
 
-          .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; font-size: 11.5px; }
+          .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; margin-bottom: 10px; font-size: 11.5px; }
           .meta-item b { color: #0f172a; }
           .meta-item span { color: #334155; }
 
-          .breakdown-box { background: #fafafa; border: 1.5px solid #047857; border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; }
-          .breakdown-title { font-weight: 800; color: #047857; font-size: 12px; margin-bottom: 6px; border-bottom: 1px dashed #a7f3d0; padding-bottom: 4px; }
+          .breakdown-box { background: #fafafa; border: 1.5px solid #047857; border-radius: 6px; padding: 6px 12px; margin-bottom: 10px; }
+          .breakdown-title { font-weight: 800; color: #047857; font-size: 12px; margin-bottom: 6px; border-bottom: 1px dashed #a7f3d0; padding-bottom: 3px; }
           .breakdown-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
           .head-pill { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; font-size: 11px; }
           .head-pill span { color: #64748b; font-size: 10px; display: block; }
           .head-pill b { color: #047857; font-size: 13px; }
 
-          table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10.5px; }
-          th, td { border: 1px solid #94a3b8; padding: 5px 6px; vertical-align: top; }
+          table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; }
+          th, td { border: 1px solid #94a3b8; padding: 5px 8px; vertical-align: middle; }
           th { background: #f1f5f9; color: #0f172a; font-weight: 800; text-align: left; }
           th.center, td.center { text-align: center; }
           th.right, td.right { text-align: right; }
@@ -3965,9 +3965,9 @@ export function FinancePanel({ sub }) {
 
           tfoot tr.highlight { background: #ecfdf5; font-size: 11.5px; font-weight: 800; }
 
-          .in-words-box { margin-top: 10px; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px; }
+          .in-words-box { margin-top: 8px; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px; }
 
-          .signatures-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 45px; text-align: center; page-break-inside: avoid; }
+          .signatures-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 35px; text-align: center; page-break-inside: avoid; }
           .sig-box { border-top: 1.5px solid #0f172a; padding-top: 5px; font-size: 10.5px; }
           .sig-name { font-weight: 800; color: #0f172a; }
           .sig-desig { font-size: 9.5px; color: #475569; }
@@ -3993,7 +3993,7 @@ export function FinancePanel({ sub }) {
           <div class="meta-item"><b>জমা গ্রহণকারী:</b> <span>${effectiveReceivedBy}</span></div>
           <div class="meta-item"><b>অন্তর্ভুক্ত শিক্ষার্থী:</b> <span>${toBnDigits(dep.student_count)} জন</span></div>
           <div class="meta-item"><b>পরিশোধের মাধ্যম:</b> <span>${dep.payment_method === 'bkash' ? 'বিকাশ' : dep.payment_method === 'bank' ? 'ব্যাংক' : 'নগদ / ক্যাশ'}</span></div>
-          <div class="meta-item" style="grid-column: span 2;"><b>মন্তব্য:</b> <span>${dep.remarks || '—'}</span></div>
+          ${dep.remarks ? `<div class="meta-item" style="grid-column: span 4;"><b>মন্তব্য:</b> <span>${dep.remarks}</span></div>` : ''}
         </div>
 
         <div class="breakdown-box">
@@ -4047,13 +4047,13 @@ export function FinancePanel({ sub }) {
         <table>
           <thead>
             <tr>
-              <th class="center" style="width: 30px;">ক্র.</th>
-              <th class="center" style="width: 70px;">তারিখ</th>
-              <th style="width: 125px;">রশিদ নং</th>
-              <th style="width: 140px;">শিক্ষার্থীর নাম</th>
-              <th class="center" style="width: 65px;">শ্রেণি ও রোল</th>
+              <th class="center" style="width: 35px;">ক্র.</th>
+              <th class="center" style="width: 80px;">তারিখ</th>
+              <th style="width: 140px;">রশিদ নং</th>
+              <th style="width: 160px;">শিক্ষার্থীর নাম</th>
+              <th class="center" style="width: 80px;">শ্রেণি ও রোল</th>
               <th>খাতভিত্তিক টাকার বিস্তারিত হিসাব</th>
-              <th class="right" style="width: 90px;">জমা টাকা</th>
+              <th class="right" style="width: 110px;">জমা টাকা</th>
             </tr>
           </thead>
           <tbody>
