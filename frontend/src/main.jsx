@@ -522,7 +522,31 @@ const label = (bn, lang) => lang === 'en' ? (NAV_EN[bn] || bn) : bn;
 function Header({ onOpenSubmenu }) {
   const { lang } = useLanguage();
   const [open, setOpen] = useState(false), [dropdown, setDropdown] = useState(null), [enabled, setEnabled] = useState(null), [custom, setCustom] = useState([]);
-  const closeNav = () => { setOpen(false); setDropdown(null) };
+  const hoverTimerRef = useRef(null);
+
+  const handleMenuEnter = (i) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setDropdown(i);
+  };
+
+  const handleMenuLeave = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => {
+      setDropdown(null);
+    }, 150);
+  };
+
+  const handleTriggerClick = (e, i) => {
+    e.preventDefault();
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setDropdown(prev => prev === i ? null : i);
+  };
+
+  const closeNav = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setOpen(false);
+    setDropdown(null);
+  };
   const [sessionUser, setSessionUser] = useState(() => {
     try {
       const raw = localStorage.getItem('magra_user');
@@ -622,9 +646,36 @@ function Header({ onOpenSubmenu }) {
       <a className="header-login" href="#/login" onClick={closeNav}>{label('লগইন', lang)}</a>
     )}<button className="nav-toggle" onClick={() => setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
     <div className="nav-band"><nav id="public-navigation" className={open ? 'open' : ''} aria-label="প্রধান নেভিগেশন">
-      {nav.map((item, i) => item.children ? <div className={'nav-dropdown ' + (dropdown === i ? 'active' : '')} key={item.key}>
-        <button className="nav-drop-trigger" type="button" aria-expanded={dropdown === i} aria-haspopup="menu" onClick={() => setDropdown(dropdown === i ? null : i)}>{lang === 'bi' ? <>{item.label}<small className="lang-secondary">{NAV_EN[item.label] || ''}</small></> : label(item.label, lang)}</button>
-        <div className="nav-menu" role="menu">{item.children.map(([key, text, href]) => <a key={key} href={href} role="menuitem" onClick={(e) => handleSubmenuClick(e, key, text, href)}>{lang === 'bi' ? <>{text}<small className="lang-secondary">{NAV_EN[text] || ''}</small></> : label(text, lang)}</a>)}</div>
+      {nav.map((item, i) => item.children ? <div
+        className={'nav-dropdown ' + (dropdown === i ? 'active' : '')}
+        key={item.key}
+        onMouseEnter={() => handleMenuEnter(i)}
+        onMouseLeave={handleMenuLeave}
+      >
+        <button
+          className="nav-drop-trigger"
+          type="button"
+          aria-expanded={dropdown === i}
+          aria-haspopup="menu"
+          onClick={(e) => handleTriggerClick(e, i)}
+        >
+          {lang === 'bi' ? <>{item.label}<small className="lang-secondary">{NAV_EN[item.label] || ''}</small></> : label(item.label, lang)}
+        </button>
+        <div className="nav-menu" role="menu">
+          {item.children.map(([key, text, href]) => (
+            <a
+              key={key}
+              href={href}
+              role="menuitem"
+              onClick={(e) => {
+                handleSubmenuClick(e, key, text, href);
+                closeNav();
+              }}
+            >
+              {lang === 'bi' ? <>{text}<small className="lang-secondary">{NAV_EN[text] || ''}</small></> : label(text, lang)}
+            </a>
+          ))}
+        </div>
       </div> : item.emphasis ? <a className="nav-login-link" key={item.key} href={item.href} onClick={closeNav}>🔐 {lang === 'bi' ? <>{item.label}<small className="lang-secondary">{NAV_EN[item.label] || ''}</small></> : label(item.label, lang)}</a> : <a key={item.key} href={item.href} onClick={closeNav}>{lang === 'bi' ? <>{item.label}<small className="lang-secondary">{NAV_EN[item.label] || ''}</small></> : label(item.label, lang)}</a>)}
       {custom.filter(x => x.enabled !== false && ['public', 'both'].includes(x.placement)).map(x => <a key={'custom-' + x.id} href={x.target_url} onClick={closeNav}>{x.icon || '✨'} {x.title_bn}</a>)}
     </nav></div>
@@ -3232,6 +3283,34 @@ function Admin() {
       return { students: true, results: true, feature_control: true, settings: true };
     }
   });
+  const [hoveredNav, setHoveredNav] = useState(null);
+  const [clickedNav, setClickedNav] = useState(null);
+  const sideNavTimerRef = useRef(null);
+
+  const handleSideEnter = (k, hasSubs) => {
+    if (sideNavTimerRef.current) clearTimeout(sideNavTimerRef.current);
+    if (hasSubs) {
+      setHoveredNav(k);
+    }
+  };
+
+  const handleSideLeave = () => {
+    if (sideNavTimerRef.current) clearTimeout(sideNavTimerRef.current);
+    sideNavTimerRef.current = setTimeout(() => {
+      setHoveredNav(null);
+      setClickedNav(null);
+    }, 180);
+  };
+
+  const handleSideMainClick = (k, hasSubs) => {
+    if (sideNavTimerRef.current) clearTimeout(sideNavTimerRef.current);
+    choose(k);
+    if (hasSubs) {
+      setClickedNav(prev => prev === k ? null : k);
+      setHoveredNav(k);
+    }
+  };
+
   const [supabaseSyncOpen, setSupabaseSyncOpen] = useState(false);
   const [dataSyncOpen, setDataSyncOpen] = useState(false);
 
@@ -3389,7 +3468,11 @@ function Admin() {
           (effectiveMe?.login_id === 'assistant_head_teacher' || effectiveMe?.username === 'assistant_head_teacher') ? 'সহকারী প্রধান শিক্ষক একাডেমি' :
             userRole === 'admin' ? 'প্রধান শিক্ষক একাডেমি' :
               'School ERP (সুপার অ্যাডমিন)';
-  return <div className="admin"><aside className="no-print"><img src={logo} /><h2>{deskTitle}</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g => <React.Fragment key={g.group}><div className="side-group-title">{lang === 'en' ? adminEn[g.group] || g.group : g.group}</div>{g.items.map(x => <div className="side-item-wrap" key={x.k}><button className={'side-main ' + (active === x.k ? 'active' : '')} onClick={() => choose(x.k)}><span>{x.i}</span><b>{lang === 'bi' ? <>{x.n}<small className="lang-secondary">{x.e || ''}</small></> : lang === 'en' ? adminLabel(x.n) : x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k] ? '▾' : '▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk, label]) => <button key={sk} className={active === x.k && sub === sk ? 'active' : ''} onClick={() => { setActive(x.k); setSub(sk) }}>↳ {lang === 'en' ? adminEn[label] || label : label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled === null && <div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: '#ffffff', borderBottom: '1px solid #e2e8f0', marginBottom: '12px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', flexWrap: 'wrap', gap: '10px' }}>
+  return <div className="admin"><aside className="no-print"><img src={logo} /><h2>{deskTitle}</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g => <React.Fragment key={g.group}><div className="side-group-title">{lang === 'en' ? adminEn[g.group] || g.group : g.group}</div>{g.items.map(x => {
+    const hasSubs = Boolean(x.subs && x.subs.length > 0);
+    const isSubOpen = hasSubs && (hoveredNav === x.k || clickedNav === x.k);
+    return <div className={'side-item-wrap' + (isSubOpen ? ' open' : '')} key={x.k} onMouseEnter={() => handleSideEnter(x.k, hasSubs)} onMouseLeave={handleSideLeave}><button type="button" className={'side-main ' + (active === x.k ? 'active' : '')} onClick={() => handleSideMainClick(x.k, hasSubs)} aria-expanded={isSubOpen}><span>{x.i}</span><b>{lang === 'bi' ? <>{x.n}<small className="lang-secondary">{x.e || ''}</small></> : lang === 'en' ? adminLabel(x.n) : x.n}</b>{hasSubs ? <span className="side-caret">{isSubOpen ? '▾' : '▸'}</span> : null}</button>{isSubOpen ? <div className="side-subnav">{x.subs.map(([sk, label]) => <button type="button" key={sk} className={active === x.k && sub === sk ? 'active' : ''} onClick={() => { setActive(x.k); setSub(sk) }}>↳ {lang === 'en' ? adminEn[label] || label : label}</button>)}</div> : null}</div>;
+  })}</React.Fragment>)}{enabled === null && <div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: '#ffffff', borderBottom: '1px solid #e2e8f0', marginBottom: '12px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', flexWrap: 'wrap', gap: '10px' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
       <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
         {(() => { const x = ADMIN_NAV_GROUPS.flatMap(g => g.items).find(x => x.k === active); return lang === 'en' ? adminLabel(x?.n || 'ড্যাশবোর্ড') : x?.n || 'ড্যাশবোর্ড' })()}
