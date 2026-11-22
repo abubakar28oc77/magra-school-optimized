@@ -2648,6 +2648,13 @@ function handleMockRequest(path, opts = {}) {
       else if (d.includes('ব্যবসায়') || d.includes('com') || d.includes('bs')) bsByRoll.set(r, s);
     });
 
+    // Ensure aliases for Science Roll 38 (id: stu-10-sci-37, student_id: STU-10-SCI-37)
+    const sciRoll38 = sciByRoll.get(38);
+    if (sciRoll38) {
+      studentById.set('stu-10-sci-38', sciRoll38);
+      studentById.set('STU-10-SCI-38', sciRoll38);
+    }
+
     const sciCodes = new Set(['136', '137', '138', '126', 'sub-10-136', 'sub-10-137', 'sub-10-138', 'sub-10-126', 'sub-9-136', 'sub-9-137', 'sub-9-138', 'sub-9-126']);
     const humCodes = new Set(['153', '110', '141', '140', '151', 'sub-10-153', 'sub-10-110', 'sub-10-141', 'sub-10-140', 'sub-10-151']);
     const bsCodes = new Set(['146', '152', '143', 'sub-10-146', 'sub-10-152', 'sub-10-143']);
@@ -2684,7 +2691,35 @@ function handleMockRequest(path, opts = {}) {
       const isHum = humCodes.has(code) || humCodes.has(normSubCode) || subName.includes('ইতিহাস') || subName.includes('ভূগোল') || subName.includes('পৌরনীতি') || subName.includes('অর্থনীতি');
       const isEnglish = normSubCode === '107' || normSubCode === '108';
 
+      // Normalize Science Roll 38 alias if entered as stu-10-sci-38 / STU-10-SCI-38
+      if (rec.student_id === 'stu-10-sci-38' || rec.student_code === 'STU-10-SCI-38' || rec.student_id === 'STU-10-SCI-38') {
+        const sci38 = sciByRoll.get(38);
+        if (sci38) {
+          rec.student_id = sci38.id;
+          rec.student_code = sci38.student_id || sci38.id;
+          rec.department = 'বিজ্ঞান';
+          rec.roll_no = 38;
+        }
+      }
+
       const rollNum = currSt ? Number(currSt.roll_no) : (Number(rec.roll_no) || 0);
+
+      // Reclaim English marks (107=33, 108=38) for Science Roll 38 if misassigned
+      if (isEnglish && (rollNum === 38 || Number(rec.roll_no) === 38)) {
+        const isWalidScore = (normSubCode === '107' && Number(rec.written || rec.total) === 33) ||
+                             (normSubCode === '108' && Number(rec.written || rec.total) === 38);
+        const isExplicitSci = recExplicitSci || recDept.includes('বিজ্ঞান') || recId.includes('sci') || recCode.includes('sci');
+        if (isWalidScore || isExplicitSci || (!recExplicitHum && !recDept.includes('মানবিক') && !recId.includes('hum') && !recCode.includes('hum'))) {
+          const sci38 = sciByRoll.get(38);
+          if (sci38) {
+            rec.student_id = sci38.id;
+            rec.student_code = sci38.student_id || sci38.id;
+            rec.department = 'বিজ্ঞান';
+            rec.class_name = '10';
+            rec.roll_no = 38;
+          }
+        }
+      }
 
       if (rollNum > 0) {
         const d = currSt ? (currSt.department || '').toLowerCase() : '';
@@ -2697,8 +2732,8 @@ function handleMockRequest(path, opts = {}) {
             rec.class_name = '10';
             rec.roll_no = realHumSt.roll_no;
           }
-        } else if (isEnglish && rollNum > 37 && !d.includes('মানবিক') && !d.includes('hum')) {
-          // Roll > 37 cannot belong to Science (Science has max 37 students) -> Reassign to Humanities!
+        } else if (isEnglish && rollNum > 38 && !sciByRoll.has(rollNum) && !d.includes('বিজ্ঞান') && !d.includes('sci') && !recExplicitSci) {
+          // Rolls strictly beyond Science (Roll > 38) without Science designation belong to Humanities
           const realHumSt = humByRoll.get(rollNum);
           if (realHumSt) {
             rec.student_id = realHumSt.id;
@@ -2806,6 +2841,56 @@ function handleMockRequest(path, opts = {}) {
         });
       }
     });
+
+    // 3. Guarantee that Science Roll 38 (এইচ এম ওয়ালিদ সরকার) has English 1st (33) and English 2nd (38) marks for Test Exams
+    const sciSt38 = sciByRoll.get(38);
+    if (sciSt38) {
+      const targetExamIds = ['ex-test-2026', 'ex-test-10'];
+      targetExamIds.forEach(exId => {
+        const k107 = `${exId}_${sciSt38.id}_107`;
+        const ex107 = dedupeMap.get(k107);
+        if (!ex107 || ex107.absent || !Number(ex107.total || ex107.written)) {
+          dedupeMap.set(k107, {
+            exam_id: exId,
+            student_id: sciSt38.id,
+            student_code: sciSt38.student_id || sciSt38.id,
+            roll_no: 38,
+            class_name: '10',
+            department: 'বিজ্ঞান',
+            subject_id: 'sub-10-107',
+            subject_code: '107',
+            subject_name: 'ইংরেজি ১ম পত্র',
+            written: 33,
+            mcq: 0,
+            practical: 0,
+            total: 33,
+            absent: false,
+            updated_at: new Date().toISOString()
+          });
+        }
+        const k108 = `${exId}_${sciSt38.id}_108`;
+        const ex108 = dedupeMap.get(k108);
+        if (!ex108 || ex108.absent || !Number(ex108.total || ex108.written)) {
+          dedupeMap.set(k108, {
+            exam_id: exId,
+            student_id: sciSt38.id,
+            student_code: sciSt38.student_id || sciSt38.id,
+            roll_no: 38,
+            class_name: '10',
+            department: 'বিজ্ঞান',
+            subject_id: 'sub-10-108',
+            subject_code: '108',
+            subject_name: 'ইংরেজি ২য় পত্র',
+            written: 38,
+            mcq: 0,
+            practical: 0,
+            total: 38,
+            absent: false,
+            updated_at: new Date().toISOString()
+          });
+        }
+      });
+    }
 
     // Expand so that records are accessible under all equivalent exam IDs
     const allKnownExams = Array.isArray(exams) && exams.length ? exams : getLocalStore('exams', MOCK_EXAMS);

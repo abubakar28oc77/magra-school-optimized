@@ -2293,6 +2293,15 @@ export function ResultPanel({ sub, userRole }) {
         if (st.student_id) studentLookup.set(`id:${st.student_id.toLowerCase()}`, st);
         if (st.student_code) studentLookup.set(`id:${st.student_code.toLowerCase()}`, st);
 
+        // Science Roll 38 alias (stu-10-sci-37 <-> stu-10-sci-38 / STU-10-SCI-38)
+        const dLower = (st.department || st.group_name || st.group || st.section || '').toLowerCase();
+        if (st.id === 'stu-10-sci-37' || (Number(st.roll_no) === 38 && dLower.includes('বিজ্ঞান'))) {
+          studentLookup.set('id:stu-10-sci-38', st);
+          studentLookup.set('id:stu-10-sci-37', st);
+          studentLookup.set('id:stu-10-sci-38'.toUpperCase(), st);
+          studentLookup.set('id:stu-10-sci-37'.toUpperCase(), st);
+        }
+
         const dept = (st.department || st.group_name || st.group || st.section || '').toLowerCase();
 
         if (st.name_bn) {

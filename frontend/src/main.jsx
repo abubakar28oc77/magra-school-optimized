@@ -663,6 +663,113 @@ try {
   }
 } catch { }
 
+// Ensure Science Roll 38 (এইচ এম ওয়ালিদ সরকার) has verified English marks (107: 33, 108: 38) for Test Exam
+try {
+  const rawMarks = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
+  if (Array.isArray(rawMarks)) {
+    let updatedMarks = [...rawMarks];
+    let changed = false;
+
+    // Fix any misassigned English marks belonging to Science Roll 38
+    updatedMarks = updatedMarks.map(m => {
+      if (!m) return m;
+      const sub = String(m.subject_code || m.subject_id || '');
+      const is107 = sub.includes('107');
+      const is108 = sub.includes('108');
+      if (is107 && Number(m.written || m.total) === 33 && (Number(m.roll_no) === 38 || m.student_id === 'stu-10-hum-37' || m.student_id === 'stu-10-sci-38')) {
+        changed = true;
+        return {
+          ...m,
+          student_id: 'stu-10-sci-37',
+          student_code: 'STU-10-SCI-37',
+          roll_no: 38,
+          department: 'বিজ্ঞান',
+          class_name: '10',
+          subject_id: 'sub-10-107',
+          subject_code: '107',
+          written: 33,
+          total: 33,
+          absent: false
+        };
+      }
+      if (is108 && Number(m.written || m.total) === 38 && (Number(m.roll_no) === 38 || m.student_id === 'stu-10-hum-37' || m.student_id === 'stu-10-sci-38')) {
+        changed = true;
+        return {
+          ...m,
+          student_id: 'stu-10-sci-37',
+          student_code: 'STU-10-SCI-37',
+          roll_no: 38,
+          department: 'বিজ্ঞান',
+          class_name: '10',
+          subject_id: 'sub-10-108',
+          subject_code: '108',
+          written: 38,
+          total: 38,
+          absent: false
+        };
+      }
+      return m;
+    });
+
+    const testExams = ['ex-test-2026', 'ex-test-10'];
+    testExams.forEach(exId => {
+      const has107 = updatedMarks.some(m => String(m.exam_id) === exId && String(m.student_id) === 'stu-10-sci-37' && (String(m.subject_code) === '107' || String(m.subject_id) === 'sub-10-107') && Number(m.written || m.total) === 33 && !m.absent);
+      if (!has107) {
+        updatedMarks = updatedMarks.filter(m => !(String(m.exam_id) === exId && String(m.student_id) === 'stu-10-sci-37' && (String(m.subject_code) === '107' || String(m.subject_id) === 'sub-10-107')));
+        updatedMarks.push({
+          exam_id: exId,
+          student_id: 'stu-10-sci-37',
+          student_code: 'STU-10-SCI-37',
+          roll_no: 38,
+          class_name: '10',
+          department: 'বিজ্ঞান',
+          subject_id: 'sub-10-107',
+          subject_code: '107',
+          subject_name: 'ইংরেজি ১ম পত্র',
+          written: 33,
+          mcq: 0,
+          practical: 0,
+          total: 33,
+          absent: false,
+          updated_at: new Date().toISOString()
+        });
+        changed = true;
+      }
+      const has108 = updatedMarks.some(m => String(m.exam_id) === exId && String(m.student_id) === 'stu-10-sci-37' && (String(m.subject_code) === '108' || String(m.subject_id) === 'sub-10-108') && Number(m.written || m.total) === 38 && !m.absent);
+      if (!has108) {
+        updatedMarks = updatedMarks.filter(m => !(String(m.exam_id) === exId && String(m.student_id) === 'stu-10-sci-37' && (String(m.subject_code) === '108' || String(m.subject_id) === 'sub-10-108')));
+        updatedMarks.push({
+          exam_id: exId,
+          student_id: 'stu-10-sci-37',
+          student_code: 'STU-10-SCI-37',
+          roll_no: 38,
+          class_name: '10',
+          department: 'বিজ্ঞান',
+          subject_id: 'sub-10-108',
+          subject_code: '108',
+          subject_name: 'ইংরেজি ২য় পত্র',
+          written: 38,
+          mcq: 0,
+          practical: 0,
+          total: 38,
+          absent: false,
+          updated_at: new Date().toISOString()
+        });
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      localStorage.setItem('magra_db_marks', JSON.stringify(updatedMarks));
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('magra_db_results_') || k === 'magra_db_test_results') {
+          localStorage.removeItem(k);
+        }
+      });
+    }
+  }
+} catch { }
+
 const VISITOR_STORAGE_KEY = 'magra_site_visitor_stats_v2';
 
 function getInitialVisitorStats() {

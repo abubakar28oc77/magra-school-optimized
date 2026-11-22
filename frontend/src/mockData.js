@@ -2157,6 +2157,7 @@ export const MOCK_STUDENTS = [
   {
     "id": "stu-10-sci-37",
     "student_id": "STU-10-SCI-37",
+    "student_code": "STU-10-SCI-38",
     "roll_no": 38,
     "name_bn": "এইচ এম ওয়ালিদ সরকার",
     "name_en": "H. M. WALID SARKER",

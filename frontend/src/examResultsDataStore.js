@@ -216,7 +216,21 @@ export function getLivePreTestClassResults() {
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length) { processed = parsed; break; }
+          if (Array.isArray(parsed) && parsed.length) {
+            // Check if Science Roll 38 is missing English marks in this cache
+            const walidEntry = parsed.find(p => Number(p.roll_no) === 38 && (p.department || '').includes('বিজ্ঞান'));
+            if (walidEntry) {
+              const eng107 = (walidEntry.subjects || []).find(s => String(s.code) === '107');
+              const eng108 = (walidEntry.subjects || []).find(s => String(s.code) === '108');
+              if (!eng107 || !eng108 || eng107.absent || eng108.absent || !Number(eng107.total || eng107.written) || !Number(eng108.total || eng108.written)) {
+                // Stale cache detected; purge key so fresh result is calculated
+                localStorage.removeItem(key);
+                continue;
+              }
+            }
+            processed = parsed;
+            break;
+          }
         } catch {}
       }
     }
@@ -348,7 +362,21 @@ export function getLiveTestClassResults() {
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length) { processed = parsed; break; }
+          if (Array.isArray(parsed) && parsed.length) {
+            // Check if Science Roll 38 is missing English marks in this cache
+            const walidEntry = parsed.find(p => Number(p.roll_no) === 38 && (p.department || '').includes('বিজ্ঞান'));
+            if (walidEntry) {
+              const eng107 = (walidEntry.subjects || []).find(s => String(s.code) === '107');
+              const eng108 = (walidEntry.subjects || []).find(s => String(s.code) === '108');
+              if (!eng107 || !eng108 || eng107.absent || eng108.absent || !Number(eng107.total || eng107.written) || !Number(eng108.total || eng108.written)) {
+                // Stale cache detected; purge key so fresh result is calculated
+                localStorage.removeItem(key);
+                continue;
+              }
+            }
+            processed = parsed;
+            break;
+          }
         } catch {}
       }
     }
