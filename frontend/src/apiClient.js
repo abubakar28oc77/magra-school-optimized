@@ -6,9 +6,35 @@ try {
     if (!Array.isArray(curStudents) || curStudents.length < 100) {
       localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
     }
+    const curMarks = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
+    if (!Array.isArray(curMarks) || curMarks.length < 500) {
+      localStorage.setItem('magra_db_marks', JSON.stringify(AUTHENTIC_TEST_MARKS));
+    }
     const curTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
-    if (!Array.isArray(curTeachers) || curTeachers.length < 15) {
+    if (!Array.isArray(curTeachers) || curTeachers.length < 15 || !curTeachers.some(t => t.extended_profile?.education?.length > 0)) {
       localStorage.setItem('magra_db_teachers', JSON.stringify(MOCK_TEACHERS));
+    } else {
+      let tChanged = false;
+      const enrichedTeachers = curTeachers.map(t => {
+        const mockT = MOCK_TEACHERS.find(m => m.id === t.id || m.employee_id === t.employee_id);
+        if (!mockT) return t;
+        const curExt = t.extended_profile || {};
+        const authExt = mockT.extended_profile || {};
+        let mod = false;
+        let nExt = { ...curExt };
+        if (!nExt.education?.length && authExt.education?.length) { nExt.education = authExt.education; mod = true; }
+        if (!nExt.professional_qualifications?.length && authExt.professional_qualifications?.length) { nExt.professional_qualifications = authExt.professional_qualifications; mod = true; }
+        if (!nExt.training?.length && authExt.training?.length) { nExt.training = authExt.training; mod = true; }
+        if (!nExt.in_service_training?.length && authExt.in_service_training?.length) { nExt.in_service_training = authExt.in_service_training; mod = true; }
+        if (mod) {
+          tChanged = true;
+          return { ...t, extended_profile: nExt };
+        }
+        return t;
+      });
+      if (tChanged) {
+        localStorage.setItem('magra_db_teachers', JSON.stringify(enrichedTeachers));
+      }
     }
     try {
       const curFeatures = JSON.parse(localStorage.getItem('magra_db_features') || '[]');
@@ -154,6 +180,7 @@ export function sortStudentsList(list) {
   });
 }
 
+import { AUTHENTIC_TEST_MARKS } from './authenticTestMarks.js';
 import {
   MOCK_MARKS,
   MOCK_SCHOOL,
@@ -2545,7 +2572,11 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/marks') {
     const examId = params.get('exam_id');
     const cls = params.get('class_name');
-    let marks = getLocalStore('marks', []);
+    let marks = getLocalStore('marks', null);
+    if (!marks || !Array.isArray(marks) || marks.length < 500) {
+      marks = AUTHENTIC_TEST_MARKS;
+      setLocalStore('marks', marks);
+    }
     if (marks.some(m => m && m.is_auto_seed)) {
       marks = marks.filter(m => !m || !m.is_auto_seed);
       setLocalStore('marks', marks);
@@ -2575,7 +2606,7 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/marks/bulk' && method === 'POST') {
     const examId = body.exam_id;
     const records = Array.isArray(body.records) ? body.records : [];
-    let marks = getLocalStore('marks', []);
+    let marks = getLocalStore('marks', AUTHENTIC_TEST_MARKS);
     const map = new Map();
     marks.forEach(m => map.set(`${m.exam_id}_${m.student_id}_${m.subject_id}`, m));
 
@@ -2935,7 +2966,7 @@ function handleMockRequest(path, opts = {}) {
     const students = getLocalStore('students', MOCK_STUDENTS);
     let subs = getLocalStore('subjects', MOCK_SUBJECTS);
     if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-    const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students, exams);
+    const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', AUTHENTIC_TEST_MARKS), students, exams);
     setLocalStore('marks', allMarks);
     const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
 
@@ -3077,7 +3108,7 @@ function handleMockRequest(path, opts = {}) {
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
       let exams = getLocalStore('exams', MOCK_EXAMS);
-      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students, exams);
+      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', AUTHENTIC_TEST_MARKS), students, exams);
       setLocalStore('marks', allMarks);
       const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
       processed = processClassResults(students, subs, examMarks, cls, examId, exams);
@@ -3107,7 +3138,7 @@ function handleMockRequest(path, opts = {}) {
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
       let exams = getLocalStore('exams', MOCK_EXAMS);
-      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students, exams);
+      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', AUTHENTIC_TEST_MARKS), students, exams);
       setLocalStore('marks', allMarks);
       const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
       processed = processClassResults(students, subs, examMarks, cls, examId, exams);

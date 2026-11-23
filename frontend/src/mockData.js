@@ -1,3 +1,4 @@
+import { AUTHENTIC_TEST_MARKS } from './authenticTestMarks.js';
 // High-definition dignified SVG portrait photos for school leaders and teachers (Zoomed Close-up Edge-to-Edge Portraits)
 export const PHOTO_PRESIDENT = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 8 112 112"><defs><linearGradient id="bgP" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23f8fafc"/><stop offset="100%" stop-color="%23e2e8f0"/></linearGradient><linearGradient id="skinP" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="%23fbd0a7"/><stop offset="100%" stop-color="%23e2a677"/></linearGradient><linearGradient id="suitP" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%231e293b"/><stop offset="100%" stop-color="%230f172a"/></linearGradient></defs><rect width="160" height="160" fill="url(%23bgP)"/><path d="M62 76 L98 76 L98 94 L62 94 Z" fill="%23e2a677"/><path d="M4 160 C4 96 40 82 80 82 C120 82 156 96 156 160 Z" fill="url(%23suitP)"/><path d="M60 82 L80 126 L100 82 Z" fill="%23ffffff"/><polygon points="80,88 73,94 87,94" fill="%23b91c1c"/><path d="M74 94 L80 160 L86 94 Z" fill="%23991b1b"/><path d="M22 160 L58 92 L80 126 L44 160 Z" fill="%230f172a"/><path d="M138 160 L102 92 L80 126 L116 160 Z" fill="%230f172a"/><circle cx="43" cy="50" r="9" fill="%23e2a677"/><circle cx="117" cy="50" r="9" fill="%23e2a677"/><circle cx="80" cy="48" r="38" fill="url(%23skinP)"/><path d="M40 38 C40 10 120 10 120 38 C120 18 108 6 80 6 C52 6 40 18 40 38 Z" fill="%2394a3b8"/><path d="M56 38 Q66 34 74 38" stroke="%2364748b" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M86 38 Q94 34 104 38" stroke="%2364748b" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="68" cy="45" rx="4" ry="2.5" fill="%231e293b"/><ellipse cx="92" cy="45" rx="4" ry="2.5" fill="%231e293b"/><rect x="56" y="37" width="22" height="16" rx="4" fill="none" stroke="%23d97706" stroke-width="2"/><rect x="82" y="37" width="22" height="16" rx="4" fill="none" stroke="%23d97706" stroke-width="2"/><line x1="78" y1="44" x2="82" y2="44" stroke="%23d97706" stroke-width="2"/><line x1="43" y1="44" x2="56" y2="44" stroke="%23d97706" stroke-width="1.8"/><line x1="104" y1="44" x2="117" y2="44" stroke="%23d97706" stroke-width="1.8"/><path d="M77 54 Q80 58 83 54" stroke="%23b45309" stroke-width="1.8" fill="none"/><path d="M72 66 Q80 73 88 66" stroke="%23991b1b" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
 
@@ -7574,48 +7575,6 @@ export const MOCK_STUDENTS = [
     "status": "active"
   },
   {
-    "id": "stu-2026-0082",
-    "student_id": "STU-2026-0082",
-    "roll_no": 29,
-    "name_bn": "এইচ এম ওয়ালিদ সরকার",
-    "name_en": "H. M. WALID SARKER",
-    "class_name": "10",
-    "department": "বিজ্ঞান",
-    "group_name": "বিজ্ঞান বিভাগ",
-    "group": "বিজ্ঞান বিভাগ",
-    "section": "A",
-    "gender": "পুরুষ",
-    "religion": "ইসলাম",
-    "date_of_birth": "2011-02-03",
-    "blood_group": "",
-    "birth_reg_no": "",
-    "student_nid": "",
-    "father_name": "মোহাম্মদ এনামুল হক",
-    "father_name_en": "MOHAMMAD ANAMIL HAQUE",
-    "father_profession": "ব্যবসায়ী",
-    "father_mobile": "01711174935",
-    "mother_name": "স্বপ্না",
-    "mother_name_en": "SAPNA",
-    "mother_profession": "শিক্ষকতা",
-    "mother_mobile": "",
-    "guardian_name": "মোহাম্মদ এনামুল হক",
-    "guardian_relation": "পিতা",
-    "guardian_phone": "01711174935",
-    "current_village": "বেতবাড়ী",
-    "current_post_office": "মগড়া",
-    "current_upazila": "টাংগাইল সদর",
-    "current_district": "টাংগাইল",
-    "permanent_village": "বেতবাড়ী",
-    "permanent_post_office": "মগড়া",
-    "permanent_upazila": "টাংগাইল সদর",
-    "permanent_district": "টাংগাইল",
-    "address": "গ্রাম: বেতবাড়ী, ডাকঘর: মগড়া, উপজেলা: টাংগাইল সদর , জেলা: টাংগাইল",
-    "admission_class": "6",
-    "admission_date": "2026-01-01",
-    "emergency_phone": "01711174935",
-    "status": "active"
-  },
-  {
     "id": "stu-10-bs-03",
     "student_id": "STU-10-BS-03",
     "roll_no": 3,
@@ -11492,45 +11451,105 @@ export const MOCK_STUDENTS = [
     "status": "active"
   },
   {
-    "id": "stu-2026-0245",
-    "student_id": "STU-2026-0245",
-    "roll_no": 36,
-    "name_bn": "শুভ দাস",
-    "name_en": "SUBHO DAS",
+    "id": "stu-10-hum-55",
+    "student_id": "STU-10-HUM-55",
+    "roll_no": 59,
+    "name_bn": "বিজয় কর্মকার",
+    "name_en": "BIJOY KARMAKAR",
     "class_name": "10",
-    "department": "বিজ্ঞান",
-    "group_name": "বিজ্ঞান বিভাগ",
-    "group": "বিজ্ঞান বিভাগ",
-    "section": "A",
+    "department": "মানবিক",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
-    "date_of_birth": "2010-12-17",
+    "date_of_birth": "2010-01-01",
     "blood_group": "",
     "birth_reg_no": "",
     "student_nid": "",
-    "father_name": "খুশি চন্দ্র দাস",
-    "father_name_en": "KHUSHI CHANDRA DAS",
+    "father_name": "অনন্ত কর্মকার",
+    "father_name_en": "ANANTA KARMAKAR",
     "father_profession": "",
-    "father_mobile": "",
-    "mother_name": "মমতা রানী দাস",
-    "mother_name_en": "MOMOTA RANI DAS",
+    "father_mobile": "—",
+    "mother_name": "অর্চনা কর্মকার",
+    "mother_name_en": "ARCHANA KARMAKAR",
     "mother_profession": "গৃহিনী",
-    "mother_mobile": "",
-    "guardian_name": "খুশি চন্দ্র দাস",
+    "mother_mobile": "—",
+    "guardian_name": "অনন্ত কর্মকার",
+    "guardian_mobile": "—",
     "guardian_relation": "পিতা",
-    "guardian_phone": "—",
-    "current_village": "বেতবাড়ী",
-    "current_post_office": "মগড়া",
-    "current_upazila": "টাংগাইল সদর",
-    "current_district": "টাংগাইল",
-    "permanent_village": "বেতবাড়ী",
-    "permanent_post_office": "মগড়া",
-    "permanent_upazila": "টাংগাইল সদর",
-    "permanent_district": "টাংগাইল",
-    "address": "গ্রাম: বেতবাড়ী\t \t \t, ডাকঘর: মগড়া, উপজেলা: টাংগাইল সদর, জেলা: টাংগাইল",
-    "admission_class": "6",
-    "admission_date": "2026-01-01",
-    "emergency_phone": "",
+    "village": "মগড়া",
+    "post_office": "মগড়া",
+    "upazila": "কালিহাতী",
+    "district": "টাঙ্গাইল",
+    "status": "active"
+  },
+  {
+    "id": "stu-10-hum-56",
+    "student_id": "STU-10-HUM-56",
+    "roll_no": 60,
+    "name_bn": "নীরব",
+    "name_en": "NIROB",
+    "class_name": "10",
+    "department": "মানবিক",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ",
+    "section": "মানবিক বিভাগ",
+    "gender": "পুরুষ",
+    "religion": "ইসলাম",
+    "date_of_birth": "2010-01-01",
+    "blood_group": "",
+    "birth_reg_no": "",
+    "student_nid": "",
+    "father_name": "মোঃ শফিকুল ইসলাম",
+    "father_name_en": "MD SHAFIQUL ISLAM",
+    "father_profession": "",
+    "father_mobile": "—",
+    "mother_name": "নাছিমা বেগম",
+    "mother_name_en": "NASIMA BEGUM",
+    "mother_profession": "গৃহিনী",
+    "mother_mobile": "—",
+    "guardian_name": "মোঃ শফিকুল ইসলাম",
+    "guardian_mobile": "—",
+    "guardian_relation": "পিতা",
+    "village": "মগড়া",
+    "post_office": "মগড়া",
+    "upazila": "কালিহাতী",
+    "district": "টাঙ্গাইল",
+    "status": "active"
+  },
+  {
+    "id": "stu-10-hum-57",
+    "student_id": "STU-10-HUM-57",
+    "roll_no": 67,
+    "name_bn": "শোয়াইব",
+    "name_en": "SHOAIB",
+    "class_name": "10",
+    "department": "মানবিক",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ",
+    "section": "মানবিক বিভাগ",
+    "gender": "পুরুষ",
+    "religion": "ইসলাম",
+    "date_of_birth": "2010-01-01",
+    "blood_group": "",
+    "birth_reg_no": "",
+    "student_nid": "",
+    "father_name": "মোঃ ছোহরাব আলী",
+    "father_name_en": "MD SOHRAB ALI",
+    "father_profession": "",
+    "father_mobile": "—",
+    "mother_name": "সেলিনা বেগম",
+    "mother_name_en": "SELINA BEGUM",
+    "mother_profession": "গৃহিনী",
+    "mother_mobile": "—",
+    "guardian_name": "মোঃ ছোহরাব আলী",
+    "guardian_mobile": "—",
+    "guardian_relation": "পিতা",
+    "village": "মগড়া",
+    "post_office": "মগড়া",
+    "upazila": "কালিহাতী",
+    "district": "টাঙ্গাইল",
     "status": "active"
   }
 ];
@@ -11580,7 +11599,7 @@ export const MOCK_TEACHERS = [
     "current_mpo_date": "2014-06-26",
     "previous_institution_joining_date": "2014-06-26",
     "previous_institution_mpo_date": "2014-06-26",
-    "appointment_date": "2002-05-01",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "N489587",
     "teacher_registration_no": "",
@@ -11595,13 +11614,126 @@ export const MOCK_TEACHERS = [
     "professional_degrees": "বিএড - টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল  - টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল  - বিজ্ঞান  - ২০০২  - দ্বিতীয় বিভাগ",
     "ict_trainings": "আইসিটি - বেসিক আইসিটি ট্রেনিং - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 6 দিন - 2025-02-08 - 2025-02-13",
     "in_service_trainings": "সিপিডি-১ শুধুমাত্র ইংরেজী (২১ দিন) - ইংরেজী  - টিটিসি(মহিলা), ময়মনসিংহ - ময়মনসিংহ - 24 দিন - 2010-12-07 - 2010-12-30 ; সিপিডি-২ ফলো-আপ (৫ দিন) - ইংরেজী  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 5 দিন - 2011-06-05 - 2011-06-09 ; সৃজনশীল (CQ) ৩ দিন - ইংরেজী  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2013-12-01 - 2013-12-03 ; পিবিএম - প্রশাসনিক - বিন্দুবাসিনী সরকারী বালক উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2018-06-08 - 2018-06-10 ; কারিকুলাম প্রশিক্ষণ (TCG) - ইংরেজী  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 6 দিন - 2019-05-14 - 2019-05-19",
-    "professional_note": "",
-    "whatsapp": "01309114290",
-    "present_address": "গ্রাম- দশকিয়া, ডাকঘর-পটল, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- দশকিয়া, ডাকঘর-পটল, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "public_contact_role": "head_teacher",
+    "photo_url": "/teachers/t-1.jpg",
+    "address": "গ্রাম- দশকিয়া, ডাকঘর-পটল, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান \",\"year\":\"১৯৯১\",\"result\":\"প্রথম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"ঢাকা কলেজ, ঢাকা \",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৩\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৩ বছর মেয়াদী)\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"institution\":\"ঢাকা কলেজ, ঢাকা\",\"year\":\"১৯৯৬\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"ঢাকা কলেজ, ঢাকা\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"year\":\"১৯৯৮\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"বিএড\",\"board\":\"টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল \",\"institution\":\"টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল \",\"year\":\"২০০২ \",\"result\":\"দ্বিতীয় বিভাগ \",\"subject\":\"বিজ্ঞান \",\"is_saved\":true}],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"বেসিক আইসিটি ট্রেনিং\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2025-02-08\",\"end_date\":\"2025-02-13\",\"duration\":\"6 দিন\",\"is_saved\":true}],\"ntrca\":{},\"dob\":\"1976-12-18\",\"professional_note\":\"\",\"in_service_training\":[{\"name\":\"সিপিডি-১ শুধুমাত্র ইংরেজী (২১ দিন)\",\"institution\":\"টিটিসি(মহিলা), ময়মনসিংহ\",\"subject\":\"ইংরেজী \",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2010-12-07\",\"end_date\":\"2010-12-30\",\"duration\":\"24 দিন\",\"is_saved\":true},{\"name\":\"সিপিডি-২ ফলো-আপ (৫ দিন)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"subject\":\"ইংরেজী \",\"start_date\":\"2011-06-05\",\"end_date\":\"2011-06-09\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"সৃজনশীল (CQ) ৩ দিন\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"subject\":\"ইংরেজী \",\"start_date\":\"2013-12-01\",\"end_date\":\"2013-12-03\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"পিবিএম\",\"institution\":\"বিন্দুবাসিনী সরকারী বালক উচ্চ বিদ্যালয়\",\"subject\":\"প্রশাসনিক\",\"location\":\"টাংগাইল \",\"start_date\":\"2018-06-08\",\"end_date\":\"2018-06-10\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"ইংরেজী \",\"location\":\"টাংগাইল \",\"start_date\":\"2019-05-14\",\"end_date\":\"2019-05-19\",\"duration\":\"6 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৯১",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "ঢাকা কলেজ, ঢাকা ",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯৩",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক সম্মান(৩ বছর মেয়াদী)",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "institution": "ঢাকা কলেজ, ঢাকা",
+          "year": "১৯৯৬",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সসহ)",
+          "institution": "ঢাকা কলেজ, ঢাকা",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "year": "১৯৯৮",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "বিএড",
+          "board": "টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল ",
+          "institution": "টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল ",
+          "year": "২০০২ ",
+          "result": "দ্বিতীয় বিভাগ ",
+          "subject": "বিজ্ঞান ",
+          "is_saved": true
+        }
+      ],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "বেসিক আইসিটি ট্রেনিং",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2025-02-08",
+          "end_date": "2025-02-13",
+          "duration": "6 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "সিপিডি-১ শুধুমাত্র ইংরেজী (২১ দিন)",
+          "institution": "টিটিসি(মহিলা), ময়মনসিংহ",
+          "subject": "ইংরেজী ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2010-12-07",
+          "end_date": "2010-12-30",
+          "duration": "24 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সিপিডি-২ ফলো-আপ (৫ দিন)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "subject": "ইংরেজী ",
+          "start_date": "2011-06-05",
+          "end_date": "2011-06-09",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সৃজনশীল (CQ) ৩ দিন",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "subject": "ইংরেজী ",
+          "start_date": "2013-12-01",
+          "end_date": "2013-12-03",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "পিবিএম",
+          "institution": "বিন্দুবাসিনী সরকারী বালক উচ্চ বিদ্যালয়",
+          "subject": "প্রশাসনিক",
+          "location": "টাংগাইল ",
+          "start_date": "2018-06-08",
+          "end_date": "2018-06-10",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "ইংরেজী ",
+          "location": "টাংগাইল ",
+          "start_date": "2019-05-14",
+          "end_date": "2019-05-19",
+          "duration": "6 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {},
+      "dob": "1976-12-18",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-2",
@@ -11633,7 +11765,7 @@ export const MOCK_TEACHERS = [
     "current_mpo_date": "2012-12-13",
     "previous_institution_joining_date": "2014-02-06",
     "previous_institution_mpo_date": "2014-02-06",
-    "appointment_date": "2002-02-02",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "D487136",
     "teacher_registration_no": "",
@@ -11648,13 +11780,164 @@ export const MOCK_TEACHERS = [
     "professional_degrees": "বিএড - টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল - টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল - 2005 - প্রথম বিভাগ ; এমএড - দারুল এহসান বাংলাদেশ  - দারুল এহসান বাংলাদেশ  - 2008 - প্রথম বিভাগ",
     "ict_trainings": "আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - 17 দিন - 2016-05-24 - 2016-06-09",
     "in_service_trainings": "পিবিএম - কৃতিভিত্তিক ব্যবস্থাপনা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2017-04-18 - 2017-04-20 ; LSBE ট্রেনিং - জীবন ও দক্ষতা ভিত্তিক শিক্ষা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2018-01-06 - 2018-01-08 ; কারিকুলাম প্রশিক্ষণ (TCG) - বিজ্ঞান  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 6 দিন - 2018-02-16 - 2018-02-21 ; হাতে কলমে বিজ্ঞান শিক্ষা - বিজ্ঞান  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 6 দিন - 2019-05-25 - 2019-05-30 ; সৃজনশীল (CQ) ৩ দিন - বিজ্ঞান  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2013-12-01 - 2013-12-03 ; সৃজনশীল প্রশ্নপত্র তৈরী ও মূল্যায়ন (৬ দিন) - বিজ্ঞান  - পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয় - টাংগাইল - 6 দিন - 2019-10-27 - 2019-11-01 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরি  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - শেরপুর  - 6 দিন - 2022-12-26 - 2022-12-31 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরি  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 7 দিন - 2023-11-02 - 2023-11-08",
-    "professional_note": "",
-    "whatsapp": "01721750647",
-    "present_address": "গ্রাম-দক্ষিণ মগড়া, ডাকঘর-মগড়া, উপজেলা- টাঙ্গাইল সদর, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম-দক্ষিণ মগড়া, ডাকঘর-মগড়া, উপজেলা- টাঙ্গাইল সদর, জেলা- টাংগাইল।",
-    "public_contact_role": "assistant_head_teacher",
+    "photo_url": "/teachers/t-2.jpg",
+    "address": "গ্রাম-দক্ষিণ মগড়া, ডাকঘর-মগড়া, উপজেলা- টাঙ্গাইল সদর, জেলা- টাংগাইল।",
+    "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"এলাসিন নাসিমুন নেছা উচ্চ বালিকা বিদ্যালয় \",\"board\":\"ঢাকা \",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯১\",\"result\":\"প্রথম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"কুমুদিনী সরকারি মহিলা কলেজ টাঙ্গাইল\",\"board\":\"ঢাকা \",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৩\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৩ বছর মেয়াদী)\",\"institution\":\"কুমুদিনী সরকারি মহিলা কলেজ টাঙ্গাইল\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৫\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"সাদৎ বিশ্ববিদ্যালয় কলেজ, টাঙ্গাইল\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৭\",\"result\":\"প্রথম বিভাগ\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"বিএড\",\"institution\":\"টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল\",\"board\":\"টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল\",\"year\":\"2005\",\"result\":\"প্রথম বিভাগ\",\"is_saved\":true},{\"exam\":\"এমএড\",\"institution\":\"দারুল এহসান বাংলাদেশ \",\"board\":\"দারুল এহসান বাংলাদেশ \",\"year\":\"2008\",\"result\":\"প্রথম বিভাগ\",\"is_saved\":true}],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"start_date\":\"2016-05-24\",\"end_date\":\"2016-06-09\",\"duration\":\"17 দিন\",\"is_saved\":true}],\"ntrca\":{},\"dob\":\"1977-01-02\",\"in_service_training\":[{\"name\":\"পিবিএম\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"কৃতিভিত্তিক ব্যবস্থাপনা\",\"location\":\"টাংগাইল\",\"start_date\":\"2017-04-18\",\"end_date\":\"2017-04-20\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"LSBE ট্রেনিং\",\"subject\":\"জীবন ও দক্ষতা ভিত্তিক শিক্ষা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2018-01-06\",\"end_date\":\"2018-01-08\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল\",\"start_date\":\"2018-02-16\",\"end_date\":\"2018-02-21\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"হাতে কলমে বিজ্ঞান শিক্ষা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল\",\"start_date\":\"2019-05-25\",\"end_date\":\"2019-05-30\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"সৃজনশীল (CQ) ৩ দিন\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল\",\"start_date\":\"2013-12-01\",\"end_date\":\"2013-12-03\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"সৃজনশীল প্রশ্নপত্র তৈরী ও মূল্যায়ন (৬ দিন)\",\"subject\":\"বিজ্ঞান \",\"institution\":\"পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2019-10-27\",\"end_date\":\"2019-11-01\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরি \",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"শেরপুর \",\"start_date\":\"2022-12-26\",\"end_date\":\"2022-12-31\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরি \",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2023-11-02\",\"end_date\":\"2023-11-08\",\"duration\":\"7 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "এলাসিন নাসিমুন নেছা উচ্চ বালিকা বিদ্যালয় ",
+          "board": "ঢাকা ",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯১",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "কুমুদিনী সরকারি মহিলা কলেজ টাঙ্গাইল",
+          "board": "ঢাকা ",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯৩",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক সম্মান(৩ বছর মেয়াদী)",
+          "institution": "কুমুদিনী সরকারি মহিলা কলেজ টাঙ্গাইল",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯৫",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সসহ)",
+          "institution": "সাদৎ বিশ্ববিদ্যালয় কলেজ, টাঙ্গাইল",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯৭",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "বিএড",
+          "institution": "টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল",
+          "board": "টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল",
+          "year": "2005",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "এমএড",
+          "institution": "দারুল এহসান বাংলাদেশ ",
+          "board": "দারুল এহসান বাংলাদেশ ",
+          "year": "2008",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "start_date": "2016-05-24",
+          "end_date": "2016-06-09",
+          "duration": "17 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "পিবিএম",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "কৃতিভিত্তিক ব্যবস্থাপনা",
+          "location": "টাংগাইল",
+          "start_date": "2017-04-18",
+          "end_date": "2017-04-20",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "LSBE ট্রেনিং",
+          "subject": "জীবন ও দক্ষতা ভিত্তিক শিক্ষা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2018-01-06",
+          "end_date": "2018-01-08",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল",
+          "start_date": "2018-02-16",
+          "end_date": "2018-02-21",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "হাতে কলমে বিজ্ঞান শিক্ষা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল",
+          "start_date": "2019-05-25",
+          "end_date": "2019-05-30",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সৃজনশীল (CQ) ৩ দিন",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল",
+          "start_date": "2013-12-01",
+          "end_date": "2013-12-03",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সৃজনশীল প্রশ্নপত্র তৈরী ও মূল্যায়ন (৬ দিন)",
+          "subject": "বিজ্ঞান ",
+          "institution": "পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2019-10-27",
+          "end_date": "2019-11-01",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরি ",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "শেরপুর ",
+          "start_date": "2022-12-26",
+          "end_date": "2022-12-31",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরি ",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2023-11-02",
+          "end_date": "2023-11-08",
+          "duration": "7 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {},
+      "dob": "1977-01-02",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-3",
@@ -11682,11 +11965,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "LATE HALIMA BEGUM",
     "first_joining_date": "1990-01-02",
     "first_mpo_date": "1990-01-02",
-    "current_post_joining_date": "1990-01-02",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2014-06-26",
     "previous_institution_mpo_date": "2014-06-26",
-    "appointment_date": "1990-01-02",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "D333081",
     "teacher_registration_no": "",
@@ -11701,13 +11984,118 @@ export const MOCK_TEACHERS = [
     "professional_degrees": "",
     "ict_trainings": "আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 17 দিন - 2017-03-05 - 2017-03-21",
     "in_service_trainings": "সৃজনশীল (CQ) ৩ দিন - ইসলাম ধর্ম  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2013-12-01 - 2013-12-03 ; পিবিএম - কৃতিভিত্তিক ব্যবস্থাপনা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2017-04-18 - 2017-04-20 ; কারিকুলাম প্রশিক্ষণ (TCG) - ইসলাম ধর্ম  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 6 দিন - 2019-05-08 - 2019-05-13 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - ইসলাম ধর্ম  - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 5 দিন - 2023-01-25 - 2023-01-29 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - ইসলাম ধর্ম  - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 7 দিন - 2023-12-18 - 2023-12-24",
-    "professional_note": "",
-    "whatsapp": "01770590374",
-    "present_address": "গ্রাম- দশকিয়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- দশকিয়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-3.jpg",
+    "address": "গ্রাম- দশকিয়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"দূর্গাপুর দাখিল মাদ্রাসা \",\"board\":\"মাদ্রাসা বোর্ড\",\"year\":\"১৯৮৪\",\"result\":\"তৃতীয় বিভাগ \",\"is_saved\":true,\"subject\":\"মানবিক\"},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"পোড়াবাড়ী ফাজিল মাদ্রাসা\",\"board\":\"মাদ্রাসা বোর্ড\",\"subject\":\"মানবিক\",\"year\":\"১৯৮৬\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক (পাস)/সমমান\",\"institution\":\"হামিদপুর ফাজিল মাদ্রাসা\",\"board\":\"মাদ্রাসা বোর্ড\",\"subject\":\"মানবিক\",\"year\":\"১৯৮৮\",\"result\":\"তৃতীয় বিভাগ \",\"is_saved\":true},{\"exam\":\"কামিল\",\"institution\":\"টাঙ্গাইল দারুল উলুম আলিয়া মাদ্রাসা \",\"board\":\"মাদ্রাসা বোর্ড\",\"subject\":\"মানবিক\",\"year\":\"২০০৭\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true}],\"professional_qualifications\":[],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2017-03-05\",\"end_date\":\"2017-03-21\",\"duration\":\"17 দিন\",\"is_saved\":true}],\"ntrca\":{},\"dob\":\"1971-06-05\",\"in_service_training\":[{\"name\":\"সৃজনশীল (CQ) ৩ দিন\",\"subject\":\"ইসলাম ধর্ম \",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2013-12-01\",\"end_date\":\"2013-12-03\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"পিবিএম\",\"subject\":\"কৃতিভিত্তিক ব্যবস্থাপনা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2017-04-18\",\"end_date\":\"2017-04-20\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"ইসলাম ধর্ম \",\"location\":\"টাংগাইল\",\"start_date\":\"2019-05-08\",\"end_date\":\"2019-05-13\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"ইসলাম ধর্ম \",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-01-25\",\"end_date\":\"2023-01-29\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"ইসলাম ধর্ম \",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-12-18\",\"end_date\":\"2023-12-24\",\"duration\":\"7 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "দূর্গাপুর দাখিল মাদ্রাসা ",
+          "board": "মাদ্রাসা বোর্ড",
+          "year": "১৯৮৪",
+          "result": "তৃতীয় বিভাগ ",
+          "is_saved": true,
+          "subject": "মানবিক"
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "পোড়াবাড়ী ফাজিল মাদ্রাসা",
+          "board": "মাদ্রাসা বোর্ড",
+          "subject": "মানবিক",
+          "year": "১৯৮৬",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক (পাস)/সমমান",
+          "institution": "হামিদপুর ফাজিল মাদ্রাসা",
+          "board": "মাদ্রাসা বোর্ড",
+          "subject": "মানবিক",
+          "year": "১৯৮৮",
+          "result": "তৃতীয় বিভাগ ",
+          "is_saved": true
+        },
+        {
+          "exam": "কামিল",
+          "institution": "টাঙ্গাইল দারুল উলুম আলিয়া মাদ্রাসা ",
+          "board": "মাদ্রাসা বোর্ড",
+          "subject": "মানবিক",
+          "year": "২০০৭",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2017-03-05",
+          "end_date": "2017-03-21",
+          "duration": "17 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "সৃজনশীল (CQ) ৩ দিন",
+          "subject": "ইসলাম ধর্ম ",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2013-12-01",
+          "end_date": "2013-12-03",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "পিবিএম",
+          "subject": "কৃতিভিত্তিক ব্যবস্থাপনা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2017-04-18",
+          "end_date": "2017-04-20",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "ইসলাম ধর্ম ",
+          "location": "টাংগাইল",
+          "start_date": "2019-05-08",
+          "end_date": "2019-05-13",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "ইসলাম ধর্ম ",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-01-25",
+          "end_date": "2023-01-29",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "ইসলাম ধর্ম ",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-12-18",
+          "end_date": "2023-12-24",
+          "duration": "7 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {},
+      "dob": "1971-06-05",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-4",
@@ -11735,11 +12123,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "LATE SEBATON NESA",
     "first_joining_date": "1994-12-18",
     "first_mpo_date": "1994-12-18",
-    "current_post_joining_date": "1994-12-18",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "1994-12-18",
     "previous_institution_mpo_date": "1994-12-18",
-    "appointment_date": "1994-12-18",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "D280969",
     "teacher_registration_no": "",
@@ -11750,17 +12138,148 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - কালিহাতী আর.এস. সরকারি মডেল পাইলট উচ্চ বিদ্যালয় - ঢাকা - মানবিক - ১৯৯৩ - ১ম বিভাগ ; এইচএসসি/সমমান - সরকারি সা’দত কলেজ, টাঙ্গাইল - ঢাকা - মানবিক - ১৯৯৫ - ২য় বিভাগ ; স্নাতক সম্মান(৩ বছর মেয়াদী) - আনন্দ মোহন কলেজ (জাতীয় বিশ্ববিদ্যালয়) - জাতীয় বিশ্ববিদ্যালয় - বাংলা (সম্মান) - ১৯৯৮ - ২য় শ্রেণি ; স্নাতকোত্তর (অনার্সসহ) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - বাংলা ভাষা ও সাহিত্য - ১৯৯৯ - ২য় শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - ভূয়াপুর পাইলট উচ্চ বিদ্যালয়  - ঢাকা - বিজ্ঞান  - ১৯৮৫ - প্রথম বিভাগ ; এইচএসসি/সমমান - ইব্রাহীম খাঁ কলেজ, ভূয়াপুর, টাঙ্গাইল - ঢাকা - বিজ্ঞান  - ১৯৮৭  - দ্বিতীয় বিভাগ ; স্নাতক (পাস)/সমমান - ইব্রাহীম খাঁ কলেজ, ভূয়াপুর, টাঙ্গাইল  - জাতীয় বিশ্ববিদ্যালয় - মানবিক  - ১৯৮৯  - দ্বিতীয় বিভাগ ; স্নাতকোত্তর (অনার্সবিহীন) - ঢাকা কলেজ, ঢাকা  - ঢাকা বিশ্ববিদ্যালয় - মানবিক  - ১৯৯৭ - তৃতীয় বিভাগ",
     "professional_degrees": "বিএড - টিচার্স ট্রেনিং কলেজ, ঢাকা  - টিচার্স ট্রেনিং কলেজ, ঢাকা  - ১৯৯৭ - দ্বিতীয় বিভাগ",
     "ict_trainings": "আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 17 দিন - 2017-03-05 - 2017-03-21",
     "in_service_trainings": "সিপিডি-১ (১৪ দিন) - সামাজিক বিজ্ঞান - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 14 দিন - 2008-01-15 - 2008-01-28 ; সৃজনশীল (CQ) ৩ দিন - সামাজিক বিজ্ঞান - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2013-12-01 - 2013-12-03 ; সিপিডি-১ (১৪ দিন) - বাংলা  - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 15 দিন - 2015-01-03 - 2015-01-17 ; সিপিডি-২ ফলো-আপ (৫ দিন) - সামাজিক বিজ্ঞান - এইচএসটিটিআই কলেজ, ময়মনসিংহ - ময়মনসিংহ ; কারিকুলাম প্রশিক্ষণ (TCG) - সামাজিক বিজ্ঞান - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 6 দিন - 2018-02-16 - 2018-02-21 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - সামাজিক বিজ্ঞান - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 5 দিন - 2023-01-20 - 2023-01-24 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - সামাজিক বিজ্ঞান - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 7 দিন - 2023-12-18 - 2023-12-24",
-    "professional_note": "",
-    "whatsapp": "01726472073",
-    "present_address": "গ্রাম- খাস মগড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- খাস মগড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-4.jpg",
+    "address": "গ্রাম- খাস মগড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"কালিহাতী আর.এস. সরকারি মডেল পাইলট উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"মানবিক\",\"year\":\"১৯৯৩\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি সা’দত কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"মানবিক\",\"year\":\"১৯৯৫\",\"result\":\"২য় বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৩ বছর মেয়াদী)\",\"institution\":\"আনন্দ মোহন কলেজ (জাতীয় বিশ্ববিদ্যালয়)\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"বাংলা (সম্মান)\",\"year\":\"১৯৯৮\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"বাংলা ভাষা ও সাহিত্য\",\"year\":\"১৯৯৯\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"বিএড\",\"institution\":\"টিচার্স ট্রেনিং কলেজ, ঢাকা \",\"board\":\"টিচার্স ট্রেনিং কলেজ, ঢাকা \",\"year\":\"১৯৯৭\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true}],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2017-03-05\",\"end_date\":\"2017-03-21\",\"duration\":\"17 দিন\",\"is_saved\":true}],\"ntrca\":{},\"dob\":\"1969-05-31\",\"in_service_training\":[{\"name\":\"সিপিডি-১ (১৪ দিন)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"সামাজিক বিজ্ঞান\",\"location\":\"টাংগাইল \",\"start_date\":\"2008-01-15\",\"end_date\":\"2008-01-28\",\"duration\":\"14 দিন\",\"is_saved\":true},{\"name\":\"সৃজনশীল (CQ) ৩ দিন\",\"subject\":\"সামাজিক বিজ্ঞান\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2013-12-01\",\"end_date\":\"2013-12-03\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"সিপিডি-১ (১৪ দিন)\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"subject\":\"বাংলা \",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2015-01-03\",\"end_date\":\"2015-01-17\",\"duration\":\"15 দিন\",\"is_saved\":true},{\"name\":\"সিপিডি-২ ফলো-আপ (৫ দিন)\",\"institution\":\"এইচএসটিটিআই কলেজ, ময়মনসিংহ\",\"subject\":\"সামাজিক বিজ্ঞান\",\"location\":\"ময়মনসিংহ\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"সামাজিক বিজ্ঞান\",\"location\":\"টাংগাইল \",\"start_date\":\"2018-02-16\",\"end_date\":\"2018-02-21\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"সামাজিক বিজ্ঞান\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-01-20\",\"end_date\":\"2023-01-24\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"সামাজিক বিজ্ঞান\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-12-18\",\"end_date\":\"2023-12-24\",\"duration\":\"7 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "ভূয়াপুর পাইলট উচ্চ বিদ্যালয় ",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৮৫",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "ইব্রাহীম খাঁ কলেজ, ভূয়াপুর, টাঙ্গাইল",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৮৭ ",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক (পাস)/সমমান",
+          "institution": "ইব্রাহীম খাঁ কলেজ, ভূয়াপুর, টাঙ্গাইল ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "মানবিক ",
+          "year": "১৯৮৯ ",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সবিহীন)",
+          "institution": "ঢাকা কলেজ, ঢাকা ",
+          "board": "ঢাকা বিশ্ববিদ্যালয়",
+          "subject": "মানবিক ",
+          "year": "১৯৯৭",
+          "result": "তৃতীয় বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "বিএড",
+          "institution": "টিচার্স ট্রেনিং কলেজ, ঢাকা ",
+          "board": "টিচার্স ট্রেনিং কলেজ, ঢাকা ",
+          "year": "১৯৯৭",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2017-03-05",
+          "end_date": "2017-03-21",
+          "duration": "17 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "সিপিডি-১ (১৪ দিন)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "সামাজিক বিজ্ঞান",
+          "location": "টাংগাইল ",
+          "start_date": "2008-01-15",
+          "end_date": "2008-01-28",
+          "duration": "14 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সৃজনশীল (CQ) ৩ দিন",
+          "subject": "সামাজিক বিজ্ঞান",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2013-12-01",
+          "end_date": "2013-12-03",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সিপিডি-১ (১৪ দিন)",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "subject": "বাংলা ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2015-01-03",
+          "end_date": "2015-01-17",
+          "duration": "15 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সিপিডি-২ ফলো-আপ (৫ দিন)",
+          "institution": "এইচএসটিটিআই কলেজ, ময়মনসিংহ",
+          "subject": "সামাজিক বিজ্ঞান",
+          "location": "ময়মনসিংহ",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "সামাজিক বিজ্ঞান",
+          "location": "টাংগাইল ",
+          "start_date": "2018-02-16",
+          "end_date": "2018-02-21",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "সামাজিক বিজ্ঞান",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-01-20",
+          "end_date": "2023-01-24",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "সামাজিক বিজ্ঞান",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-12-18",
+          "end_date": "2023-12-24",
+          "duration": "7 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {},
+      "dob": "1969-05-31",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-5",
@@ -11788,11 +12307,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "MISES RAMICHA BEGUM",
     "first_joining_date": "1994-12-18",
     "first_mpo_date": "1994-12-18",
-    "current_post_joining_date": "1994-12-18",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "1994-12-18",
     "previous_institution_mpo_date": "1994-12-18",
-    "appointment_date": "1994-12-18",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "D280970",
     "teacher_registration_no": "",
@@ -11807,13 +12326,135 @@ export const MOCK_TEACHERS = [
     "professional_degrees": "এমএড - দারুল এহসান বিশববিদ্যালয়, ঢাকা  - দারুল এহসান বিশববিদ্যালয়, ঢাকা  - ২০১০ - ৩.৪৬ ; বিএজিএড - শেরপুর কৃষি প্রশিক্ষায়তন, শেরপুর - বাংলাদেশ উম্মুক্ত বিশ্ববিদ্যালয় - ২০০০ - ২.১০",
     "ict_trainings": "আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন  - কালিহাতি, টাংগাইল - 16 দিন - 2020-01-06 - 2020-01-21",
     "in_service_trainings": "সৃজনশীল (CQ) ৩ দিন - বিজ্ঞান - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2013-12-01 - 2013-12-03 ; পিবিএম - কৃতিভিত্তিক ব্যবস্থাপনা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2017-04-18 - 2017-04-20 ; LSBE ট্রেনিং - জীবন ও দক্ষতা ভিত্তিক শিক্ষা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2017-06-18 - 2017-06-20 ; কারিকুলাম প্রশিক্ষণ (TCG) - বিজ্ঞান - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 6 দিন - 2019-05-02 - 2019-05-07 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি টাংগাইল - 5 দিন - 2023-01-20 - 2023-01-24 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরী - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 7 দিন - 2023-11-02 - 2023-11-08",
-    "professional_note": "",
-    "whatsapp": "01712763604",
-    "present_address": "গ্রাম-এলেঙ্গা, ডাকঘর- এলেঙ্গা, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম-এলেঙ্গা, ডাকঘর- এলেঙ্গা, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-5.jpg",
+    "address": "গ্রাম-এলেঙ্গা, ডাকঘর- এলেঙ্গা, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"লুহুরিয়া বিএইচআর উচ্চ বিদ্যালয় \",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান \",\"year\":\"১৯৮৮\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"কৃষি ডিপ্লোমা ইন্সটিটিউট, শেরপুর\",\"board\":\"বাকাশিবো\",\"subject\":\"বিজ্ঞান \",\"year\":\"১৯৯৪\",\"result\":\"দ্বিতীয় বিভাগ\",\"is_saved\":true},{\"institution\":\"শেরপুর কৃষি প্রশিক্ষায়তন, শেরপুর\",\"board\":\"বাংলাদেশ উম্মুক্ত বিশ্ববিদ্যালয়\",\"exam\":\"স্নাতক (পাস)/সমমান\",\"subject\":\"বিজ্ঞান \",\"year\":\"২০০০\",\"result\":\"২.১০\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"এমএড\",\"institution\":\"দারুল এহসান বিশববিদ্যালয়, ঢাকা \",\"board\":\"দারুল এহসান বিশববিদ্যালয়, ঢাকা \",\"year\":\"২০১০\",\"result\":\"৩.৪৬\",\"is_saved\":true},{\"exam\":\"বিএজিএড\",\"institution\":\"শেরপুর কৃষি প্রশিক্ষায়তন, শেরপুর\",\"board\":\"বাংলাদেশ উম্মুক্ত বিশ্ববিদ্যালয়\",\"year\":\"২০০০\",\"result\":\"২.১০\",\"is_saved\":true}],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন \",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2020-01-06\",\"end_date\":\"2020-01-21\",\"duration\":\"16 দিন\",\"is_saved\":true}],\"ntrca\":{},\"dob\":\"1972-12-01\",\"in_service_training\":[{\"name\":\"সৃজনশীল (CQ) ৩ দিন\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান\",\"location\":\"টাংগাইল\",\"start_date\":\"2013-12-01\",\"end_date\":\"2013-12-03\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"পিবিএম\",\"subject\":\"কৃতিভিত্তিক ব্যবস্থাপনা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2017-04-18\",\"end_date\":\"2017-04-20\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"LSBE ট্রেনিং\",\"subject\":\"জীবন ও দক্ষতা ভিত্তিক শিক্ষা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2017-06-18\",\"end_date\":\"2017-06-20\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান\",\"location\":\"টাংগাইল\",\"start_date\":\"2019-05-02\",\"end_date\":\"2019-05-07\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি টাংগাইল\",\"start_date\":\"2023-01-20\",\"end_date\":\"2023-01-24\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরী\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2023-11-02\",\"end_date\":\"2023-11-08\",\"duration\":\"7 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "লুহুরিয়া বিএইচআর উচ্চ বিদ্যালয় ",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৮৮",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "কৃষি ডিপ্লোমা ইন্সটিটিউট, শেরপুর",
+          "board": "বাকাশিবো",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৯৪",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "institution": "শেরপুর কৃষি প্রশিক্ষায়তন, শেরপুর",
+          "board": "বাংলাদেশ উম্মুক্ত বিশ্ববিদ্যালয়",
+          "exam": "স্নাতক (পাস)/সমমান",
+          "subject": "বিজ্ঞান ",
+          "year": "২০০০",
+          "result": "২.১০",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "এমএড",
+          "institution": "দারুল এহসান বিশববিদ্যালয়, ঢাকা ",
+          "board": "দারুল এহসান বিশববিদ্যালয়, ঢাকা ",
+          "year": "২০১০",
+          "result": "৩.৪৬",
+          "is_saved": true
+        },
+        {
+          "exam": "বিএজিএড",
+          "institution": "শেরপুর কৃষি প্রশিক্ষায়তন, শেরপুর",
+          "board": "বাংলাদেশ উম্মুক্ত বিশ্ববিদ্যালয়",
+          "year": "২০০০",
+          "result": "২.১০",
+          "is_saved": true
+        }
+      ],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন ",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2020-01-06",
+          "end_date": "2020-01-21",
+          "duration": "16 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "সৃজনশীল (CQ) ৩ দিন",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান",
+          "location": "টাংগাইল",
+          "start_date": "2013-12-01",
+          "end_date": "2013-12-03",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "পিবিএম",
+          "subject": "কৃতিভিত্তিক ব্যবস্থাপনা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2017-04-18",
+          "end_date": "2017-04-20",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "LSBE ট্রেনিং",
+          "subject": "জীবন ও দক্ষতা ভিত্তিক শিক্ষা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2017-06-18",
+          "end_date": "2017-06-20",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান",
+          "location": "টাংগাইল",
+          "start_date": "2019-05-02",
+          "end_date": "2019-05-07",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি টাংগাইল",
+          "start_date": "2023-01-20",
+          "end_date": "2023-01-24",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "উপজেলা পর্যায়ে মাষ্টার ট্রেইনার তৈরী",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2023-11-02",
+          "end_date": "2023-11-08",
+          "duration": "7 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {},
+      "dob": "1972-12-01",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-6",
@@ -11841,11 +12482,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "NAZMA SULTANA",
     "first_joining_date": "2005-01-01",
     "first_mpo_date": "2006-02-01",
-    "current_post_joining_date": "2005-01-01",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2005-01-01",
     "previous_institution_mpo_date": "2006-02-01",
-    "appointment_date": "2005-01-01",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "D1031044",
     "teacher_registration_no": "",
@@ -11856,17 +12497,260 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ২০০৬ - জিপিএ ৪.৭৫ ; এইচএসসি/সমমান - সরকারি এম এম আলী কলেজ, টাঙ্গাইল - ঢাকা - বিজ্ঞান - ২০০৮ - জিপিএ ৪.৬০ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়) - জাতীয় বিশ্ববিদ্যালয় - কম্পিউটার সায়েন্স / আইসিটি - ২০১৩ - সিজিপিএ ৩.৩৮ ; স্নাতকোত্তর (অনার্সসহ) - ঢাকা বিশ্ববিদ্যালয় - ঢাকা বিশ্ববিদ্যালয় - তথ্য ও যোগাযোগ প্রযুক্তি (এমআইটি) - ২০১৫ - সিজিপিএ ৩.৪৫",
-    "professional_degrees": "বিএড - এশিয়ান ইউনিভার্সিটি - এশিয়ান ইউনিভার্সিটি - ২০০৮ - ৩.৯৪",
+    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ১৯৯২ - প্রথম বিভাগ  ; এইচএসসি/সমমান - হাজী ওয়াহেদ মরিয়ম ডিগ্রী কলেজ সিরাজগঞ্জ  - রাজশাহী  - বিজ্ঞান - ১৯৯৪ - দ্বিতীয় বিভাগ ; স্নাতক (পাস)/সমমান - কালিহাতি কলেজ, কালিহাতি - জাতীয় বিশ্ববিদ্যালয় - বিজ্ঞান  - ১৯৯৬  - দ্বিতীয় বিভাগ",
+    "professional_degrees": "বিএড - এশিয়ান ইউনিভার্সিটি - এশিয়ান ইউনিভার্সিটি - ২০০৮ - ৩.৯৪ ; ডিপ্লোমা - ন্যশনাল ইউথ ডেভলপমেন্ট কম্পিউটার ট্রেনিং একাডেমি - সরকার অনুমোদিত  - ২০০৪ - জিপি- A",
     "ict_trainings": "কম্পিউটার - কম্পিউটার অপারেশন এবংব্যবহার - টাংগাইল পলিটেকনিক ইন্সটিটিউট - টাংগাইল - 30 দিন - 2005-04-23 - 2005-05-22 ; আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - এইচ এস টি টি আই - ময়মনসিংহ - 12 দিন - 2012-03-22 - 2012-04-02 ; আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং) - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 5 দিন - 2015-12-19 - 2015-12-23 ; আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 17 দিন - 2017-03-05 - 2017-03-21 ; কম্পিউটার - হার্ডওয়্যার এন্ড ট্রাবলশুটিং - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 3 দিন - 2017-05-05 - 2017-05-07 ; বেসিক টিচার্স ট্রেনিং (BTT) - (ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী) - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 12 দিন - 2019-06-11 - 2019-06-22 ; কম্পিউটার - হার্ডওয়্যার নেটওয়ার্ক এন্ড ট্রাবলশুটিং - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 18 দিন - 2020-01-15 - 2020-02-01 ; কম্পিউটার - ইন্টারেক্টিভ টিচিং এন্ড লাইভ ক্লাস ম্যানেজমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 7 দিন - 2022-11-21 - 2022-11-27 ; কম্পিউটার - শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা - খিলদা উচ্চ বিদ্যালয় - কালিহাতি - 12 দিন - 2023-05-28 - 2023-06-08 ; বেসিক টিচার্স ট্রেনিং (BTT) - (ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী) - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 12 দিন - 2024-05-23 - 2024-06-03",
     "in_service_trainings": "সৃজনশীল (CQ) ৩ দিন - বিজ্ঞান - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2013-12-01 - 2013-12-03 ; হাতে কলমে বিজ্ঞান শিক্ষা - বিজ্ঞান - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 5 দিন - 2016-11-25 - 2016-11-29 ; পিবিএম - কৃতিভিত্তিক ব্যবস্থাপনা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2017-04-18 - 2017-04-20 ; LSBE ট্রেনিং - জীবন ও দক্ষতা ভিত্তিক শিক্ষা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2017-06-15 - 2017-06-17 ; কারিকুলাম প্রশিক্ষণ (TCG) - বিজ্ঞান  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 6 দিন - 2018-05-25 - 2018-05-30 ; ধারাবাহিক মূল্যায়ন (CA) - বিজ্ঞান  - পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয় - টাংগাইল  - 6 দিন - 2019-10-27 - 2019-11-01 ; সৃজনশীল প্রশ্নপত্র তৈরী ও মূল্যায়ন (৬ দিন) - বিজ্ঞান  - পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয় - টাংগাইল  - 6 দিন - 2020-05-02 - 2020-05-07 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - উপজেলা পর্যয়ে মাষ্টার ট্রেইনার তৈরি  - শেরপুর সরকারি ভিক্টোরিয়া একাডেমি  - শেরপুর সরকারি ভিক্টোরিয়া একাডেমি  - 6 দিন - 2022-12-26 - 2022-12-31 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - উপজেলা পর্যয়ে মাষ্টার ট্রেইনার তৈরি  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 7 দিন - 2023-11-02 - 2023-11-08",
-    "professional_note": "",
-    "whatsapp": "01710689846",
-    "present_address": "গ্রাম- টুনিমগড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- টুনিমগড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "public_contact_role": "ict_teacher",
+    "photo_url": "/teachers/t-6.jpg",
+    "address": "গ্রাম- টুনিমগড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"২০০৬\",\"result\":\"জিপিএ ৪.৭৫\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি এম এম আলী কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"২০০৮\",\"result\":\"জিপিএ ৪.৬০\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৪ বছর মেয়াদী)\",\"institution\":\"সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়)\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"কম্পিউটার সায়েন্স / আইসিটি\",\"year\":\"২০১৩\",\"result\":\"সিজিপিএ ৩.৩৮\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"ঢাকা বিশ্ববিদ্যালয়\",\"board\":\"ঢাকা বিশ্ববিদ্যালয়\",\"subject\":\"তথ্য ও যোগাযোগ প্রযুক্তি (এমআইটি)\",\"year\":\"২০১৫\",\"result\":\"সিজিপিএ ৩.৪৫\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"বিএড\",\"institution\":\"এশিয়ান ইউনিভার্সিটি\",\"board\":\"এশিয়ান ইউনিভার্সিটি\",\"year\":\"২০০৮\",\"result\":\"৩.৯৪\",\"is_saved\":true}],\"training\":[{\"name\":\"কম্পিউটার\",\"subject\":\"কম্পিউটার অপারেশন এবংব্যবহার\",\"institution\":\"টাংগাইল পলিটেকনিক ইন্সটিটিউট\",\"location\":\"টাংগাইল\",\"start_date\":\"2005-04-23\",\"end_date\":\"2005-05-22\",\"duration\":\"30 দিন\",\"is_saved\":true},{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"এইচ এস টি টি আই\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2012-03-22\",\"end_date\":\"2012-04-02\",\"duration\":\"12 দিন\",\"is_saved\":true},{\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2015-12-19\",\"end_date\":\"2015-12-23\",\"duration\":\"5 দিন\",\"is_saved\":true,\"name\":\"আইসিটি\"},{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2017-03-05\",\"end_date\":\"2017-03-21\",\"duration\":\"17 দিন\",\"is_saved\":true},{\"name\":\"কম্পিউটার\",\"subject\":\"হার্ডওয়্যার এন্ড ট্রাবলশুটিং\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2017-05-05\",\"end_date\":\"2017-05-07\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"বেসিক টিচার্স ট্রেনিং (BTT)\",\"subject\":\"(ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী)\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2019-06-11\",\"end_date\":\"2019-06-22\",\"duration\":\"12 দিন\",\"is_saved\":true},{\"name\":\"কম্পিউটার\",\"subject\":\"হার্ডওয়্যার নেটওয়ার্ক এন্ড ট্রাবলশুটিং\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2020-01-15\",\"end_date\":\"2020-02-01\",\"duration\":\"18 দিন\",\"is_saved\":true},{\"name\":\"কম্পিউটার\",\"subject\":\"ইন্টারেক্টিভ টিচিং এন্ড লাইভ ক্লাস ম্যানেজমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2022-11-21\",\"end_date\":\"2022-11-27\",\"duration\":\"7 দিন\",\"is_saved\":true},{\"name\":\"কম্পিউটার\",\"subject\":\"শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা\",\"institution\":\"খিলদা উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি\",\"start_date\":\"2023-05-28\",\"end_date\":\"2023-06-08\",\"duration\":\"12 দিন\",\"is_saved\":true},{\"name\":\"বেসিক টিচার্স ট্রেনিং (BTT)\",\"subject\":\"(ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী)\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2024-05-23\",\"end_date\":\"2024-06-03\",\"duration\":\"12 দিন\",\"is_saved\":true}],\"ntrca\":{},\"dob\":\"1977-10-28\",\"in_service_training\":[{\"name\":\"সৃজনশীল (CQ) ৩ দিন\",\"subject\":\"বিজ্ঞান\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2013-12-01\",\"end_date\":\"2013-12-03\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"হাতে কলমে বিজ্ঞান শিক্ষা\",\"subject\":\"বিজ্ঞান\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2016-11-25\",\"end_date\":\"2016-11-29\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"পিবিএম\",\"subject\":\"কৃতিভিত্তিক ব্যবস্থাপনা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2017-04-18\",\"end_date\":\"2017-04-20\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"LSBE ট্রেনিং\",\"subject\":\"জীবন ও দক্ষতা ভিত্তিক শিক্ষা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2017-06-15\",\"end_date\":\"2017-06-17\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল \",\"start_date\":\"2018-05-25\",\"end_date\":\"2018-05-30\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"ধারাবাহিক মূল্যায়ন (CA)\",\"institution\":\"পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল \",\"start_date\":\"2019-10-27\",\"end_date\":\"2019-11-01\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"সৃজনশীল প্রশ্নপত্র তৈরী ও মূল্যায়ন (৬ দিন)\",\"institution\":\"পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল \",\"start_date\":\"2020-05-02\",\"end_date\":\"2020-05-07\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"উপজেলা পর্যয়ে মাষ্টার ট্রেইনার তৈরি \",\"institution\":\"শেরপুর সরকারি ভিক্টোরিয়া একাডেমি \",\"location\":\"শেরপুর সরকারি ভিক্টোরিয়া একাডেমি \",\"start_date\":\"2022-12-26\",\"end_date\":\"2022-12-31\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"উপজেলা পর্যয়ে মাষ্টার ট্রেইনার তৈরি \",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2023-11-02\",\"end_date\":\"2023-11-08\",\"duration\":\"7 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯২",
+          "result": "প্রথম বিভাগ ",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "হাজী ওয়াহেদ মরিয়ম ডিগ্রী কলেজ সিরাজগঞ্জ ",
+          "board": "রাজশাহী ",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯৪",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক (পাস)/সমমান",
+          "institution": "কালিহাতি কলেজ, কালিহাতি",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৯৬ ",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "বিএড",
+          "institution": "এশিয়ান ইউনিভার্সিটি",
+          "board": "এশিয়ান ইউনিভার্সিটি",
+          "year": "২০০৮",
+          "result": "৩.৯৪",
+          "is_saved": true
+        },
+        {
+          "exam": "ডিপ্লোমা",
+          "institution": "ন্যশনাল ইউথ ডেভলপমেন্ট কম্পিউটার ট্রেনিং একাডেমি",
+          "board": "সরকার অনুমোদিত ",
+          "year": "২০০৪",
+          "result": "জিপি- A ",
+          "is_saved": true
+        }
+      ],
+      "training": [
+        {
+          "name": "কম্পিউটার",
+          "subject": "কম্পিউটার অপারেশন এবংব্যবহার",
+          "institution": "টাংগাইল পলিটেকনিক ইন্সটিটিউট",
+          "location": "টাংগাইল",
+          "start_date": "2005-04-23",
+          "end_date": "2005-05-22",
+          "duration": "30 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "এইচ এস টি টি আই",
+          "location": "ময়মনসিংহ",
+          "start_date": "2012-03-22",
+          "end_date": "2012-04-02",
+          "duration": "12 দিন",
+          "is_saved": true
+        },
+        {
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2015-12-19",
+          "end_date": "2015-12-23",
+          "duration": "5 দিন",
+          "is_saved": true,
+          "name": "আইসিটি"
+        },
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2017-03-05",
+          "end_date": "2017-03-21",
+          "duration": "17 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কম্পিউটার",
+          "subject": "হার্ডওয়্যার এন্ড ট্রাবলশুটিং",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2017-05-05",
+          "end_date": "2017-05-07",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "বেসিক টিচার্স ট্রেনিং (BTT)",
+          "subject": "(ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী)",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2019-06-11",
+          "end_date": "2019-06-22",
+          "duration": "12 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কম্পিউটার",
+          "subject": "হার্ডওয়্যার নেটওয়ার্ক এন্ড ট্রাবলশুটিং",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2020-01-15",
+          "end_date": "2020-02-01",
+          "duration": "18 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কম্পিউটার",
+          "subject": "ইন্টারেক্টিভ টিচিং এন্ড লাইভ ক্লাস ম্যানেজমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2022-11-21",
+          "end_date": "2022-11-27",
+          "duration": "7 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কম্পিউটার",
+          "subject": "শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা",
+          "institution": "খিলদা উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি",
+          "start_date": "2023-05-28",
+          "end_date": "2023-06-08",
+          "duration": "12 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "বেসিক টিচার্স ট্রেনিং (BTT)",
+          "subject": "(ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী)",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2024-05-23",
+          "end_date": "2024-06-03",
+          "duration": "12 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "সৃজনশীল (CQ) ৩ দিন",
+          "subject": "বিজ্ঞান",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2013-12-01",
+          "end_date": "2013-12-03",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "হাতে কলমে বিজ্ঞান শিক্ষা",
+          "subject": "বিজ্ঞান",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2016-11-25",
+          "end_date": "2016-11-29",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "পিবিএম",
+          "subject": "কৃতিভিত্তিক ব্যবস্থাপনা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2017-04-18",
+          "end_date": "2017-04-20",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "LSBE ট্রেনিং",
+          "subject": "জীবন ও দক্ষতা ভিত্তিক শিক্ষা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2017-06-15",
+          "end_date": "2017-06-17",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল ",
+          "start_date": "2018-05-25",
+          "end_date": "2018-05-30",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "ধারাবাহিক মূল্যায়ন (CA)",
+          "institution": "পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল ",
+          "start_date": "2019-10-27",
+          "end_date": "2019-11-01",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সৃজনশীল প্রশ্নপত্র তৈরী ও মূল্যায়ন (৬ দিন)",
+          "institution": "পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল ",
+          "start_date": "2020-05-02",
+          "end_date": "2020-05-07",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "উপজেলা পর্যয়ে মাষ্টার ট্রেইনার তৈরি ",
+          "institution": "শেরপুর সরকারি ভিক্টোরিয়া একাডেমি ",
+          "location": "শেরপুর সরকারি ভিক্টোরিয়া একাডেমি ",
+          "start_date": "2022-12-26",
+          "end_date": "2022-12-31",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "উপজেলা পর্যয়ে মাষ্টার ট্রেইনার তৈরি ",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2023-11-02",
+          "end_date": "2023-11-08",
+          "duration": "7 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {},
+      "dob": "1977-10-28",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-7",
@@ -11894,11 +12778,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "Rahima begum",
     "first_joining_date": "2010-08-19",
     "first_mpo_date": "2010-11-01",
-    "current_post_joining_date": "2010-08-19",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2022-02-01",
     "previous_institution_mpo_date": "2022-02-01",
-    "appointment_date": "2010-08-19",
+    "appointment_date": "",
     "appointment_authority": "NTRCA",
     "mpo_index_no": "N1052317",
     "teacher_registration_no": "",
@@ -11909,17 +12793,201 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ১৯৯৭ - ১ম বিভাগ ; এইচএসসি/সমমান - সরকারি সা’দত কলেজ, টাঙ্গাইল - ঢাকা - বিজ্ঞান - ১৯৯৯ - ১ম বিভাগ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়) - জাতীয় বিশ্ববিদ্যালয় - প্রাণিবিজ্ঞান (সম্মান) - ২০০৩ - ২য় শ্রেণি ; স্নাতকোত্তর (অনার্সসহ) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - প্রাণিবিজ্ঞান - ২০০৪ - ২য় শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ১৯৯৩ - প্রথম বিভাগ  ; এইচএসসি/সমমান - ঢাকা সিটি কলেজ  - ঢাকা - বিজ্ঞান - ১৯৯৫ - দ্বিতীয় বিভাগ ; স্নাতক (পাস)/সমমান - ঢাকা কলেজ, ঢাকা - জাতীয় বিশ্ববিদ্যালয় - বিজ্ঞান  - ১৯৯৭  - প্রথম বিভাগ ; স্নাতকোত্তর (অনার্সবিহীন) - ঢাকা কলেজ, ঢাকা - জাতীয় বিশ্ববিদ্যালয় - বিজ্ঞান  - ১৯৯৯  - দ্বিতীয় বিভাগ",
     "professional_degrees": "বিএড - টাঙ্গাইল টিচার্স ট্রেনিং কলেজ - জাতীয় বিশ্ববিদ্যালয় - 2011 - প্রথম বিভাগ",
     "ict_trainings": "আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 18 দিন - 2017-01-05 - 2017-01-22 ; কম্পিউটার - হার্ডওয়্যার এন্ড ট্রাবলশুটিং - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 3 দিন - 2017-05-05 - 2017-05-07 ; কম্পিউটার - শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা - খিলদা উচ্চ বিদ্যালয় - কালিহাতি টাংগাইল - 12 দিন - 2023-05-28 - 2023-06-08",
     "in_service_trainings": "সিপিডি-১ (১৪ দিন) - জীববিজ্ঞান - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 14 দিন - 2011-02-02 - 2011-02-15 ; সিপিডি-২ ফলো-আপ (৫ দিন) - জীববিজ্ঞান - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 5 দিন - 2011-06-05 - 2011-06-09 ; সৃজনশীল (CQ) ৩ দিন - বিজ্ঞান  - পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2013-12-01 - 2013-12-03 ; হাতে কলমে বিজ্ঞান শিক্ষা - বিজ্ঞান  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 5 দিন - 2016-06-14 - 2016-06-18 ; LSBE ট্রেনিং - জীবন ও দক্ষতা ভিত্তিক শিক্ষা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2017-06-17 - 2017-06-19 ; কারিকুলাম প্রশিক্ষণ (TCG) - বিজ্ঞান  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 7 দিন - 2018-02-16 - 2018-02-22 ; পিবিএম - কৃতিভিত্তিক ব্যবস্থাপনা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2018-06-24 - 2018-06-26 ; ধারাবাহিক মূল্যায়ন (CA) - বিজ্ঞান  - বিবেকানন্দ উচ্চ বিদ্যালয় - টাংগাইল  - 9 দিন - 2022-05-17 - 2022-05-25 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - বিজ্ঞান  - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 5 দিন - 2023-01-20 - 2023-01-24 ; ধারাবাহিক মূল্যায়ন (CA) - বিজ্ঞান  - পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয় - টাংগাইল  - 6 দিন - 2023-06-17 - 2023-06-22",
-    "professional_note": "",
-    "whatsapp": "01712004957",
-    "present_address": "গ্রাম- ঢোলকান পালপাড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- ঢোলকান পালপাড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-7.jpg",
+    "address": "গ্রাম- ঢোলকান পালপাড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৭\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি সা’দত কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৯\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৪ বছর মেয়াদী)\",\"institution\":\"সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়)\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"প্রাণিবিজ্ঞান (সম্মান)\",\"year\":\"২০০৩\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"প্রাণিবিজ্ঞান\",\"year\":\"২০০৪\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"বিএড\",\"institution\":\"টাঙ্গাইল টিচার্স ট্রেনিং কলেজ\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"year\":\"2011\",\"result\":\"প্রথম বিভাগ\",\"is_saved\":true}],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2017-01-05\",\"end_date\":\"2017-01-22\",\"duration\":\"18 দিন\",\"is_saved\":true},{\"name\":\"কম্পিউটার\",\"subject\":\"হার্ডওয়্যার এন্ড ট্রাবলশুটিং\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2017-05-05\",\"end_date\":\"2017-05-07\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কম্পিউটার\",\"subject\":\"শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা\",\"institution\":\"খিলদা উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি টাংগাইল\",\"start_date\":\"2023-05-28\",\"end_date\":\"2023-06-08\",\"duration\":\"12 দিন\",\"is_saved\":true}],\"ntrca\":{},\"dob\":\"1978-12-30\",\"in_service_training\":[{\"name\":\"সিপিডি-১ (১৪ দিন)\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"subject\":\"জীববিজ্ঞান\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2011-02-02\",\"end_date\":\"2011-02-15\",\"duration\":\"14 দিন\",\"is_saved\":true},{\"name\":\"সিপিডি-২ ফলো-আপ (৫ দিন)\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"subject\":\"জীববিজ্ঞান\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2011-06-05\",\"end_date\":\"2011-06-09\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"সৃজনশীল (CQ) ৩ দিন\",\"institution\":\"পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল \",\"start_date\":\"2013-12-01\",\"end_date\":\"2013-12-03\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"হাতে কলমে বিজ্ঞান শিক্ষা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল \",\"start_date\":\"2016-06-14\",\"end_date\":\"2016-06-18\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"LSBE ট্রেনিং\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"subject\":\"জীবন ও দক্ষতা ভিত্তিক শিক্ষা\",\"start_date\":\"2017-06-17\",\"end_date\":\"2017-06-19\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল \",\"start_date\":\"2018-02-16\",\"end_date\":\"2018-02-22\",\"duration\":\"7 দিন\",\"is_saved\":true},{\"name\":\"পিবিএম\",\"subject\":\"কৃতিভিত্তিক ব্যবস্থাপনা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2018-06-24\",\"end_date\":\"2018-06-26\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"ধারাবাহিক মূল্যায়ন (CA)\",\"institution\":\"বিবেকানন্দ উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2022-05-17\",\"end_date\":\"2022-05-25\",\"duration\":\"9 দিন\",\"subject\":\"বিজ্ঞান \",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"subject\":\"বিজ্ঞান \",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-01-20\",\"end_date\":\"2023-01-24\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"institution\":\"পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়\",\"name\":\"ধারাবাহিক মূল্যায়ন (CA)\",\"subject\":\"বিজ্ঞান \",\"location\":\"টাংগাইল \",\"start_date\":\"2023-06-17\",\"end_date\":\"2023-06-22\",\"duration\":\"6 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯৩",
+          "result": "প্রথম বিভাগ ",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "ঢাকা সিটি কলেজ ",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান",
+          "year": "১৯৯৫",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক (পাস)/সমমান",
+          "institution": "ঢাকা কলেজ, ঢাকা",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৯৭ ",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সবিহীন)",
+          "institution": "ঢাকা কলেজ, ঢাকা",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৯৯ ",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "বিএড",
+          "institution": "টাঙ্গাইল টিচার্স ট্রেনিং কলেজ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "year": "2011",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2017-01-05",
+          "end_date": "2017-01-22",
+          "duration": "18 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কম্পিউটার",
+          "subject": "হার্ডওয়্যার এন্ড ট্রাবলশুটিং",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2017-05-05",
+          "end_date": "2017-05-07",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কম্পিউটার",
+          "subject": "শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা",
+          "institution": "খিলদা উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি টাংগাইল",
+          "start_date": "2023-05-28",
+          "end_date": "2023-06-08",
+          "duration": "12 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "সিপিডি-১ (১৪ দিন)",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "subject": "জীববিজ্ঞান",
+          "location": "ময়মনসিংহ",
+          "start_date": "2011-02-02",
+          "end_date": "2011-02-15",
+          "duration": "14 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সিপিডি-২ ফলো-আপ (৫ দিন)",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "subject": "জীববিজ্ঞান",
+          "location": "ময়মনসিংহ",
+          "start_date": "2011-06-05",
+          "end_date": "2011-06-09",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "সৃজনশীল (CQ) ৩ দিন",
+          "institution": "পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল ",
+          "start_date": "2013-12-01",
+          "end_date": "2013-12-03",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "হাতে কলমে বিজ্ঞান শিক্ষা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল ",
+          "start_date": "2016-06-14",
+          "end_date": "2016-06-18",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "LSBE ট্রেনিং",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "subject": "জীবন ও দক্ষতা ভিত্তিক শিক্ষা",
+          "start_date": "2017-06-17",
+          "end_date": "2017-06-19",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল ",
+          "start_date": "2018-02-16",
+          "end_date": "2018-02-22",
+          "duration": "7 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "পিবিএম",
+          "subject": "কৃতিভিত্তিক ব্যবস্থাপনা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2018-06-24",
+          "end_date": "2018-06-26",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "ধারাবাহিক মূল্যায়ন (CA)",
+          "institution": "বিবেকানন্দ উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2022-05-17",
+          "end_date": "2022-05-25",
+          "duration": "9 দিন",
+          "subject": "বিজ্ঞান ",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-01-20",
+          "end_date": "2023-01-24",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "institution": "পুলিশ লাইন্স আদর্শ উচ্চ বিদ্যালয়",
+          "name": "ধারাবাহিক মূল্যায়ন (CA)",
+          "subject": "বিজ্ঞান ",
+          "location": "টাংগাইল ",
+          "start_date": "2023-06-17",
+          "end_date": "2023-06-22",
+          "duration": "6 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {},
+      "dob": "1978-12-30",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-8",
@@ -11947,11 +13015,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "HAMIDA BEGUM",
     "first_joining_date": "2012-08-04",
     "first_mpo_date": "2012-11-01",
-    "current_post_joining_date": "2012-08-04",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2014-02-06",
     "previous_institution_mpo_date": "2014-02-06",
-    "appointment_date": "2012-08-04",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "N2097899",
     "teacher_registration_no": "",
@@ -11962,17 +13030,178 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ১৯৯৭ - ১ম বিভাগ ; এইচএসসি/সমমান - সরকারি সা’দত কলেজ, টাঙ্গাইল - ঢাকা - বিজ্ঞান - ১৯৯৯ - ১ম বিভাগ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়) - জাতীয় বিশ্ববিদ্যালয় - প্রাণিবিজ্ঞান (সম্মান) - ২০০৩ - ২য় শ্রেণি ; স্নাতকোত্তর (অনার্সসহ) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - প্রাণিবিজ্ঞান - ২০০৪ - ২য় শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - বিন্দুবাসিনী সরকারি বালক উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ২০০২ - প্রথম বিভাগ  ; এইচএসসি/সমমান - লায়ন নজরুল ইসলাম ডিগ্রী কলেজ ভায়েটা, টাঙ্গাইল  - ঢাকা - বিজ্ঞান - ২০০৪  - দ্বিতীয় বিভাগ  ; স্নাতক (পাস)/সমমান - লায়ন নজরুল ইসলাম ডিগ্রী কলেজ ভায়েটা, টাঙ্গাইল - জাতীয় বিশ্ববিদ্যালয় - বিজ্ঞান  - ২০০৭ - দ্বিতীয় বিভাগ",
     "professional_degrees": "বিএড - টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল - টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল - ২০১৫ - ৩.১৫",
     "ict_trainings": "আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 14 দিন - 2014-10-13 - 2014-10-26 ; আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 14 দিন - 2017-03-22 - 2017-04-04 ; কম্পিউটার - শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা - খিলদা উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 12 দিন - 2023-05-28 - 2023-06-08 ; আইসিটি - নেটওয়ার্কিং এন্ড প্রোগ্রামিং - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি টাংগাইল",
     "in_service_trainings": "সিপিডি-১ (১৪ দিন) - গণিত - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 14 দিন - 2014-05-10 - 2014-05-23 ; হাতে কলমে বিজ্ঞান শিক্ষা - গণিত - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 6 দিন - 2016-06-11 - 2016-06-16 ; LSBE ট্রেনিং - জীবন ও দক্ষতা ভিত্তিক শিক্ষা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল  - 3 দিন - 2018-01-09 - 2018-01-11 ; কারিকুলাম প্রশিক্ষণ (TCG) - গণিত - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 6 দিন - 2018-01-20 - 2018-01-25 ; পিবিএম - কৃতিভিত্তিক ব্যবস্থাপনা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2017-04-18 - 2017-04-20 ; বৈদেশিক ট্রেনিং - বিজ্ঞান  - ওয়েলিংটন কলেজ, ওয়েলিংটন; মানুকা ইনস্টিটিউট অব টেকনোলোজি  - অকল্যান্ড, নিউজিল্যান্ড  - 14 দিন - 2019-05-25 - 2019-06-07 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - গণিত  - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 5 দিন - 2023-01-25 - 2023-01-29 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - গণিত  - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 7 দিন - 2023-12-18 - 2023-12-24",
-    "professional_note": "",
-    "whatsapp": "01728046188",
-    "present_address": "গ্রাম- ভায়েটা, ডাকঘর- গালা, উপজেলা- টাংগাইল সদর, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- ভায়েটা, ডাকঘর- গালা, উপজেলা- টাংগাইল সদর, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-8.jpg",
+    "address": "গ্রাম- ভায়েটা, ডাকঘর- গালা, উপজেলা- টাংগাইল সদর, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৭\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি সা’দত কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৯\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৪ বছর মেয়াদী)\",\"institution\":\"সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়)\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"প্রাণিবিজ্ঞান (সম্মান)\",\"year\":\"২০০৩\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"প্রাণিবিজ্ঞান\",\"year\":\"২০০৪\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"বিএড\",\"institution\":\"টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল\",\"board\":\"টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল\",\"year\":\"২০১৫\",\"result\":\"৩.১৫\",\"is_saved\":true}],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2014-10-13\",\"end_date\":\"2014-10-26\",\"duration\":\"14 দিন\",\"is_saved\":true},{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2017-03-22\",\"end_date\":\"2017-04-04\",\"duration\":\"14 দিন\",\"is_saved\":true},{\"name\":\"কম্পিউটার\",\"subject\":\"শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা\",\"institution\":\"খিলদা উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-05-28\",\"end_date\":\"2023-06-08\",\"duration\":\"12 দিন\",\"is_saved\":true},{\"name\":\"আইসিটি\",\"subject\":\"নেটওয়ার্কিং এন্ড প্রোগ্রামিং\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি টাংগাইল\",\"is_saved\":true}],\"ntrca\":{},\"dob\":\"1987-12-31\",\"in_service_training\":[{\"name\":\"সিপিডি-১ (১৪ দিন)\",\"subject\":\"গণিত\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2014-05-10\",\"end_date\":\"2014-05-23\",\"duration\":\"14 দিন\",\"is_saved\":true},{\"name\":\"হাতে কলমে বিজ্ঞান শিক্ষা\",\"subject\":\"গণিত\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2016-06-11\",\"end_date\":\"2016-06-16\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"LSBE ট্রেনিং\",\"subject\":\"জীবন ও দক্ষতা ভিত্তিক শিক্ষা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল \",\"start_date\":\"2018-01-09\",\"end_date\":\"2018-01-11\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"subject\":\"গণিত\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2018-01-20\",\"end_date\":\"2018-01-25\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"পিবিএম\",\"subject\":\"কৃতিভিত্তিক ব্যবস্থাপনা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2017-04-18\",\"end_date\":\"2017-04-20\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"বৈদেশিক ট্রেনিং\",\"institution\":\"ওয়েলিংটন কলেজ, ওয়েলিংটন; মানুকা ইনস্টিটিউট অব টেকনোলোজি \",\"subject\":\"বিজ্ঞান \",\"location\":\"অকল্যান্ড, নিউজিল্যান্ড \",\"start_date\":\"2019-05-25\",\"end_date\":\"2019-06-07\",\"duration\":\"14 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"subject\":\"গণিত \",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-01-25\",\"end_date\":\"2023-01-29\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-12-18\",\"end_date\":\"2023-12-24\",\"duration\":\"7 দিন\",\"subject\":\"গণিত \"}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "বিন্দুবাসিনী সরকারি বালক উচ্চ বিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান",
+          "year": "২০০২",
+          "result": "প্রথম বিভাগ ",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "লায়ন নজরুল ইসলাম ডিগ্রী কলেজ ভায়েটা, টাঙ্গাইল ",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান",
+          "year": "২০০৪ ",
+          "result": "দ্বিতীয় বিভাগ ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক (পাস)/সমমান",
+          "institution": "লায়ন নজরুল ইসলাম ডিগ্রী কলেজ ভায়েটা, টাঙ্গাইল",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "বিজ্ঞান ",
+          "year": "২০০৭",
+          "result": "দ্বিতীয় বিভাগ ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "বিএড",
+          "institution": "টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল",
+          "board": "টিচার্স ট্রেনিং কলেজ, টাঙ্গাইল",
+          "year": "২০১৫",
+          "result": "৩.১৫",
+          "is_saved": true
+        }
+      ],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2014-10-13",
+          "end_date": "2014-10-26",
+          "duration": "14 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2017-03-22",
+          "end_date": "2017-04-04",
+          "duration": "14 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কম্পিউটার",
+          "subject": "শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা",
+          "institution": "খিলদা উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-05-28",
+          "end_date": "2023-06-08",
+          "duration": "12 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "আইসিটি",
+          "subject": "নেটওয়ার্কিং এন্ড প্রোগ্রামিং",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি টাংগাইল",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "সিপিডি-১ (১৪ দিন)",
+          "subject": "গণিত",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2014-05-10",
+          "end_date": "2014-05-23",
+          "duration": "14 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "হাতে কলমে বিজ্ঞান শিক্ষা",
+          "subject": "গণিত",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2016-06-11",
+          "end_date": "2016-06-16",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "LSBE ট্রেনিং",
+          "subject": "জীবন ও দক্ষতা ভিত্তিক শিক্ষা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল ",
+          "start_date": "2018-01-09",
+          "end_date": "2018-01-11",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "subject": "গণিত",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2018-01-20",
+          "end_date": "2018-01-25",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "পিবিএম",
+          "subject": "কৃতিভিত্তিক ব্যবস্থাপনা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2017-04-18",
+          "end_date": "2017-04-20",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "বৈদেশিক ট্রেনিং",
+          "institution": "ওয়েলিংটন কলেজ, ওয়েলিংটন; মানুকা ইনস্টিটিউট অব টেকনোলোজি ",
+          "subject": "বিজ্ঞান ",
+          "location": "অকল্যান্ড, নিউজিল্যান্ড ",
+          "start_date": "2019-05-25",
+          "end_date": "2019-06-07",
+          "duration": "14 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "subject": "গণিত ",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-01-25",
+          "end_date": "2023-01-29",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-12-18",
+          "end_date": "2023-12-24",
+          "duration": "7 দিন",
+          "subject": "গণিত "
+        }
+      ],
+      "ntrca": {},
+      "dob": "1987-12-31",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-9",
@@ -12000,32 +13229,140 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "PADMA RANI BHADRA",
     "first_joining_date": "2014-02-06",
     "first_mpo_date": "2014-05-01",
-    "current_post_joining_date": "2014-02-06",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2014-02-06",
     "previous_institution_mpo_date": "2014-05-01",
-    "appointment_date": "2014-02-06",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "N1106447",
     "teacher_registration_no": "১০০০০৭৪৬৩৭",
     "registration_date": "",
     "ntrca_registered": true,
-    "ntrca_recommended": false,
+    "ntrca_recommended": true,
     "ntrca_year": "২০১১",
     "ntrca_subject": "",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - কালিহাতী ফাজিল মাদ্রাসা - বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড - দাখিল (সাধারণ) - ১৯৯৬ - ১ম বিভাগ ; এইচএসসি/সমমান - সরকারি আলিয়া মাদ্রাসা, ঢাকা - বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড - আলিম (সাধারণ) - ১৯৯৮ - ১ম বিভাগ ; স্নাতক (পাস)/সমমান - ইসলামী বিশ্ববিদ্যালয়, কুষ্টিয়া - ইসলামী বিশ্ববিদ্যালয় - ফাজিল (স্নাতক পাস) - ২০০০ - ১ম বিভাগ ; কামিল - ইসলামী বিশ্ববিদ্যালয়, কুষ্টিয়া - ইসলামী বিশ্ববিদ্যালয় - হাদিস ও ইসলামিক স্টাডিজ - ২০০২ - ১ম শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - লোহাবই বঙ্কুয়া উচ্চ বিদ্যালয়  - ঢাকা  - বিজ্ঞান  - ১৯৯৮ - প্রথম বিভাগ ; এইচএসসি/সমমান - উথরা স্কুল এন্ড কলেজ - ঢাকা - মানবিক  - ২০০০  - দ্বিতীয় বিভাগ ; স্নাতক (পাস)/সমমান - ভাল্লুকা ডিগ্রী কলেজ - জাতীয় বিশ্ববিদ্যালয় - মানবিক  - ২০০৩ - দ্বিতীয় বিভাগ",
     "professional_degrees": "",
     "ict_trainings": "আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - সরকারী টিচার্স ট্রেনিং কলেজ - ময়মনসিংহ - 12 দিন - 2015-03-07 - 2015-03-18 ; আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং) - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 5 দিন - 2016-05-08 - 2016-05-12 ; আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 15 দিন - 2017-05-01 - 2017-05-15",
     "in_service_trainings": "LSBE ট্রেনিং - জীবন ও দক্ষতা ভিত্তিক শিক্ষা - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 3 দিন - 2017-06-15 - 2017-06-17 ; কারিকুলাম প্রশিক্ষণ (TCG) - বাংলা  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 6 দিন - 2018-06-23 - 2018-06-28 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 5 দিন - 2023-01-25 - 2023-01-29 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি, টাংগাইল - 7 দিন - 2023-12-18 - 2023-12-24",
-    "professional_note": "",
-    "whatsapp": "01752496170",
-    "present_address": "গ্রাম- ভাওয়াল, ডাকঘর- সল্লা, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- ভাওয়াল, ডাকঘর- সল্লা, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-9.jpg",
+    "address": "গ্রাম- ভাওয়াল, ডাকঘর- সল্লা, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"কালিহাতী ফাজিল মাদ্রাসা\",\"board\":\"বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড\",\"subject\":\"দাখিল (সাধারণ)\",\"year\":\"১৯৯৬\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি আলিয়া মাদ্রাসা, ঢাকা\",\"board\":\"বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড\",\"subject\":\"আলিম (সাধারণ)\",\"year\":\"১৯৯৮\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক (পাস)/সমমান\",\"institution\":\"ইসলামী বিশ্ববিদ্যালয়, কুষ্টিয়া\",\"board\":\"ইসলামী বিশ্ববিদ্যালয়\",\"subject\":\"ফাজিল (স্নাতক পাস)\",\"year\":\"২০০০\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"কামিল\",\"institution\":\"ইসলামী বিশ্ববিদ্যালয়, কুষ্টিয়া\",\"board\":\"ইসলামী বিশ্ববিদ্যালয়\",\"subject\":\"হাদিস ও ইসলামিক স্টাডিজ\",\"year\":\"২০০২\",\"result\":\"১ম শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"location\":\"ময়মনসিংহ\",\"start_date\":\"2015-03-07\",\"end_date\":\"2015-03-18\",\"duration\":\"12 দিন\",\"is_saved\":true},{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2016-05-08\",\"end_date\":\"2016-05-12\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"আইসিটি\",\"subject\":\"ডিজিটাল কনটেন্ট ডেভলপমেন্ট\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2017-05-01\",\"end_date\":\"2017-05-15\",\"duration\":\"15 দিন\",\"is_saved\":true}],\"ntrca\":{\"registered\":\"হ্যাঁ\",\"recommended\":\"না \",\"year\":\"২০১১\"},\"dob\":\"1982-06-06\",\"in_service_training\":[{\"name\":\"LSBE ট্রেনিং\",\"subject\":\"জীবন ও দক্ষতা ভিত্তিক শিক্ষা\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2017-06-15\",\"end_date\":\"2017-06-17\",\"duration\":\"3 দিন\",\"is_saved\":true},{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"subject\":\"বাংলা \",\"location\":\"টাংগাইল\",\"start_date\":\"2018-06-23\",\"end_date\":\"2018-06-28\",\"duration\":\"6 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-01-25\",\"end_date\":\"2023-01-29\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2023-12-18\",\"end_date\":\"2023-12-24\",\"duration\":\"7 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "লোহাবই বঙ্কুয়া উচ্চ বিদ্যালয় ",
+          "board": "ঢাকা ",
+          "subject": "বিজ্ঞান ",
+          "year": "১৯৯৮",
+          "result": "প্রথম বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "উথরা স্কুল এন্ড কলেজ",
+          "board": "ঢাকা",
+          "subject": "মানবিক ",
+          "year": "২০০০ ",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক (পাস)/সমমান",
+          "institution": "ভাল্লুকা ডিগ্রী কলেজ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "মানবিক ",
+          "year": "২০০৩",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "location": "ময়মনসিংহ",
+          "start_date": "2015-03-07",
+          "end_date": "2015-03-18",
+          "duration": "12 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2016-05-08",
+          "end_date": "2016-05-12",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "আইসিটি",
+          "subject": "ডিজিটাল কনটেন্ট ডেভলপমেন্ট",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2017-05-01",
+          "end_date": "2017-05-15",
+          "duration": "15 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "LSBE ট্রেনিং",
+          "subject": "জীবন ও দক্ষতা ভিত্তিক শিক্ষা",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2017-06-15",
+          "end_date": "2017-06-17",
+          "duration": "3 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "subject": "বাংলা ",
+          "location": "টাংগাইল",
+          "start_date": "2018-06-23",
+          "end_date": "2018-06-28",
+          "duration": "6 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-01-25",
+          "end_date": "2023-01-29",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2023-12-18",
+          "end_date": "2023-12-24",
+          "duration": "7 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {
+        "registered": "হ্যাঁ",
+        "recommended": "না ",
+        "year": "২০১১"
+      },
+      "dob": "1982-06-06",
+      "professional_note": "কাব্যতীর্থ, ব্যাকরণতীর্থ"
+    }
   },
   {
     "id": "t-10",
@@ -12053,11 +13390,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "JOYGON",
     "first_joining_date": "2021-02-25",
     "first_mpo_date": "2021-05-01",
-    "current_post_joining_date": "2021-02-25",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2021-02-25",
     "previous_institution_mpo_date": "2021-05-01",
-    "appointment_date": "2021-02-25",
+    "appointment_date": "",
     "appointment_authority": "NTRCA",
     "mpo_index_no": "N56806264",
     "teacher_registration_no": "১৪২০১৭০০৯৪২৫",
@@ -12068,17 +13405,114 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - কালিহাতী আর.এস. সরকারি মডেল পাইলট উচ্চ বিদ্যালয় - ঢাকা - মানবিক - ১৯৯৯ - ২য় বিভাগ ; এইচএসসি/সমমান - সরকারি সা’দত কলেজ, টাঙ্গাইল - ঢাকা - মানবিক - ২০০১ - ২য় বিভাগ ; স্নাতক (পাস)/সমমান - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - বি.এ (পাস) - ২০০৪ - ২য় বিভাগ ; স্নাতকোত্তর (অনার্সবিহীন) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - শারীরিক শিক্ষা ও সমাজবিজ্ঞান - ২০০৭ - ২য় শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান  - ২০০১ - ৩.৬৩ ; এইচএসসি/সমমান - শামছুল হক মহাবিদ্যালয় - ঢাকা - বিজ্ঞান  - ২০০৪ - ২.২০ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - সরকারী সাদৎ কলেজ, করটিয়া টাংগাইল   - জাতীয় বিশ্ববিদ্যালয় - মানবিক  - ২০০৮ - দ্বিতীয় বিভাগ ; স্নাতকোত্তর (অনার্সসহ) - সরকারী সাদৎ কলেজ, করটিয়া টাংগাইল   - জাতীয় বিশ্ববিদ্যালয় - মানবিক - ২০০৯ - দ্বিতীয় বিভাগ",
     "professional_degrees": "বিপিএড - সরকারী শারীরিক শিক্ষা কলেজ মুক্তাগাছা, ময়মনসিংহ  - ২০১৫ - ১ম বিভাগ",
     "ict_trainings": "আইসিটি - বেসিক আইসিটি ট্রেনিং - উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন - কালিহাতি, টাংগাইল - 18 দিন - 2024-04-29 - 2024-05-16",
     "in_service_trainings": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - শারীরিক শিক্ষা  - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি টাংগাইল - 5 দিন - 2023-01-25 - 2023-01-29 ; জাতীয় শিক্ষাক্রম বিস্তরন-২০২১ - শারীরিক শিক্ষা  - কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয় - কালিহাতি টাংগাইল - 7 দিন - 2023-12-18 - 2023-12-24 ; লেইস ট্রেনিং (৫৬ দিন) - বেসিক প্রশিক্ষণ - সরকারী টিচার্স ট্রেনিং কলেজ - gqgbwmsn - 56 দিন - 2025-12-20 - 2026-02-13",
-    "professional_note": "",
-    "whatsapp": "01938796907",
-    "present_address": "গ্রাম- আনালিয়াবাড়ী, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- আনালিয়াবাড়ী, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-10.jpg",
+    "address": "গ্রাম- আনালিয়াবাড়ী, ডাকঘর- মগড়া, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"কালিহাতী আর.এস. সরকারি মডেল পাইলট উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"মানবিক\",\"year\":\"১৯৯৯\",\"result\":\"২য় বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি সা’দত কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"মানবিক\",\"year\":\"২০০১\",\"result\":\"২য় বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক (পাস)/সমমান\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"বি.এ (পাস)\",\"year\":\"২০০৪\",\"result\":\"২য় বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সবিহীন)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"শারীরিক শিক্ষা ও সমাজবিজ্ঞান\",\"year\":\"২০০৭\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"বিপিএড\",\"institution\":\"সরকারী শারীরিক শিক্ষা কলেজ মুক্তাগাছা, ময়মনসিংহ \",\"year\":\"২০১৫\",\"result\":\"১ম বিভাগ \",\"is_saved\":true}],\"training\":[{\"name\":\"আইসিটি\",\"subject\":\"বেসিক আইসিটি ট্রেনিং\",\"institution\":\"উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন\",\"location\":\"কালিহাতি, টাংগাইল\",\"start_date\":\"2024-04-29\",\"end_date\":\"2024-05-16\",\"duration\":\"18 দিন\",\"is_saved\":true}],\"ntrca\":{\"registered\":\"হ্যাঁ \",\"recommended\":\"হ্যাঁ \",\"year\":\"২০১৭\"},\"dob\":\"1986-06-17\",\"in_service_training\":[{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"subject\":\"শারীরিক শিক্ষা \",\"location\":\"কালিহাতি টাংগাইল\",\"start_date\":\"2023-01-25\",\"end_date\":\"2023-01-29\",\"duration\":\"5 দিন\",\"is_saved\":true},{\"name\":\"জাতীয় শিক্ষাক্রম বিস্তরন-২০২১\",\"institution\":\"কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়\",\"subject\":\"শারীরিক শিক্ষা \",\"location\":\"কালিহাতি টাংগাইল\",\"start_date\":\"2023-12-18\",\"end_date\":\"2023-12-24\",\"duration\":\"7 দিন\",\"is_saved\":true},{\"name\":\"লেইস ট্রেনিং (৫৬ দিন)\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ\",\"subject\":\"বেসিক প্রশিক্ষণ\",\"location\":\"gqgbwmsn\",\"start_date\":\"2025-12-20\",\"end_date\":\"2026-02-13\",\"duration\":\"56 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান ",
+          "year": "২০০১",
+          "result": "৩.৬৩",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "শামছুল হক মহাবিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান ",
+          "year": "২০০৪",
+          "result": "২.২০",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক সম্মান(৪ বছর মেয়াদী)",
+          "institution": "সরকারী সাদৎ কলেজ, করটিয়া টাংগাইল  ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "মানবিক ",
+          "year": "২০০৮",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সসহ)",
+          "institution": "সরকারী সাদৎ কলেজ, করটিয়া টাংগাইল  ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "মানবিক",
+          "year": "২০০৯",
+          "result": "দ্বিতীয় বিভাগ",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "বিপিএড",
+          "institution": "সরকারী শারীরিক শিক্ষা কলেজ মুক্তাগাছা, ময়মনসিংহ ",
+          "year": "২০১৫",
+          "result": "১ম বিভাগ ",
+          "is_saved": true
+        }
+      ],
+      "training": [
+        {
+          "name": "আইসিটি",
+          "subject": "বেসিক আইসিটি ট্রেনিং",
+          "institution": "উপজেলা আইসিটি ট্রেনিং এন্ড রিসোর্স সেন্টার ফর এডুকেশন",
+          "location": "কালিহাতি, টাংগাইল",
+          "start_date": "2024-04-29",
+          "end_date": "2024-05-16",
+          "duration": "18 দিন",
+          "is_saved": true
+        }
+      ],
+      "in_service_training": [
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "subject": "শারীরিক শিক্ষা ",
+          "location": "কালিহাতি টাংগাইল",
+          "start_date": "2023-01-25",
+          "end_date": "2023-01-29",
+          "duration": "5 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "জাতীয় শিক্ষাক্রম বিস্তরন-২০২১",
+          "institution": "কালিহাতি আরএস পাইলট উচ্চ বিদ্যালয়",
+          "subject": "শারীরিক শিক্ষা ",
+          "location": "কালিহাতি টাংগাইল",
+          "start_date": "2023-12-18",
+          "end_date": "2023-12-24",
+          "duration": "7 দিন",
+          "is_saved": true
+        },
+        {
+          "name": "লেইস ট্রেনিং (৫৬ দিন)",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ",
+          "subject": "বেসিক প্রশিক্ষণ",
+          "location": "gqgbwmsn",
+          "start_date": "2025-12-20",
+          "end_date": "2026-02-13",
+          "duration": "56 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {
+        "registered": "হ্যাঁ ",
+        "recommended": "হ্যাঁ ",
+        "year": "২০১৭"
+      },
+      "dob": "1986-06-17",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-11",
@@ -12106,11 +13540,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "JAYNAB",
     "first_joining_date": "2014-06-26",
     "first_mpo_date": "2024-09-01",
-    "current_post_joining_date": "2014-06-26",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2014-06-26",
     "previous_institution_mpo_date": "2024-09-01",
-    "appointment_date": "2014-06-26",
+    "appointment_date": "",
     "appointment_authority": "ডিজি",
     "mpo_index_no": "N56892121",
     "teacher_registration_no": "",
@@ -12121,17 +13555,71 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ১৯৯৭ - ১ম বিভাগ ; এইচএসসি/সমমান - সরকারি সা’দত কলেজ, টাঙ্গাইল - ঢাকা - বিজ্ঞান - ১৯৯৯ - ১ম বিভাগ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়) - জাতীয় বিশ্ববিদ্যালয় - প্রাণিবিজ্ঞান (সম্মান) - ২০০৩ - ২য় শ্রেণি ; স্নাতকোত্তর (অনার্সসহ) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - প্রাণিবিজ্ঞান - ২০০৪ - ২য় শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - আকালু চর কয়েড়া দাখিল মাদ্রাসা - মাদ্রাসা বোর্ড - মানবিক  - ২০০৪ - ২.৪২ ; এইচএসসি/সমমান - ভুয়াপুর ফাজিল মাদ্রাসা - মাদ্রাসা বোর্ড - মানবিক  - ২০০৬ - ২.২৫ ; স্নাতক (পাস)/সমমান - ভুয়াপুর ফাজিল মাদ্রাসা - ইসলামিক ইউনিভার্সিটি, কুষ্টিয়া - মানবিক  - ২০০৯ - ২.১৭ ; স্নাতকোত্তর (অনার্সসহ) - গোপালপুর কামিল মাদ্রাসা  - ইসলামিক ইউনিভার্সিটি, কুষ্টিয়া - প্রাণিবিজ্ঞান - ২০১১ - ২.৯০",
     "professional_degrees": "",
     "ict_trainings": "",
     "in_service_trainings": "কারিকুলাম প্রশিক্ষণ (TCG) - ব্যবসায় শিক্ষা  - বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয় - টাংগাইল - 6 দিন - 2019-05-08 - 2019-05-13",
-    "professional_note": "",
-    "whatsapp": "01917454232",
-    "present_address": "গ্রাম- আকালু, ডাকঘর- নিকরাইল, উপজেলা- ভূয়াপুর, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- আকালু, ডাকঘর- নিকরাইল, উপজেলা- ভূয়াপুর, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-11.jpg",
+    "address": "গ্রাম- আকালু, ডাকঘর- নিকরাইল, উপজেলা- ভূয়াপুর, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৭\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি সা’দত কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৯\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৪ বছর মেয়াদী)\",\"institution\":\"সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়)\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"প্রাণিবিজ্ঞান (সম্মান)\",\"year\":\"২০০৩\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"প্রাণিবিজ্ঞান\",\"year\":\"২০০৪\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[],\"training\":[],\"ntrca\":{},\"dob\":\"1989-01-05\",\"in_service_training\":[{\"name\":\"কারিকুলাম প্রশিক্ষণ (TCG)\",\"subject\":\"ব্যবসায় শিক্ষা \",\"institution\":\"বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়\",\"location\":\"টাংগাইল\",\"start_date\":\"2019-05-08\",\"end_date\":\"2019-05-13\",\"duration\":\"6 দিন\",\"is_saved\":true}]}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "আকালু চর কয়েড়া দাখিল মাদ্রাসা",
+          "board": "মাদ্রাসা বোর্ড",
+          "subject": "মানবিক ",
+          "year": "২০০৪",
+          "result": "২.৪২",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "ভুয়াপুর ফাজিল মাদ্রাসা",
+          "board": "মাদ্রাসা বোর্ড",
+          "subject": "মানবিক ",
+          "year": "২০০৬",
+          "result": "২.২৫",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক (পাস)/সমমান",
+          "institution": "ভুয়াপুর ফাজিল মাদ্রাসা",
+          "board": "ইসলামিক ইউনিভার্সিটি, কুষ্টিয়া",
+          "subject": "মানবিক ",
+          "year": "২০০৯",
+          "result": "২.১৭",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সসহ)",
+          "institution": "গোপালপুর কামিল মাদ্রাসা ",
+          "board": "ইসলামিক ইউনিভার্সিটি, কুষ্টিয়া",
+          "subject": "প্রাণিবিজ্ঞান",
+          "year": "২০১১",
+          "result": "২.৯০",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [],
+      "training": [],
+      "in_service_training": [
+        {
+          "name": "কারিকুলাম প্রশিক্ষণ (TCG)",
+          "subject": "ব্যবসায় শিক্ষা ",
+          "institution": "বিন্দুবাসিনী সরকারী বালিকা উচ্চ বিদ্যালয়",
+          "location": "টাংগাইল",
+          "start_date": "2019-05-08",
+          "end_date": "2019-05-13",
+          "duration": "6 দিন",
+          "is_saved": true
+        }
+      ],
+      "ntrca": {},
+      "dob": "1989-01-05",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-12",
@@ -12159,11 +13647,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "ASIA BEGUM",
     "first_joining_date": "2024-09-01",
     "first_mpo_date": "2024-12-01",
-    "current_post_joining_date": "2024-09-01",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2024-09-01",
     "previous_institution_mpo_date": "2024-12-01",
-    "appointment_date": "2024-09-01",
+    "appointment_date": "",
     "appointment_authority": "NTRCA",
     "mpo_index_no": "N56899980",
     "teacher_registration_no": "18202332138",
@@ -12174,17 +13662,74 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "ইংরেজী",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ২০০২ - ১ম বিভাগ ; এইচএসসি/সমমান - সরকারি সা’দত কলেজ, টাঙ্গাইল - ঢাকা - বিজ্ঞান - ২০০৪ - ১ম বিভাগ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - ইংরেজী - ২০০৮ - ২য় শ্রেণি ; স্নাতকোত্তর (অনার্সসহ) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - ইংরেজী - ২০১০ - ২য় শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - মাটিকাটা উচ্চ বিদ্যালয় - ঢাকা - ব্যবসায় শিক্ষা - ২০০৭ - ৪.৩১ ; এইচএসসি/সমমান - সমশের ফকির ডিগ্রী কলেজ - ঢাকা - ব্যবসায় শিক্ষা - ২০০৯ - ৪.০০ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - সরকারী সা’দাত কলেজ, করটিয়া টাংগাইল    - জাতীয় বিশ্ববিদ্যালয় - ইংরেজী - ২০১৪ - ২.৭২ ; স্নাতকোত্তর (অনার্সসহ) - সরকারী সা’দাত কলেজ, করটিয়া টাংগাইল   - জাতীয় বিশ্ববিদ্যালয় - ইংরেজী - ২০১৫ - ২.৭৩",
     "professional_degrees": "বিএড - সরকারী টিচার্স ট্রেনিং কলেজ ময়মনসিংহ  - জাতীয় বিশ্ববিদ্যালয় - ২০২৪ - ২.৯৮",
     "ict_trainings": "",
     "in_service_trainings": "",
-    "professional_note": "",
-    "whatsapp": "01728531458",
-    "present_address": "গ্রাম- এলেঙ্গা, ডাকঘর- এলেঙ্গা, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- কয়ড়া, ডাকঘর- নিকরাইল, উপজেলা- ভূয়াপুর, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-12.jpg",
+    "address": "গ্রাম- কয়ড়া, ডাকঘর- নিকরাইল, উপজেলা- ভূয়াপুর, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"২০০২\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি সা’দত কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"২০০৪\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৪ বছর মেয়াদী)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"ইংরেজী\",\"year\":\"২০০৮\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"ইংরেজী\",\"year\":\"২০১০\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[{\"exam\":\"বিএড\",\"institution\":\"সরকারী টিচার্স ট্রেনিং কলেজ ময়মনসিংহ \",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"year\":\"২০২৪\",\"result\":\"২.৯৮\",\"is_saved\":true}],\"training\":[],\"ntrca\":{\"year\":\"২০২৩\",\"registered\":\"হ্যাঁ \",\"recommended\":\"হ্যাঁ \",\"subject\":\"ইংরেজী \"},\"dob\":\"1992-01-01\"}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "মাটিকাটা উচ্চ বিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "ব্যবসায় শিক্ষা",
+          "year": "২০০৭",
+          "result": "৪.৩১",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "সমশের ফকির ডিগ্রী কলেজ",
+          "board": "ঢাকা",
+          "subject": "ব্যবসায় শিক্ষা",
+          "year": "২০০৯",
+          "result": "৪.০০",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক সম্মান(৪ বছর মেয়াদী)",
+          "institution": "সরকারী সা’দাত কলেজ, করটিয়া টাংগাইল   ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "ইংরেজী",
+          "year": "২০১৪",
+          "result": "২.৭২",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সসহ)",
+          "institution": "সরকারী সা’দাত কলেজ, করটিয়া টাংগাইল  ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "ইংরেজী",
+          "year": "২০১৫",
+          "result": "২.৭৩",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [
+        {
+          "exam": "বিএড",
+          "institution": "সরকারী টিচার্স ট্রেনিং কলেজ ময়মনসিংহ ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "year": "২০২৪",
+          "result": "২.৯৮",
+          "is_saved": true
+        }
+      ],
+      "training": [],
+      "in_service_training": [],
+      "ntrca": {
+        "year": "২০২৩",
+        "registered": "হ্যাঁ ",
+        "recommended": "হ্যাঁ ",
+        "subject": "ইংরেজী "
+      },
+      "dob": "1992-01-01",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-13",
@@ -12212,11 +13757,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "DELOARA BEGUM",
     "first_joining_date": "2024-09-01",
     "first_mpo_date": "2025-03-01",
-    "current_post_joining_date": "2024-09-01",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2024-09-01",
     "previous_institution_mpo_date": "2025-03-01",
-    "appointment_date": "2024-09-01",
+    "appointment_date": "",
     "appointment_authority": "NTRCA",
     "mpo_index_no": "N56908629",
     "teacher_registration_no": "172020017192",
@@ -12227,17 +13772,65 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "হিসাববিজ্ঞান",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ২০০২ - ১ম বিভাগ ; এইচএসসি/সমমান - সরকারি সা’দত কলেজ, টাঙ্গাইল - ঢাকা - বিজ্ঞান - ২০০৪ - ১ম বিভাগ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - ব্যবসায় শিক্ষা - ২০০৮ - ২য় শ্রেণি ; স্নাতকোত্তর (অনার্সসহ) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - ব্যবসায় শিক্ষা - ২০১০ - ২য় শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - বল্লা বালিকা উচ্চ বিদ্যালয় - ঢাকা - ব্যবসায় শিক্ষা  - ২০১০ - ৫.০০ ; এইচএসসি/সমমান - আলাউদ্দিন সিদ্দিকী মহাবিদ্যালয় - ঢাকা - ব্যবসায় শিক্ষা  - ২০১২ - ৫.০০ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - সরকারী সাদৎ কলেজ, করটিয়া টাংগাইল   - জাতীয় বিশ্ববিদ্যালয় - ফিন্যান্স ও ব্যাংকিং - ২০১৬ - ৩.৫৮ ; স্নাতকোত্তর (অনার্সসহ) - আজিজুল হক কলেজ, বগুড়া  - জাতীয় বিশ্ববিদ্যালয় - ফিন্যান্স ও ব্যাংকিং - ২০১৭ - ৩.১৬",
     "professional_degrees": "",
     "ict_trainings": "",
     "in_service_trainings": "",
-    "professional_note": "",
-    "whatsapp": "01626229840",
-    "present_address": "গ্রাম- বল্লা পূর্বপাড়া, ডাকঘর- বল্লা বাজার, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- বল্লা পূর্বপাড়া, ডাকঘর- বল্লা বাজার, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-13.jpg",
+    "address": "গ্রাম- বল্লা পূর্বপাড়া, ডাকঘর- বল্লা বাজার, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"২০০২\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি সা’দত কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"২০০৪\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৪ বছর মেয়াদী)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"ব্যবসায় শিক্ষা\",\"year\":\"২০০৮\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"ব্যবসায় শিক্ষা\",\"year\":\"২০১০\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[],\"training\":[],\"ntrca\":{\"year\":\"২০২০\",\"registered\":\"হ্যাঁ\",\"recommended\":\"হ্যাঁ\",\"subject\":\"হিসাববিজ্ঞান \"},\"dob\":\"1995-12-12\"}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "বল্লা বালিকা উচ্চ বিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "ব্যবসায় শিক্ষা ",
+          "year": "২০১০",
+          "result": "৫.০০",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "আলাউদ্দিন সিদ্দিকী মহাবিদ্যালয়",
+          "board": "ঢাকা",
+          "subject": "ব্যবসায় শিক্ষা ",
+          "year": "২০১২",
+          "result": "৫.০০",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক সম্মান(৪ বছর মেয়াদী)",
+          "institution": "সরকারী সাদৎ কলেজ, করটিয়া টাংগাইল  ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "ফিন্যান্স ও ব্যাংকিং",
+          "year": "২০১৬",
+          "result": "৩.৫৮",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সসহ)",
+          "institution": "আজিজুল হক কলেজ, বগুড়া ",
+          "board": "জাতীয় বিশ্ববিদ্যালয়",
+          "subject": "ফিন্যান্স ও ব্যাংকিং",
+          "year": "২০১৭",
+          "result": "৩.১৬",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [],
+      "training": [],
+      "in_service_training": [],
+      "ntrca": {
+        "year": "২০২০",
+        "registered": "হ্যাঁ",
+        "recommended": "হ্যাঁ",
+        "subject": "হিসাববিজ্ঞান "
+      },
+      "dob": "1995-12-12",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-14",
@@ -12265,11 +13858,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "RAHIMA BEGUM",
     "first_joining_date": "2025-09-01",
     "first_mpo_date": "2025-12-01",
-    "current_post_joining_date": "2025-09-01",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2025-09-01",
     "previous_institution_mpo_date": "2025-12-01",
-    "appointment_date": "2025-09-01",
+    "appointment_date": "",
     "appointment_authority": "NTRCA",
     "mpo_index_no": "N56916356",
     "teacher_registration_no": "18202332138",
@@ -12280,17 +13873,56 @@ export const MOCK_TEACHERS = [
     "ntrca_subject": "পদার্থ বিজ্ঞান",
     "ntrca_remarks": "",
     "teacher_portal_id": "",
-    "educational_qualifications": "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা - বিজ্ঞান - ১৯৯৭ - ১ম বিভাগ ; এইচএসসি/সমমান - সরকারি সা’দত কলেজ, টাঙ্গাইল - ঢাকা - বিজ্ঞান - ১৯৯৯ - ১ম বিভাগ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়) - জাতীয় বিশ্ববিদ্যালয় - প্রাণিবিজ্ঞান (সম্মান) - ২০০৩ - ২য় শ্রেণি ; স্নাতকোত্তর (অনার্সসহ) - জাতীয় বিশ্ববিদ্যালয় - জাতীয় বিশ্ববিদ্যালয় - প্রাণিবিজ্ঞান - ২০০৪ - ২য় শ্রেণি",
+    "educational_qualifications": "এসএসসি/সমমান - আলীপুর দারুসুন্নাহ দাখিল মাদ্রাসা - মাদ্রাসা বোর্ড  - বিজ্ঞান - ২০১২ - ৫.০০ ; এইচএসসি/সমমান - যমুনা কলেজ, হাতীয়া   - ঢাকা - বিজ্ঞান - ২০১৪ - ৪.৩০ ; স্নাতক সম্মান(৪ বছর মেয়াদী) - মাওলানা ভাসানী বিজ্ঞান ও প্রযুক্তি  বিশ্ববিদ্যালয়  - মাওলানা ভাসানী বিজ্ঞান ও প্রযুক্তি  বিশ্ববিদ্যালয়  - পদার্থ বিজ্ঞান - ২০১৯ - ৩.৩৪",
     "professional_degrees": "",
     "ict_trainings": "",
     "in_service_trainings": "",
-    "professional_note": "",
-    "whatsapp": "01719274938",
-    "present_address": "গ্রাম- আলিপুর, ডাকঘর- সিংগুলী, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- আলিপুর, ডাকঘর- সিংগুলী, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-14.jpg",
+    "address": "গ্রাম- আলিপুর, ডাকঘর- সিংগুলী, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৭\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"সরকারি সা’দত কলেজ, টাঙ্গাইল\",\"board\":\"ঢাকা\",\"subject\":\"বিজ্ঞান\",\"year\":\"১৯৯৯\",\"result\":\"১ম বিভাগ\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৪ বছর মেয়াদী)\",\"institution\":\"সরকারি সা’দত কলেজ (জাতীয় বিশ্ববিদ্যালয়)\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"প্রাণিবিজ্ঞান (সম্মান)\",\"year\":\"২০০৩\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"জাতীয় বিশ্ববিদ্যালয়\",\"board\":\"জাতীয় বিশ্ববিদ্যালয়\",\"subject\":\"প্রাণিবিজ্ঞান\",\"year\":\"২০০৪\",\"result\":\"২য় শ্রেণি\",\"is_saved\":true}],\"professional_qualifications\":[],\"training\":[],\"ntrca\":{\"registered\":\"হ্যাঁ \",\"recommended\":\"হ্যাঁ \",\"year\":\"২০২৩\",\"subject\":\"পদার্থ বিজ্ঞান \"},\"dob\":\"1997-10-12\"}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "আলীপুর দারুসুন্নাহ দাখিল মাদ্রাসা",
+          "board": "মাদ্রাসা বোর্ড ",
+          "subject": "বিজ্ঞান",
+          "year": "২০১২",
+          "result": "৫.০০",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "যমুনা কলেজ, হাতীয়া  ",
+          "board": "ঢাকা",
+          "subject": "বিজ্ঞান",
+          "year": "২০১৪",
+          "result": "৪.৩০",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক সম্মান(৪ বছর মেয়াদী)",
+          "institution": "মাওলানা ভাসানী বিজ্ঞান ও প্রযুক্তি  বিশ্ববিদ্যালয় ",
+          "board": "মাওলানা ভাসানী বিজ্ঞান ও প্রযুক্তি  বিশ্ববিদ্যালয় ",
+          "subject": "পদার্থ বিজ্ঞান",
+          "year": "২০১৯",
+          "result": "৩.৩৪",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [],
+      "training": [],
+      "in_service_training": [],
+      "ntrca": {
+        "registered": "হ্যাঁ ",
+        "recommended": "হ্যাঁ ",
+        "year": "২০২৩",
+        "subject": "পদার্থ বিজ্ঞান "
+      },
+      "dob": "1997-10-12",
+      "professional_note": ""
+    }
   },
   {
     "id": "t-15",
@@ -12318,11 +13950,11 @@ export const MOCK_TEACHERS = [
     "mother_name_en": "ANOWARA BEGUM",
     "first_joining_date": "2025-09-01",
     "first_mpo_date": "2025-12-01",
-    "current_post_joining_date": "2025-09-01",
+    "current_post_joining_date": "",
     "current_mpo_date": "",
     "previous_institution_joining_date": "2025-09-01",
     "previous_institution_mpo_date": "2025-12-01",
-    "appointment_date": "2025-09-01",
+    "appointment_date": "",
     "appointment_authority": "NTRCA",
     "mpo_index_no": "N56916350",
     "teacher_registration_no": "18202309357",
@@ -12337,13 +13969,61 @@ export const MOCK_TEACHERS = [
     "professional_degrees": "",
     "ict_trainings": "",
     "in_service_trainings": "",
-    "professional_note": "",
-    "whatsapp": "01735176681",
-    "present_address": "গ্রাম- দশকিয়া, ডাকঘর- পটল, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
-    "permanent_address": "গ্রাম- দশকিয়া, ডাকঘর- পটল, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
+    "photo_url": "/teachers/t-15.jpg",
+    "address": "গ্রাম- দশকিয়া, ডাকঘর- পটল, উপজেলা- কালিহাতি, জেলা- টাংগাইল।",
     "public_contact_role": "",
     "public_contact_enabled": true,
-    "extended_profile_json": "{\"education\":[{\"exam\":\"এসএসসি/সমমান\",\"institution\":\"দুর্গাপুর দাখিল মাদ্রাসা \",\"board\":\"মাদ্রাসা বোর্ড\",\"subject\":\"মানবিক\",\"year\":\"২০১২\",\"result\":\"৫.০০\",\"is_saved\":true},{\"exam\":\"এইচএসসি/সমমান\",\"institution\":\"লায়ন নজরুল ইসলাম ডিগ্রী কলেজ   \",\"year\":\"২০১৪\",\"result\":\"৪.৩০\",\"board\":\"ঢাকা\",\"subject\":\"মানবিক\",\"is_saved\":true},{\"exam\":\"স্নাতক সম্মান(৪ বছর মেয়াদী)\",\"institution\":\"ঢাকা কলেজ, ঢাকা   \",\"board\":\"ঢাকা  বিশ্ববিদ্যালয় \",\"year\":\"২০১৯\",\"result\":\"২.৮৪\",\"subject\":\"বাংলা \",\"is_saved\":true},{\"exam\":\"স্নাতকোত্তর (অনার্সসহ)\",\"institution\":\"ঢাকা কলেজ, ঢাকা   \",\"board\":\"ঢাকা  বিশ্ববিদ্যালয় \",\"subject\":\"বাংলা \",\"year\":\"২০০০\",\"result\":\"২.৭৮\",\"is_saved\":true}],\"professional_qualifications\":[],\"training\":[],\"ntrca\":{\"year\":\"2023\",\"registered\":\"হ্যাঁ \",\"recommended\":\"হ্যাঁ \",\"subject\":\"বাংলা \"},\"dob\":\"1997-10-12\"}"
+    "extended_profile": {
+      "education": [
+        {
+          "exam": "এসএসসি/সমমান",
+          "institution": "দুর্গাপুর দাখিল মাদ্রাসা ",
+          "board": "মাদ্রাসা বোর্ড",
+          "subject": "মানবিক",
+          "year": "২০১২",
+          "result": "৫.০০",
+          "is_saved": true
+        },
+        {
+          "exam": "এইচএসসি/সমমান",
+          "institution": "লায়ন নজরুল ইসলাম ডিগ্রী কলেজ   ",
+          "year": "২০১৪",
+          "result": "৪.৩০",
+          "board": "ঢাকা",
+          "subject": "মানবিক",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতক সম্মান(৪ বছর মেয়াদী)",
+          "institution": "ঢাকা কলেজ, ঢাকা   ",
+          "board": "ঢাকা  বিশ্ববিদ্যালয় ",
+          "year": "২০১৯",
+          "result": "২.৮৪",
+          "subject": "বাংলা ",
+          "is_saved": true
+        },
+        {
+          "exam": "স্নাতকোত্তর (অনার্সসহ)",
+          "institution": "ঢাকা কলেজ, ঢাকা   ",
+          "board": "ঢাকা  বিশ্ববিদ্যালয় ",
+          "subject": "বাংলা ",
+          "year": "২০০০",
+          "result": "২.৭৮",
+          "is_saved": true
+        }
+      ],
+      "professional_qualifications": [],
+      "training": [],
+      "in_service_training": [],
+      "ntrca": {
+        "year": "2023",
+        "registered": "হ্যাঁ ",
+        "recommended": "হ্যাঁ ",
+        "subject": "বাংলা "
+      },
+      "dob": "1997-10-12",
+      "professional_note": ""
+    }
   }
 ];
 
@@ -14063,4 +15743,4 @@ export function getRoleDefaultDesk(role) {
   return { tab: 'login', sub: null };
 }
 
-export const MOCK_MARKS = [];
+export const MOCK_MARKS = AUTHENTIC_TEST_MARKS;

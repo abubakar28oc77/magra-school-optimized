@@ -46,6 +46,7 @@ import './styles.css';
 import { publicNavConfig } from './publicNavConfig';
 import { LanguageProvider, useLanguage, bilingual, LanguageSwitcher } from './i18n';
 import { requestApi, deduplicateTeachers } from './apiClient';
+import { AUTHENTIC_TEST_MARKS } from './authenticTestMarks';
 import { getSchoolTeachers, isAssignedRoleTeacher, getRoleDefaultDesk } from './mockData';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
 import { InstitutionalInfoAdminPanel } from './InstitutionalInfoAdminPanel';
@@ -1069,19 +1070,56 @@ function Home() {
     const cleanList = deduplicateTeachers(list);
     let changed = cleanList.length !== list.length;
     const enriched = cleanList.map(t => {
-      const curEdu = t.extended_profile?.education || [];
+      const mockT = (Array.isArray(MOCK_TEACHERS) ? MOCK_TEACHERS : []).find(m => m.id === t.id || m.employee_id === t.employee_id || m.name_bn === t.name_bn);
+      const authExt = mockT?.extended_profile || {};
+      const curExt = t.extended_profile || {};
+
+      const curEdu = curExt.education || [];
+      const curProf = curExt.professional_qualifications || [];
+      const curTrain = curExt.training || [];
+      const curInService = curExt.in_service_training || [];
+
+      let itemChanged = false;
+      let newExt = { ...curExt };
+
       if (!curEdu.length) {
-        const fullEdu = getTeacherAllEducation(t);
-        if (fullEdu.length) {
-          changed = true;
-          return {
-            ...t,
-            extended_profile: {
-              ...(t.extended_profile || {}),
-              education: fullEdu
-            }
-          };
+        const fullEdu = (authExt.education && authExt.education.length) ? authExt.education : getTeacherAllEducation(t);
+        if (fullEdu && fullEdu.length) {
+          newExt.education = fullEdu;
+          itemChanged = true;
         }
+      }
+      if (!curProf.length && authExt.professional_qualifications?.length) {
+        newExt.professional_qualifications = authExt.professional_qualifications;
+        itemChanged = true;
+      }
+      if (!curTrain.length && authExt.training?.length) {
+        newExt.training = authExt.training;
+        itemChanged = true;
+      }
+      if (!curInService.length && authExt.in_service_training?.length) {
+        newExt.in_service_training = authExt.in_service_training;
+        itemChanged = true;
+      }
+      if (!curExt.dob && (authExt.dob || t.date_of_birth)) {
+        newExt.dob = authExt.dob || t.date_of_birth;
+        itemChanged = true;
+      }
+      if (!curExt.ntrca && authExt.ntrca) {
+        newExt.ntrca = authExt.ntrca;
+        itemChanged = true;
+      }
+      if (!curExt.professional_note && authExt.professional_note) {
+        newExt.professional_note = authExt.professional_note;
+        itemChanged = true;
+      }
+
+      if (itemChanged) {
+        changed = true;
+        return {
+          ...t,
+          extended_profile: newExt
+        };
       }
       return t;
     });
@@ -1092,6 +1130,14 @@ function Home() {
   };
 
   useEffect(() => {
+    // Ensure 2,328 authentic marks are always loaded
+    try {
+      const curMarks = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
+      if (!Array.isArray(curMarks) || curMarks.length < 500) {
+        localStorage.setItem('magra_db_marks', JSON.stringify(AUTHENTIC_TEST_MARKS));
+      }
+    } catch {}
+
     api('/notices').then(setNotices).catch(() => { });
     api('/public/content').then(setItems).catch(() => { });
     api('/public/student-stats').then(setStats).catch(() => setStats(null));
@@ -6290,16 +6336,27 @@ function StaffPanel({ sub, onLivePreview }) {
 
   const begin = item => {
     setEditing(item.id);
+    const mockT = isTeacher ? (Array.isArray(MOCK_TEACHERS) ? MOCK_TEACHERS : []).find(m => m.id === item.id || m.name_bn === item.name_bn || m.employee_id === item.employee_id) : null;
+    const authExt = mockT?.extended_profile || {};
+    const curExt = item.extended_profile || {};
+
+    const mergedEdu = (curExt.education && curExt.education.length > 0) ? curExt.education : (authExt.education || (isTeacher ? getTeacherAllEducation(item) : []));
+    const mergedProf = (curExt.professional_qualifications && curExt.professional_qualifications.length > 0) ? curExt.professional_qualifications : (authExt.professional_qualifications || []);
+    const mergedTrain = (curExt.training && curExt.training.length > 0) ? curExt.training : (authExt.training || []);
+    const mergedInService = (curExt.in_service_training && curExt.in_service_training.length > 0) ? curExt.in_service_training : (authExt.in_service_training || []);
+
     setForm({
       ...(isTeacher ? emptyTeacher : emptyStaff),
       ...item,
       extended_profile: {
-        education: [],
-        professional_qualifications: [],
-        training: [],
-        ntrca: {},
-        dob: item.extended_profile?.dob || item.date_of_birth || '',
-        ...(item.extended_profile || {})
+        education: mergedEdu,
+        professional_qualifications: mergedProf,
+        training: mergedTrain,
+        in_service_training: mergedInService,
+        ntrca: curExt.ntrca || authExt.ntrca || {},
+        dob: curExt.dob || item.date_of_birth || authExt.dob || '',
+        professional_note: curExt.professional_note || authExt.professional_note || '',
+        ...curExt
       },
       joining_date: item.joining_date?.slice(0, 10) || '',
       first_joining_date: item.first_joining_date?.slice(0, 10) || '',
