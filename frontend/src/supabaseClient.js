@@ -126,6 +126,11 @@ export function pushKeyToCloud(key, value) {
   const { isConfigured, autoSync } = getSupabaseConfig();
   if (!isConfigured || !autoSync) return;
 
+  // Never push empty array over populated cloud data
+  if (Array.isArray(value) && value.length === 0 && (key === 'magra_finance_fees' || key === 'magra_finance_deposits')) {
+    return;
+  }
+
   if (syncDebounceTimers[key]) clearTimeout(syncDebounceTimers[key]);
   syncDebounceTimers[key] = setTimeout(async () => {
     try {
@@ -208,32 +213,35 @@ export function startRealtimeCloudSync() {
   if (autoSyncStarted || typeof window === 'undefined') return;
   autoSyncStarted = true;
 
-  // 1. Initial pull from cloud on startup
-  setTimeout(async () => {
+  // 1. Initial pull from cloud immediately on startup
+  const runInitialPull = async () => {
     try {
-      const hasCloudData = await pullAllFromCloud();
-      // If cloud was completely empty, push local data to seed cloud!
-      if (!hasCloudData) {
-        const hasFees = localStorage.getItem('magra_finance_fees');
-        if (hasFees && hasFees !== '[]') {
-          await pushAllLocalToCloud();
-        }
-      }
-    } catch {}
-  }, 500);
+      await pullAllFromCloud();
+    } catch (e) {
+      console.warn('Initial cloud pull failed:', e);
+    }
+  };
+  runInitialPull();
+  setTimeout(runInitialPull, 1000);
+  setTimeout(runInitialPull, 3000);
 
-  // 2. Periodic sync every 15 seconds
+  // 2. Periodic sync every 10 seconds
   setInterval(async () => {
     try {
       if (document.visibilityState === 'visible') {
         await pullAllFromCloud();
       }
     } catch {}
-  }, 15000);
+  }, 10000);
 
-  // 3. Listen to page focus
+  // 3. Listen to page focus or visibility change
   window.addEventListener('focus', () => {
     pullAllFromCloud().catch(() => {});
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      pullAllFromCloud().catch(() => {});
+    }
   });
 }
 
