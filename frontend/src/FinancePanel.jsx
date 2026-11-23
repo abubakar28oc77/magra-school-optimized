@@ -894,14 +894,17 @@ export function FinancePanel({ sub }) {
 
   const [feeDeposits, setFeeDeposits] = useState(() => {
     try {
-      const cleanKey = 'magra_finance_clean_v5';
+      const cleanKey = 'magra_finance_deposits_clean_v9';
       if (!localStorage.getItem(cleanKey)) {
         localStorage.setItem(cleanKey, 'true');
         localStorage.removeItem('magra_finance_deposits');
         return [];
       }
       const saved = localStorage.getItem('magra_finance_deposits');
-      return saved ? JSON.parse(saved) : [];
+      let records = saved ? JSON.parse(saved) : [];
+      // Strictly purge any obsolete ghost deposits
+      records = records.filter(d => d && d.id !== 'DEP-1732100000001' && d.id !== 'DEP-1732104500000');
+      return records;
     } catch {
       return [];
     }
@@ -909,7 +912,7 @@ export function FinancePanel({ sub }) {
 
   const [incomes, setIncomes] = useState(() => {
     try {
-      const cleanKey = 'magra_finance_clean_v6_incomes_cleared';
+      const cleanKey = 'magra_finance_clean_v9_incomes';
       if (!localStorage.getItem(cleanKey)) {
         localStorage.setItem(cleanKey, 'true');
         localStorage.setItem('magra_finance_incomes', JSON.stringify([]));
@@ -920,7 +923,7 @@ export function FinancePanel({ sub }) {
       if (!Array.isArray(records)) {
         records = [];
       } else {
-        records = records.filter(r => !r.is_auto_deposit && !r.deposit_id);
+        records = records.filter(r => !r.is_auto_deposit && !r.deposit_id && !String(r.id).startsWith('INC-DEP-DEP-17321') && !String(r.id).startsWith('INC-2026-'));
       }
       return records;
     } catch {
@@ -1523,8 +1526,9 @@ export function FinancePanel({ sub }) {
       grossTotal
     );
 
+    const uniqueId = `FEE-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const newTransaction = {
-      id: `FEE-${Date.now()}`,
+      id: uniqueId,
       receipt_no: receiptNo,
       date: receiptDate || new Date().toISOString().slice(0, 10),
       student_id: selectedStudent.student_id || selectedStudent.id,
@@ -1564,7 +1568,19 @@ export function FinancePanel({ sub }) {
       deposited_at: null
     };
 
-    setFeeRecords(prev => [newTransaction, ...prev]);
+    // Synchronously write to localStorage and trigger cloud push immediately BEFORE popup opens!
+    let nextFees = [newTransaction, ...feeRecords.filter(r => r.id !== uniqueId)];
+    try {
+      const savedFees = localStorage.getItem('magra_finance_fees');
+      const parsedSaved = savedFees ? JSON.parse(savedFees) : [];
+      if (Array.isArray(parsedSaved)) {
+        nextFees = [newTransaction, ...parsedSaved.filter(r => r.id !== uniqueId)];
+      }
+      localStorage.setItem('magra_finance_fees', JSON.stringify(nextFees));
+      pushKeyToCloud('magra_finance_fees', nextFees);
+    } catch {}
+
+    setFeeRecords(nextFees);
     // Ensure the new payment is immediately visible in "ফি জমার হিসাব ও ইতিহাস" (Pending list)
     setDepositPendingFilterDate('all');
     setDepositShowOnlyPending(true);

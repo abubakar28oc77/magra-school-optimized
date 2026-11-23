@@ -136,6 +136,9 @@ export function pushKeyToCloud(key, value) {
     }
   }
 
+  // Fast push (50ms) for financial transaction records to avoid window-focus sync race conditions
+  const delay = (key === 'magra_finance_fees' || key === 'magra_finance_deposits') ? 50 : 300;
+
   if (syncDebounceTimers[key]) clearTimeout(syncDebounceTimers[key]);
   syncDebounceTimers[key] = setTimeout(async () => {
     try {
@@ -156,7 +159,7 @@ export function pushKeyToCloud(key, value) {
     } catch (e) {
       console.warn('Cloud sync push failed for ' + key + ':', e.message);
     }
-  }, 400);
+  }, delay);
 }
 
 // Pull all keys from cloud app_sync_store into localStorage
@@ -179,8 +182,82 @@ export async function pullAllFromCloud() {
           if (!Array.isArray(r.value) || r.value.length < 15) return;
         }
 
-        const valStr = typeof r.value === 'string' ? r.value : JSON.stringify(r.value);
         const cur = localStorage.getItem(r.key);
+
+        // Smart union merge for fee records to NEVER delete locally entered receipts
+        if (r.key === 'magra_finance_fees' && Array.isArray(r.value)) {
+          let localArr = [];
+          try {
+            if (cur) localArr = JSON.parse(cur);
+          } catch {}
+          if (!Array.isArray(localArr)) localArr = [];
+
+          const cloudArr = r.value;
+          const cloudIdMap = new Map(cloudArr.map(x => [x.id, x]));
+          let localHasUnsynced = false;
+          const merged = [...cloudArr];
+
+          localArr.forEach(localItem => {
+            if (localItem && localItem.id && !cloudIdMap.has(localItem.id)) {
+              merged.push(localItem);
+              localHasUnsynced = true;
+            }
+          });
+
+          merged.sort((a, b) => {
+            const tA = a.id ? (parseInt(String(a.id).replace(/\D/g, ''), 10) || 0) : 0;
+            const tB = b.id ? (parseInt(String(b.id).replace(/\D/g, ''), 10) || 0) : 0;
+            return tB - tA;
+          });
+
+          const mergedStr = JSON.stringify(merged);
+          if (cur !== mergedStr) {
+            localStorage.setItem(r.key, mergedStr);
+            updatedAny = true;
+            window.dispatchEvent(new CustomEvent('magra_data_sync', { detail: { key: r.key } }));
+          }
+
+          if (localHasUnsynced) {
+            pushKeyToCloud(r.key, merged);
+          }
+          return;
+        }
+
+        // Smart union merge for deposits, filtering out obsolete ghost deposits
+        if (r.key === 'magra_finance_deposits' && Array.isArray(r.value)) {
+          let localArr = [];
+          try {
+            if (cur) localArr = JSON.parse(cur);
+          } catch {}
+          if (!Array.isArray(localArr)) localArr = [];
+
+          const cloudArr = r.value.filter(d => d.id !== 'DEP-1732100000001' && d.id !== 'DEP-1732104500000');
+          const cloudIdMap = new Map(cloudArr.map(x => [x.id, x]));
+          let localHasUnsynced = false;
+          const merged = [...cloudArr];
+
+          localArr.forEach(localItem => {
+            if (localItem && localItem.id && !cloudIdMap.has(localItem.id)) {
+              if (localItem.id === 'DEP-1732100000001' || localItem.id === 'DEP-1732104500000') return;
+              merged.push(localItem);
+              localHasUnsynced = true;
+            }
+          });
+
+          const mergedStr = JSON.stringify(merged);
+          if (cur !== mergedStr) {
+            localStorage.setItem(r.key, mergedStr);
+            updatedAny = true;
+            window.dispatchEvent(new CustomEvent('magra_data_sync', { detail: { key: r.key } }));
+          }
+
+          if (localHasUnsynced) {
+            pushKeyToCloud(r.key, merged);
+          }
+          return;
+        }
+
+        const valStr = typeof r.value === 'string' ? r.value : JSON.stringify(r.value);
         if (cur !== valStr) {
           localStorage.setItem(r.key, valStr);
           updatedAny = true;
