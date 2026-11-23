@@ -912,9 +912,12 @@ export function FinancePanel({ sub }) {
   // Persistent Stores
   const [feeRecords, setFeeRecords] = useState(() => {
     try {
-      const cleanKey = 'magra_finance_clean_defaults_v4';
+      const cleanKey = 'magra_finance_clean_v5';
       if (!localStorage.getItem(cleanKey)) {
         localStorage.setItem(cleanKey, 'true');
+        localStorage.removeItem('magra_finance_fees');
+        localStorage.removeItem('magra_finance_deposits');
+        return [];
       }
       const saved = localStorage.getItem('magra_finance_fees');
       return saved ? JSON.parse(saved) : [];
@@ -925,9 +928,11 @@ export function FinancePanel({ sub }) {
 
   const [feeDeposits, setFeeDeposits] = useState(() => {
     try {
-      const cleanKey = 'magra_finance_clean_defaults_v4';
+      const cleanKey = 'magra_finance_clean_v5';
       if (!localStorage.getItem(cleanKey)) {
         localStorage.setItem(cleanKey, 'true');
+        localStorage.removeItem('magra_finance_deposits');
+        return [];
       }
       const saved = localStorage.getItem('magra_finance_deposits');
       return saved ? JSON.parse(saved) : [];
@@ -938,12 +943,18 @@ export function FinancePanel({ sub }) {
 
   const [incomes, setIncomes] = useState(() => {
     try {
+      const cleanKey = 'magra_finance_clean_v5_inc';
+      if (!localStorage.getItem(cleanKey)) {
+        localStorage.setItem(cleanKey, 'true');
+        localStorage.setItem('magra_finance_incomes', JSON.stringify(SEED_INCOMES));
+        return SEED_INCOMES;
+      }
       const saved = localStorage.getItem('magra_finance_incomes');
       let records = saved ? JSON.parse(saved) : null;
       if (!Array.isArray(records) || records.length === 0) {
         records = SEED_INCOMES;
       } else {
-        records = records.filter(r => r.id !== 'INC-DEP-DEP-2026-001');
+        records = records.filter(r => !r.is_auto_deposit && !r.deposit_id);
         const existingIds = new Set(records.map(r => r.id));
         const missing = SEED_INCOMES.filter(s => !existingIds.has(s.id));
         if (missing.length > 0) {

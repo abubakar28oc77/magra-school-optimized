@@ -126,11 +126,8 @@ export function pushKeyToCloud(key, value) {
   const { isConfigured, autoSync } = getSupabaseConfig();
   if (!isConfigured || !autoSync) return;
 
-  // Never push empty or incomplete arrays over populated cloud data
+  // Never push corrupted/truncated arrays for critical academic tables
   if (Array.isArray(value)) {
-    if (value.length === 0 && (key === 'magra_finance_fees' || key === 'magra_finance_deposits')) {
-      return;
-    }
     if (key === 'magra_db_marks' && value.length < 500) {
       return;
     }
@@ -174,15 +171,12 @@ export async function pullAllFromCloud() {
     let updatedAny = false;
     rows.forEach(r => {
       if (r && r.key && r.value !== undefined) {
-        // Protect critical local datasets from being overwritten by empty/corrupted cloud data
+        // Protect critical academic datasets from being overwritten by corrupted cloud data
         if (r.key === 'magra_db_marks') {
           if (!Array.isArray(r.value) || r.value.length < 500) return;
         }
         if (r.key === 'magra_db_teachers') {
           if (!Array.isArray(r.value) || r.value.length < 15) return;
-        }
-        if (r.key === 'magra_finance_fees' || r.key === 'magra_finance_deposits') {
-          if (!Array.isArray(r.value) || r.value.length === 0) return;
         }
 
         const valStr = typeof r.value === 'string' ? r.value : JSON.stringify(r.value);
@@ -213,7 +207,6 @@ export async function pushAllLocalToCloud() {
       try { parsed = JSON.parse(raw); } catch {}
       if (k === 'magra_db_marks' && Array.isArray(parsed) && parsed.length < 500) continue;
       if (k === 'magra_db_teachers' && Array.isArray(parsed) && parsed.length < 15) continue;
-      if ((k === 'magra_finance_fees' || k === 'magra_finance_deposits') && Array.isArray(parsed) && parsed.length === 0) continue;
       try {
         await supabaseRequest('app_sync_store', {
           method: 'POST',
