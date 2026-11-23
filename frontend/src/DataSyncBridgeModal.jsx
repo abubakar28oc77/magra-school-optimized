@@ -15,6 +15,14 @@ const DB_KEYS = [
   'magra_db_subjects',
   'magra_db_exams',
   'magra_institution_data',
+  'magra_finance_fees',
+  'magra_finance_deposits',
+  'magra_finance_incomes',
+  'magra_finance_expenses',
+  'magra_finance_rates',
+  'magra_class_teachers_config',
+  'magra_fee_received_by',
+  'magra_db_leadership_settings',
   'magra_user'
 ];
 
@@ -37,10 +45,10 @@ export function exportAllLocalData() {
     }
   });
 
-  // Also include any dynamic results keys (like magra_db_results_*)
+  // Also include any dynamic keys (like magra_db_results_*, magra_finance_*, etc.)
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (k && k.startsWith('magra_db_results_') && !backup.records[k]) {
+    if (k && k.startsWith('magra_') && !backup.records[k]) {
       try {
         backup.records[k] = JSON.parse(localStorage.getItem(k));
       } catch {
@@ -88,7 +96,7 @@ export function importAllLocalData(jsonString, onSuccess, onError) {
 }
 
 export default function DataSyncBridgeModal({ isOpen, onClose }) {
-  const [stats, setStats] = useState({ students: 0, marks: 0, exams: 0 });
+  const [stats, setStats] = useState({ students: 0, marks: 0, exams: 0, fees: 0 });
   const [message, setMessage] = useState(null);
 
   const calculateStats = () => {
@@ -96,10 +104,12 @@ export default function DataSyncBridgeModal({ isOpen, onClose }) {
       const s = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
       const m = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
       const e = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
+      const f = JSON.parse(localStorage.getItem('magra_finance_fees') || '[]');
       setStats({
         students: Array.isArray(s) ? s.length : 0,
         marks: Array.isArray(m) ? m.length : 0,
-        exams: Array.isArray(e) ? e.length : 0
+        exams: Array.isArray(e) ? e.length : 0,
+        fees: Array.isArray(f) ? f.length : 0
       });
     } catch {}
   };
@@ -165,8 +175,9 @@ export default function DataSyncBridgeModal({ isOpen, onClose }) {
 
         <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', border: '1px solid #e2e8f0' }}>
           <div style={{ fontWeight: 600, fontSize: '13px', color: '#475569', marginBottom: '6px' }}>বর্তমান ব্রাউজারের সংরক্ষিত তথ্য:</div>
-          <div style={{ display: 'flex', gap: '20px', fontSize: '13.5px' }}>
+          <div style={{ display: 'flex', gap: '20px', fontSize: '13.5px', flexWrap: 'wrap' }}>
             <span>🎓 মোট শিক্ষার্থী: <b>{stats.students}</b> জন</span>
+            <span>💳 ফি আদায় রেকর্ড: <b>{stats.fees}</b> টি</span>
             <span>📝 পরীক্ষার মার্কস রেকর্ড: <b>{stats.marks}</b> টি</span>
           </div>
         </div>
@@ -175,7 +186,7 @@ export default function DataSyncBridgeModal({ isOpen, onClose }) {
           <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '16px', textAlign: 'center', background: '#f0fdf4' }}>
             <div style={{ fontSize: '28px', marginBottom: '8px' }}>📥</div>
             <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '6px', color: '#166534' }}>১-ক্লিক সম্পূর্ণ ব্যাকআপ</div>
-            <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', lineHeight: '1.4' }}>সকল শিক্ষার্থী, নম্বর ও রেজাল্ট একটি JSON ফাইলে সেভ করুন।</p>
+            <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', lineHeight: '1.4' }}>সকল শিক্ষার্থী, ফি আদায়, নম্বর ও রেজাল্ট একটি JSON ফাইলে সেভ করুন।</p>
             <button onClick={exportAllLocalData} style={{
               background: '#075c3a', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '6px',
               fontSize: '13px', fontWeight: 600, cursor: 'pointer', width: '100%'
