@@ -205,9 +205,17 @@ export async function pullAllFromCloud() {
           });
 
           merged.sort((a, b) => {
-            const tA = a.id ? (parseInt(String(a.id).replace(/\D/g, ''), 10) || 0) : 0;
-            const tB = b.id ? (parseInt(String(b.id).replace(/\D/g, ''), 10) || 0) : 0;
-            return tB - tA;
+            const getSeq = (r) => {
+              if (!r || !r.receipt_no) return 0;
+              const parts = String(r.receipt_no).split('/');
+              const lastPart = parts[parts.length - 1];
+              const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+              const str = String(lastPart).trim();
+              const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+              const m = converted.match(/\d+/);
+              return m ? parseInt(m[0], 10) : 0;
+            };
+            return getSeq(a) - getSeq(b);
           });
 
           const mergedStr = JSON.stringify(merged);

@@ -71,6 +71,14 @@ export const generateClassReceiptNo = (className, feeRecordsList, year = null) =
   return `মপাইউবি/${classLabel}/${yearBn}/${paddedSeq}`;
 };
 
+// Extract numeric serial from receipt number (যেমন: মপাইউবি/৮ম/২০২৬/০৪০ => 40)
+export const parseReceiptSequence = (receiptNo) => {
+  if (!receiptNo) return 0;
+  const parts = String(receiptNo).split('/');
+  const lastPart = parts[parts.length - 1];
+  return parseRollNumber(lastPart) || 0;
+};
+
 // Generate Independent Per-Class Deposit Challan Number (যেমন: মপাইউবি/৮ম/২০২৬/০০১)
 export const generateClassDepositNo = (className, feeDepositsList, year = null) => {
   const normClass = normalizeClass(className);
@@ -867,6 +875,7 @@ export function FinancePanel({ sub }) {
   const [editingReceipt, setEditingReceipt] = useState(null);
   const [receiptSearchQuery, setReceiptSearchQuery] = useState('');
   const [receiptFilterClass, setReceiptFilterClass] = useState('all');
+  const [receiptSortOrder, setReceiptSortOrder] = useState('asc');
   const [depositHistorySearch, setDepositHistorySearch] = useState('');
   const [depositHistoryDateFilter, setDepositHistoryDateFilter] = useState('all');
   const [depositSuccessMsg, setDepositSuccessMsg] = useState('');
@@ -1155,10 +1164,11 @@ export function FinancePanel({ sub }) {
   }, [assignedClass]);
 
   const displayedFeeRecords = useMemo(() => {
+    let list = feeRecords;
     if (assignedClass) {
-      return feeRecords.filter(r => normalizeClass(r.class_name) === assignedClass);
+      list = feeRecords.filter(r => normalizeClass(r.class_name) === assignedClass);
     }
-    return feeRecords;
+    return [...list].sort((a, b) => parseReceiptSequence(a.receipt_no) - parseReceiptSequence(b.receipt_no));
   }, [feeRecords, assignedClass]);
 
   // Filtered fee records for search & class filter
@@ -1177,8 +1187,12 @@ export function FinancePanel({ sub }) {
         return name.includes(q) || rno.includes(q) || roll.includes(q) || bnRoll.includes(q);
       });
     }
-    return list;
-  }, [displayedFeeRecords, receiptFilterClass, receiptSearchQuery]);
+    return [...list].sort((a, b) => {
+      const sA = parseReceiptSequence(a.receipt_no);
+      const sB = parseReceiptSequence(b.receipt_no);
+      return receiptSortOrder === 'desc' ? (sB - sA) : (sA - sB);
+    });
+  }, [displayedFeeRecords, receiptFilterClass, receiptSearchQuery, receiptSortOrder]);
   // Group selection for Class 9 and 10 ('science' | 'humanities' | 'business')
   const [selectedGroup, setSelectedGroup] = useState('science');
   // Roll number input for search
@@ -3701,7 +3715,7 @@ export function FinancePanel({ sub }) {
 
   // Filtered fee collections ready for deposit selection
   const displayedPendingFeeRecords = useMemo(() => {
-    let list = [...feeRecords].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    let list = [...feeRecords].sort((a, b) => parseReceiptSequence(a.receipt_no) - parseReceiptSequence(b.receipt_no));
 
     if (depositShowOnlyPending) {
       list = list.filter(r => !r.deposit_id);
@@ -5395,6 +5409,27 @@ export function FinancePanel({ sub }) {
                 <option value="10">১০ম শ্রেণি</option>
               </select>
 
+              <button
+                type="button"
+                onClick={() => setReceiptSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                style={{
+                  background: receiptSortOrder === 'asc' ? '#ecfdf5' : '#eff6ff',
+                  color: receiptSortOrder === 'asc' ? '#047857' : '#1d4ed8',
+                  border: receiptSortOrder === 'asc' ? '1.5px solid #059669' : '1.5px solid #3b82f6',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title="রশিদ সিরিয়াল অনুযায়ী সাজান (১ ➔ ৪০ অথবা ৪০ ➔ ১)"
+              >
+                ↕️ ক্রমিক: {receiptSortOrder === 'asc' ? '১ ➔ ৪০ (সোজা)' : '৪০ ➔ ১ (উল্টো)'}
+              </button>
+
               {(receiptSearchQuery || receiptFilterClass !== 'all') && (
                 <button
                   type="button"
@@ -5459,7 +5494,13 @@ export function FinancePanel({ sub }) {
                     <span title="২ জন সিলেক্ট করুন" style={{ fontSize: '11px' }}>সিলেক্ট</span>
                   </th>
                   <th style={{ padding: '10px 8px', textAlign: 'center', width: '45px' }}>ক্র.</th>
-                  <th style={{ padding: '10px 10px', textAlign: 'left', width: '130px' }}>রশিদ নং</th>
+                  <th
+                    style={{ padding: '10px 10px', textAlign: 'left', width: '150px', cursor: 'pointer', userSelect: 'none' }}
+                    onClick={() => setReceiptSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                    title="রশিদ সিরিয়াল অনুযায়ী সাজাতে ক্লিক করুন"
+                  >
+                    রশিদ নং <span style={{ color: '#047857', fontSize: '11px', fontWeight: 800 }}>{receiptSortOrder === 'asc' ? '▲ (১➔৪০)' : '▼ (৪০➔১)'}</span>
+                  </th>
                   <th style={{ padding: '10px 8px', textAlign: 'center', width: '90px' }}>তারিখ</th>
                   <th style={{ padding: '10px 10px', textAlign: 'left' }}>শিক্ষার্থীর নাম</th>
                   <th style={{ padding: '10px 8px', textAlign: 'center', width: '70px' }}>শ্রেণি</th>
