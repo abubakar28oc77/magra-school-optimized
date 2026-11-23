@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MOCK_SCHOOL, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_STAFF, getStudentPhoto } from './mockData';
 import schoolLogo from '../public/school-logo.png';
+import { pushKeyToCloud } from './supabaseClient';
 
 // Bengali Digits & Helpers
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
@@ -1024,18 +1025,52 @@ export function FinancePanel({ sub }) {
     return healed;
   }, []);
 
-  // Save changes to localStorage
+  // Save changes to localStorage & sync to Supabase Cloud
   useEffect(() => {
-    try { localStorage.setItem('magra_finance_fees', JSON.stringify(feeRecords)); } catch {}
+    try {
+      localStorage.setItem('magra_finance_fees', JSON.stringify(feeRecords));
+      pushKeyToCloud('magra_finance_fees', feeRecords);
+    } catch {}
   }, [feeRecords]);
 
   useEffect(() => {
-    try { localStorage.setItem('magra_finance_deposits', JSON.stringify(feeDeposits)); } catch {}
+    try {
+      localStorage.setItem('magra_finance_deposits', JSON.stringify(feeDeposits));
+      pushKeyToCloud('magra_finance_deposits', feeDeposits);
+    } catch {}
   }, [feeDeposits]);
 
   useEffect(() => {
-    try { localStorage.setItem('magra_finance_incomes', JSON.stringify(incomes)); } catch {}
+    try {
+      localStorage.setItem('magra_finance_incomes', JSON.stringify(incomes));
+      pushKeyToCloud('magra_finance_incomes', incomes);
+    } catch {}
   }, [incomes]);
+
+  // Realtime Cloud Sync listener - updates UI when new payments arrive from Mobile or other devices
+  useEffect(() => {
+    const handleCloudSync = (e) => {
+      const k = e?.detail?.key;
+      if (k === 'magra_finance_fees') {
+        try {
+          const saved = localStorage.getItem('magra_finance_fees');
+          if (saved) setFeeRecords(JSON.parse(saved));
+        } catch {}
+      } else if (k === 'magra_finance_deposits') {
+        try {
+          const saved = localStorage.getItem('magra_finance_deposits');
+          if (saved) setFeeDeposits(JSON.parse(saved));
+        } catch {}
+      } else if (k === 'magra_finance_incomes') {
+        try {
+          const saved = localStorage.getItem('magra_finance_incomes');
+          if (saved) setIncomes(JSON.parse(saved));
+        } catch {}
+      }
+    };
+    window.addEventListener('magra_data_sync', handleCloudSync);
+    return () => window.removeEventListener('magra_data_sync', handleCloudSync);
+  }, []);
 
   // Auto-sync deposit batches into Institutional Income Ledger (📥 প্রাতিষ্ঠানিক আয় খাতা)
   useEffect(() => {

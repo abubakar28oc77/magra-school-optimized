@@ -64,6 +64,7 @@ import { EServiceCenterAdminPanel } from './EServiceCenterAdminPanel';
 import { DEFAULT_NOTICES } from './NoticeMasterModalSection';
 import { extractYouTubeId, PHOTO_ALBUMS_KEY, VIDEO_ALBUMS_KEY, DEFAULT_PHOTO_ALBUMS } from './GalleryMasterModalSection';
 import SupabaseSyncModal from './SupabaseSyncModal';
+import { startRealtimeCloudSync } from './supabaseClient';
 import DataSyncBridgeModal from './DataSyncBridgeModal';
 import { calculateStudentAge, matchesAgeFilter, parseNum } from './StudentAgeQueryModal';
 import { StudentTotListModal } from './StudentTotListModal';
@@ -9394,6 +9395,7 @@ function App() {
   });
 
   useEffect(() => {
+    startRealtimeCloudSync();
     const syncRole = () => {
       try {
         const raw = localStorage.getItem('magra_user');
