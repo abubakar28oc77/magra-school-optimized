@@ -645,41 +645,7 @@ export function allocateReceiptHeadDiscounts(receiptOrItems, totalDiscount = nul
 const SEED_FEE_DEPOSITS = [];
 
 // Initial Sample Institutional Incomes
-const SEED_INCOMES = [
-  {
-    id: 'INC-2026-001',
-    voucher_no: 'আয়-ভাউচার-২০২৬-২',
-    date: '2026-10-05',
-    category: 'মার্কেট ও দোকান ভাড়া বাবদ আয়',
-    title: 'বিদ্যালয় মার্কেট দোকান নং ১ ও ২ এর মাসিক ভাড়া',
-    payer_name: 'মেসার্স ভাই ভাই এন্টারপ্রাইজ',
-    amount: 12000,
-    method: 'cash',
-    note: 'অক্টোবর মাসের ভাড়া আদায়'
-  },
-  {
-    id: 'INC-2026-002',
-    voucher_no: 'আয়-ভাউচার-২০২৬-৩',
-    date: '2026-10-10',
-    category: 'ম্যানেজিং কমিটি ও দাতা সদস্যের অনুদান',
-    title: 'সভাপতি মহোদয় কর্তৃক আইসিটি ল্যাব উন্নয়ন অনুদান',
-    payer_name: 'নেয়ামুল হক খান (সভাপতি)',
-    amount: 25000,
-    method: 'bank',
-    note: 'মাল্টিমিডিয়া প্রজেক্টর স্থাপন ফান্ড'
-  },
-  {
-    id: 'INC-2026-003',
-    voucher_no: 'আয়-ভাউচার-২০২৬-৪',
-    date: '2026-10-14',
-    category: 'ভর্তি ফরম ও প্রসপেক্টাস বিক্রয়',
-    title: '২০২৬ শিক্ষাবর্ষের ভর্তি ফরম বিক্রয়লব্ধ অর্থ',
-    payer_name: 'ভর্তি কমিটি',
-    amount: 8500,
-    method: 'cash',
-    note: '৮৫টি ফরম বিক্রয় @ ১০০ টাকা'
-  }
-];
+const SEED_INCOMES = [];
 
 // Initial Sample Institutional Expenses
 const SEED_EXPENSES = [
@@ -943,27 +909,22 @@ export function FinancePanel({ sub }) {
 
   const [incomes, setIncomes] = useState(() => {
     try {
-      const cleanKey = 'magra_finance_clean_v5_inc';
+      const cleanKey = 'magra_finance_clean_v6_incomes_cleared';
       if (!localStorage.getItem(cleanKey)) {
         localStorage.setItem(cleanKey, 'true');
-        localStorage.setItem('magra_finance_incomes', JSON.stringify(SEED_INCOMES));
-        return SEED_INCOMES;
+        localStorage.setItem('magra_finance_incomes', JSON.stringify([]));
+        return [];
       }
       const saved = localStorage.getItem('magra_finance_incomes');
       let records = saved ? JSON.parse(saved) : null;
-      if (!Array.isArray(records) || records.length === 0) {
-        records = SEED_INCOMES;
+      if (!Array.isArray(records)) {
+        records = [];
       } else {
         records = records.filter(r => !r.is_auto_deposit && !r.deposit_id);
-        const existingIds = new Set(records.map(r => r.id));
-        const missing = SEED_INCOMES.filter(s => !existingIds.has(s.id));
-        if (missing.length > 0) {
-          records = [...records, ...missing];
-        }
       }
       return records;
     } catch {
-      return SEED_INCOMES;
+      return [];
     }
   });
 
