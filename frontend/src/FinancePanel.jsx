@@ -913,18 +913,7 @@ export function FinancePanel({ sub }) {
     try {
       const cleanKey = 'magra_finance_clean_defaults_v4';
       if (!localStorage.getItem(cleanKey)) {
-        localStorage.removeItem('magra_finance_fees');
-        localStorage.removeItem('magra_finance_deposits');
-        const savedIncomes = localStorage.getItem('magra_finance_incomes');
-        if (savedIncomes) {
-          try {
-            const parsedInc = JSON.parse(savedIncomes);
-            const cleanedInc = parsedInc.filter(x => !x.is_auto_deposit && x.id !== 'INC-DEP-DEP-2026-001');
-            localStorage.setItem('magra_finance_incomes', JSON.stringify(cleanedInc));
-          } catch {}
-        }
         localStorage.setItem(cleanKey, 'true');
-        return [];
       }
       const saved = localStorage.getItem('magra_finance_fees');
       return saved ? JSON.parse(saved) : [];
@@ -937,7 +926,7 @@ export function FinancePanel({ sub }) {
     try {
       const cleanKey = 'magra_finance_clean_defaults_v4';
       if (!localStorage.getItem(cleanKey)) {
-        return [];
+        localStorage.setItem(cleanKey, 'true');
       }
       const saved = localStorage.getItem('magra_finance_deposits');
       return saved ? JSON.parse(saved) : [];

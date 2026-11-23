@@ -26,7 +26,7 @@ const DB_KEYS = [
   'magra_user'
 ];
 
-export function exportAllLocalData() {
+export function getBackupJsonString() {
   const backup = {
     exported_at: new Date().toISOString(),
     system: 'Magra School Management System',
@@ -56,8 +56,13 @@ export function exportAllLocalData() {
       }
     }
   }
+  backup.records['magra_finance_clean_defaults_v4'] = 'true';
+  return JSON.stringify(backup, null, 2);
+}
 
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+export function exportAllLocalData() {
+  const jsonStr = getBackupJsonString();
+  const blob = new Blob([jsonStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -84,6 +89,7 @@ export function importAllLocalData(jsonString, onSuccess, onError) {
         count++;
       }
     });
+    localStorage.setItem('magra_finance_clean_defaults_v4', 'true');
 
     window.dispatchEvent(new Event('storage'));
     window.dispatchEvent(new CustomEvent('magra_auth_change'));
@@ -98,6 +104,7 @@ export function importAllLocalData(jsonString, onSuccess, onError) {
 export default function DataSyncBridgeModal({ isOpen, onClose }) {
   const [stats, setStats] = useState({ students: 0, marks: 0, exams: 0, fees: 0 });
   const [message, setMessage] = useState(null);
+  const [pasteText, setPasteText] = useState('');
 
   const calculateStats = () => {
     try {
@@ -122,6 +129,38 @@ export default function DataSyncBridgeModal({ isOpen, onClose }) {
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleCopyData = () => {
+    try {
+      const jsonStr = getBackupJsonString();
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(jsonStr);
+      }
+      setMessage({ type: 'success', text: '✓ সকল ডাটা (শিক্ষার্থী, ফি, নম্বর) ক্লিপবোর্ডে কপি হয়েছে! এখন অন্য ডিভাইসে গিয়ে পেস্ট করতে পারেন।' });
+    } catch (err) {
+      setMessage({ type: 'error', text: 'কপি করতে সমস্যা হয়েছে। দয়া করে নিচের "ব্যাকআপ ফাইল ডাউনলোড" বাটনটি ব্যবহার করুন।' });
+    }
+  };
+
+  const handleRestoreFromPaste = () => {
+    if (!pasteText.trim()) {
+      setMessage({ type: 'error', text: 'অনুগ্রহ করে কপি করা কোডটি বক্সে পেস্ট করুন।' });
+      return;
+    }
+    importAllLocalData(
+      pasteText.trim(),
+      (count) => {
+        calculateStats();
+        setMessage({ type: 'success', text: `সফলভাবে ${count}টি ডাটা গ্রুপ রিস্টোর সম্পন্ন হয়েছে! পেজ রিলোড হচ্ছে...` });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      },
+      (errMsg) => {
+        setMessage({ type: 'error', text: errMsg });
+      }
+    );
+  };
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -209,8 +248,29 @@ export default function DataSyncBridgeModal({ isOpen, onClose }) {
           </div>
         </div>
 
+        <div style={{ marginTop: '16px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>📋 অথবা কোড দিয়ে সরাসরি কপি-পেস্ট ট্রান্সফার:</span>
+            <button type="button" onClick={handleCopyData} style={{ background: '#0f766e', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+              📋 সব ডাটা কপি করুন
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="text"
+              placeholder="এখানে কপি করা কোড পেস্ট করুন..."
+              value={pasteText}
+              onChange={e => setPasteText(e.target.value)}
+              style={{ flex: 1, padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+            />
+            <button type="button" onClick={handleRestoreFromPaste} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              📥 পেস্ট কোড রিস্টোর
+            </button>
+          </div>
+        </div>
+
         <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-          💡 <b>টিপস:</b> আপনি যদি আগে <code>file://</code> মোডে কোনো রেজাল্ট বা ডাটা ইনপুট দিয়ে থাকেন, তাহলে আগের ফাইল থেকে ব্যাকআপ ডাউনলোড করে এখানে রিস্টোর করলে এক সেকেন্ডেই সমস্ত তথ্য চলে আসবে।
+          💡 <b>টিপস:</b> লোকাল ল্যাপটপ থেকে সব ডাটা আনতে: ল্যাপটপে <code>http://localhost:4173</code>-এ গিয়ে <b>"সব ডাটা কপি করুন"</b> চাপুন। তারপর নতুন ভার্সেল সাইটে এসে বক্সে পেস্ট করে <b>"পেস্ট কোড রিস্টোর"</b> চাপুন!
         </div>
       </div>
     </div>
