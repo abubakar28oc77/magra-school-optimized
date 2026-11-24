@@ -6307,13 +6307,27 @@ function StaffPanel({ sub, onLivePreview }) {
     if (isSaved) setMsg('পেশাগত যোগ্যতার তথ্য সফলভাবে সংরক্ষিত হয়েছে');
   };
 
-  const file = e => {
+  const file = async e => {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (f.size > 2 * 1024 * 1024) { setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে'); return; }
-    const r = new FileReader();
-    r.onload = () => change('photo_url', r.result);
-    r.readAsDataURL(f);
+    if (f.size > 8 * 1024 * 1024) { setMsg('ছবির আকার সর্বোচ্চ 8MB হতে হবে'); return; }
+    setMsg('🔄 ছবি প্রসেস ও কম্প্রেস করা হচ্ছে...');
+    try {
+      const compressed = await compressImageToDataUrl(f, 360, 0.82);
+      change('photo_url', compressed);
+      change('photo', compressed);
+      if (isTeacher) {
+        saveTeacherCustomPhoto(form, compressed);
+      }
+      setMsg('✅ ছবি যুক্ত হয়েছে');
+    } catch {
+      const r = new FileReader();
+      r.onload = () => {
+        change('photo_url', r.result);
+        change('photo', r.result);
+      };
+      r.readAsDataURL(f);
+    }
   };
 
   const save = async e => {
@@ -6321,13 +6335,24 @@ function StaffPanel({ sub, onLivePreview }) {
     setMsg('সংরক্ষণ হচ্ছে...');
     try {
       const base = isTeacher ? 'teachers' : 'staff';
-      await api(editing ? `/${base}/${editing}` : `/${base}`, { method: editing ? 'PUT' : 'POST', body: JSON.stringify(form) });
+      const photoToSave = form.photo_url || form.photo || (isTeacher ? getTeacherCustomPhoto(form) : '') || '';
+      const payload = {
+        ...form,
+        photo_url: photoToSave,
+        photo: photoToSave
+      };
+      if (isTeacher && photoToSave && photoToSave.startsWith('data:image')) {
+        saveTeacherCustomPhoto(form, photoToSave);
+      }
+      await api(editing ? `/${base}/${editing}` : `/${base}`, { method: editing ? 'PUT' : 'POST', body: JSON.stringify(payload) });
       setMsg(editing ? 'তথ্য আপডেট হয়েছে' : (isTeacher ? 'শিক্ষক সফলভাবে যুক্ত হয়েছে' : 'কর্মচারী সফলভাবে যুক্ত হয়েছে'));
       setEditing(null);
       setForm(initNewForm(tab));
       setStep(0);
       setView('list');
       window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
+      window.dispatchEvent(new CustomEvent('magra_teachers_updated'));
+      window.dispatchEvent(new CustomEvent('magra_photos_synced'));
       load();
     } catch (e) {
       setMsg(e.message || 'সংরক্ষণ ব্যর্থ হয়েছে');
@@ -6345,9 +6370,13 @@ function StaffPanel({ sub, onLivePreview }) {
     const mergedTrain = (curExt.training && curExt.training.length > 0) ? curExt.training : (authExt.training || []);
     const mergedInService = (curExt.in_service_training && curExt.in_service_training.length > 0) ? curExt.in_service_training : (authExt.in_service_training || []);
 
+    const existingPhoto = item.photo_url || item.photo || (isTeacher ? getTeacherCustomPhoto(item) : '') || '';
+
     setForm({
       ...(isTeacher ? emptyTeacher : emptyStaff),
       ...item,
+      photo_url: existingPhoto,
+      photo: existingPhoto,
       extended_profile: {
         education: mergedEdu,
         professional_qualifications: mergedProf,
@@ -6402,7 +6431,7 @@ function StaffPanel({ sub, onLivePreview }) {
         saveTeacherCustomPhoto(x, compressed);
       }
       const base = isTeacher ? 'teachers' : 'staff';
-      await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify({ ...x, photo_url: compressed }) });
+      await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify({ ...x, photo_url: compressed, photo: compressed }) });
       try {
         let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
         const dName = (x.designation || '').toLowerCase();

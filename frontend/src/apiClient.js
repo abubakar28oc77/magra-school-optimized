@@ -205,8 +205,8 @@ import {
   MOCK_SSC_RESULTS,
   CANONICAL_TEACHER_EDUCATION
 } from './mockData.js';
-import { saveTeacherCustomPhoto } from './photoStorage.js';
-import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
+import { saveTeacherCustomPhoto, getTeacherCustomPhoto, compressImageToDataUrl } from './photoStorage.js';
+import { getSupabaseConfig, supabaseRequest, pushKeyToCloud } from './supabaseClient.js';
 import { processClassResults, generateResultAnalytics, toBnDigits, areExamsEquivalent } from './boardExamEngine.js';
 import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, DEFAULT_PERIODS } from './routineData.js';
 import { SEED_BOOKS, SEED_LOANS, SEED_DAMAGED } from './libraryData.js';
@@ -600,6 +600,15 @@ function getLocalStore(key, defaultVal = []) {
     }
     if (key === 'teachers' && Array.isArray(parsed)) {
       const cleaned = deduplicateTeachers(parsed);
+      cleaned.forEach(t => {
+        if (!t.photo_url || t.photo_url.length < 50) {
+          const vaultPhoto = getTeacherCustomPhoto(t);
+          if (vaultPhoto) {
+            t.photo_url = vaultPhoto;
+            t.photo = vaultPhoto;
+          }
+        }
+      });
       if (cleaned.length !== parsed.length) {
         try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleaned)); } catch { }
       }
@@ -1995,14 +2004,21 @@ function handleMockRequest(path, opts = {}) {
       const allTeachers = getLocalStore('teachers', MOCK_TEACHERS);
       const rawStatus = (body.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
+      const photo = body.photo_url || body.photo || '';
       const newT = {
         ...body,
         id: 'tch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        employee_id: body.employee_id || String(allTeachers.length + 1),
-        status: st
+        employee_id: body.employee_id || ('EMP-' + String(allTeachers.length + 1).padStart(3, '0')),
+        status: st,
+        photo_url: photo,
+        photo: photo
       };
+      if (photo && photo.length > 50) {
+        saveTeacherCustomPhoto(newT, photo);
+      }
       allTeachers.push(newT);
       setLocalStore('teachers', allTeachers);
+      pushKeyToCloud('magra_db_teachers', allTeachers);
       return newT;
     }
 
@@ -2053,13 +2069,29 @@ function handleMockRequest(path, opts = {}) {
     const id = cleanPath.replace('/teachers/', '');
     let teachers = getLocalStore('teachers', MOCK_TEACHERS);
     if (method === 'PUT') {
-      teachers = teachers.map(t => String(t.id) === String(id) ? { ...t, ...body } : t);
+      teachers = teachers.map(t => {
+        if (String(t.id) === String(id)) {
+          const photo = body.photo_url || body.photo || t.photo_url || t.photo || '';
+          if (photo && photo.length > 50) {
+            saveTeacherCustomPhoto(t, photo);
+          }
+          return { ...t, ...body, photo_url: photo, photo: photo };
+        }
+        let otherPhoto = t.photo_url || t.photo || '';
+        if (!otherPhoto || otherPhoto.length < 50) {
+          const vp = getTeacherCustomPhoto(t);
+          if (vp) otherPhoto = vp;
+        }
+        return { ...t, photo_url: otherPhoto, photo: otherPhoto };
+      });
       setLocalStore('teachers', teachers);
+      pushKeyToCloud('magra_db_teachers', teachers);
       return { success: true };
     }
     if (method === 'DELETE') {
       teachers = teachers.filter(t => String(t.id) !== String(id));
       setLocalStore('teachers', teachers);
+      pushKeyToCloud('magra_db_teachers', teachers);
       return { success: true };
     }
   }

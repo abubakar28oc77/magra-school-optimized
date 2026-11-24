@@ -322,12 +322,25 @@ export function getTeacherPhotoKeys(teacher) {
     keys.push(`teacher_${id}`);
     keys.push(`tch_${id}`);
     keys.push(id);
+    const idNum = id.match(/\d+/);
+    if (idNum) {
+      keys.push(`teacher_t_${idNum[0]}`);
+      keys.push(`teacher_t_${parseInt(idNum[0], 10)}`);
+    }
   }
   if (empId) {
     keys.push(`teacher_${empId}`);
     keys.push(`teacher_emp_${empId}`);
     keys.push(`tch_emp_${empId}`);
     keys.push(`emp_${empId}`);
+    const numMatch = empId.match(/\d+/);
+    if (numMatch) {
+      const num = parseInt(numMatch[0], 10);
+      keys.push(`teacher_emp_${num}`);
+      keys.push(`teacher_emp_${String(num).padStart(3, '0')}`);
+      keys.push(`emp_${num}`);
+      keys.push(`emp_${String(num).padStart(3, '0')}`);
+    }
   }
   if (nameBn) {
     keys.push(`teacher_name_${nameBn}`);

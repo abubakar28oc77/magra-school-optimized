@@ -1,4 +1,5 @@
 // Supabase Client & Real-time Cloud Sync Engine for Magra School Management ERP V118
+import { saveTeacherCustomPhoto } from './photoStorage.js';
 
 const DEFAULT_URL = 'https://iyznvucpjubelabwsiba.supabase.co';
 const DEFAULT_KEY = 'sb_publishable_bIhO90sDYYb5Wi5pqlrAdg_G4TUov22';
@@ -286,6 +287,60 @@ export async function pullAllFromCloud() {
 
           if (localHasUnsynced) {
             pushKeyToCloud(r.key, merged);
+          }
+          return;
+        }
+
+        // Smart merge for teachers to strictly preserve custom photos and qualifications
+        if (r.key === 'magra_db_teachers' && Array.isArray(r.value)) {
+          let localArr = [];
+          try {
+            if (cur) localArr = JSON.parse(cur);
+          } catch {}
+          if (!Array.isArray(localArr)) localArr = [];
+
+          const localMap = new Map();
+          localArr.forEach(t => {
+            if (t.id) localMap.set(String(t.id).toLowerCase(), t);
+            if (t.employee_id) localMap.set(String(t.employee_id).toLowerCase(), t);
+          });
+
+          let hasLocalNewerPhoto = false;
+          const mergedTeachers = r.value.map(cloudT => {
+            const idKey = String(cloudT.id || '').toLowerCase();
+            const empKey = String(cloudT.employee_id || '').toLowerCase();
+            const localT = localMap.get(idKey) || localMap.get(empKey);
+
+            let photo = cloudT.photo_url || cloudT.photo || '';
+            // If cloud has placeholder or empty, but local has real photo, keep local!
+            if ((!photo || !photo.startsWith('data:image')) && localT) {
+              const localPhoto = localT.photo_url || localT.photo || '';
+              if (localPhoto && localPhoto.startsWith('data:image')) {
+                photo = localPhoto;
+                hasLocalNewerPhoto = true;
+              }
+            }
+            if (photo && photo.startsWith('data:image')) {
+              saveTeacherCustomPhoto(cloudT, photo);
+            }
+            return {
+              ...cloudT,
+              photo_url: photo || cloudT.photo_url,
+              photo: photo || cloudT.photo
+            };
+          });
+
+          const mergedStr = JSON.stringify(mergedTeachers);
+          if (cur !== mergedStr) {
+            localStorage.setItem(r.key, mergedStr);
+            updatedAny = true;
+            window.dispatchEvent(new CustomEvent('magra_data_sync', { detail: { key: r.key } }));
+            window.dispatchEvent(new CustomEvent('magra_teachers_updated'));
+            window.dispatchEvent(new CustomEvent('magra_photos_synced'));
+          }
+
+          if (hasLocalNewerPhoto) {
+            pushKeyToCloud(r.key, mergedTeachers);
           }
           return;
         }
