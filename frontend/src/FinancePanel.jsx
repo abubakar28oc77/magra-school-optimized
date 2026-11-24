@@ -79,6 +79,17 @@ export const parseReceiptSequence = (receiptNo) => {
   return parseRollNumber(lastPart) || 0;
 };
 
+// Filter helper to permanently reject any legacy mock/synthetic receipts (1070 / 1065 / মপাউইবি)
+export const isLegacyMockReceipt = (x) => {
+  if (!x) return true;
+  const id = String(x.id || '');
+  const rno = String(x.receipt_no || '');
+  if (id.startsWith('FEE-173209') || id.startsWith('FEE-173210')) return true;
+  if (rno.startsWith('মপাউইবি')) return true;
+  if (x.date === '2026-11-20' && (x.paid_amount === 1070 || x.paid_amount === 1065)) return true;
+  return false;
+};
+
 // Generate Independent Per-Class Deposit Challan Number (যেমন: মপাইউবি/৮ম/২০২৬/০০১)
 export const generateClassDepositNo = (className, feeDepositsList, year = null) => {
   const normClass = normalizeClass(className);
@@ -887,15 +898,15 @@ export function FinancePanel({ sub }) {
   // Persistent Stores
   const [feeRecords, setFeeRecords] = useState(() => {
     try {
-      const cleanKey = 'magra_finance_clean_v5';
-      if (!localStorage.getItem(cleanKey)) {
-        localStorage.setItem(cleanKey, 'true');
-        localStorage.removeItem('magra_finance_fees');
-        localStorage.removeItem('magra_finance_deposits');
-        return [];
-      }
       const saved = localStorage.getItem('magra_finance_fees');
-      return saved ? JSON.parse(saved) : [];
+      let records = saved ? JSON.parse(saved) : [];
+      if (Array.isArray(records)) {
+        records = records.filter(x => !isLegacyMockReceipt(x));
+      } else {
+        records = [];
+      }
+      try { localStorage.setItem('magra_finance_fees', JSON.stringify(records)); } catch {}
+      return records;
     } catch {
       return [];
     }
@@ -1038,7 +1049,11 @@ export function FinancePanel({ sub }) {
       if (k === 'magra_finance_fees') {
         try {
           const saved = localStorage.getItem('magra_finance_fees');
-          if (saved) setFeeRecords(JSON.parse(saved));
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            const clean = Array.isArray(parsed) ? parsed.filter(x => !isLegacyMockReceipt(x)) : [];
+            setFeeRecords(clean);
+          }
         } catch {}
       } else if (k === 'magra_finance_deposits') {
         try {
@@ -1164,9 +1179,9 @@ export function FinancePanel({ sub }) {
   }, [assignedClass]);
 
   const displayedFeeRecords = useMemo(() => {
-    let list = feeRecords;
+    let list = feeRecords.filter(r => !isLegacyMockReceipt(r));
     if (assignedClass) {
-      list = feeRecords.filter(r => normalizeClass(r.class_name) === assignedClass);
+      list = list.filter(r => normalizeClass(r.class_name) === assignedClass);
     }
     return [...list].sort((a, b) => parseReceiptSequence(a.receipt_no) - parseReceiptSequence(b.receipt_no));
   }, [feeRecords, assignedClass]);
@@ -3093,7 +3108,12 @@ export function FinancePanel({ sub }) {
       });
     }
 
-    setFeeRecords(prev => prev.filter(r => r.id !== receipt.id));
+    const nextFees = feeRecords.filter(r => r.id !== receipt.id && !isLegacyMockReceipt(r));
+    setFeeRecords(nextFees);
+    try {
+      localStorage.setItem('magra_finance_fees', JSON.stringify(nextFees));
+      pushKeyToCloud('magra_finance_fees', nextFees);
+    } catch {}
     setSelectedReceiptIds(prev => prev.filter(id => id !== receipt.id));
     setSelectedReceiptIdsForDeposit(prev => prev.filter(id => id !== receipt.id));
 
@@ -3715,7 +3735,7 @@ export function FinancePanel({ sub }) {
 
   // Filtered fee collections ready for deposit selection
   const displayedPendingFeeRecords = useMemo(() => {
-    let list = [...feeRecords].sort((a, b) => parseReceiptSequence(a.receipt_no) - parseReceiptSequence(b.receipt_no));
+    let list = feeRecords.filter(r => !isLegacyMockReceipt(r)).sort((a, b) => parseReceiptSequence(a.receipt_no) - parseReceiptSequence(b.receipt_no));
 
     if (depositShowOnlyPending) {
       list = list.filter(r => !r.deposit_id);

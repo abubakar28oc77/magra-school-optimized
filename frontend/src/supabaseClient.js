@@ -120,6 +120,17 @@ export async function supabaseRequest(table, options = {}) {
   return await res.json();
 }
 
+// Filter helper to permanently reject any legacy mock/synthetic receipts (1070 / 1065 / মপাউইবি)
+export const isLegacyMockReceipt = (x) => {
+  if (!x) return true;
+  const id = String(x.id || '');
+  const rno = String(x.receipt_no || '');
+  if (id.startsWith('FEE-173209') || id.startsWith('FEE-173210')) return true;
+  if (rno.startsWith('মপাউইবি')) return true;
+  if (x.date === '2026-11-20' && (x.paid_amount === 1070 || x.paid_amount === 1065)) return true;
+  return false;
+};
+
 // Push a single key to Supabase app_sync_store
 let syncDebounceTimers = {};
 export function pushKeyToCloud(key, value) {
@@ -133,6 +144,12 @@ export function pushKeyToCloud(key, value) {
     }
     if (key === 'magra_db_teachers' && value.length < 15) {
       return;
+    }
+    if (key === 'magra_finance_fees') {
+      value = value.filter(x => !isLegacyMockReceipt(x));
+    }
+    if (key === 'magra_finance_deposits') {
+      value = value.filter(d => d && d.id !== 'DEP-1732100000001' && d.id !== 'DEP-1732104500000');
     }
   }
 
@@ -192,12 +209,14 @@ export async function pullAllFromCloud() {
           } catch {}
           if (!Array.isArray(localArr)) localArr = [];
 
-          const cloudArr = r.value;
+          // STRICTLY PURGE ALL LEGACY MOCK RECEIPTS (1070/1065) FROM BOTH CLOUD AND LOCAL
+          const cloudArr = r.value.filter(x => !isLegacyMockReceipt(x));
+          const cleanLocal = localArr.filter(x => !isLegacyMockReceipt(x));
           const cloudIdMap = new Map(cloudArr.map(x => [x.id, x]));
           let localHasUnsynced = false;
           const merged = [...cloudArr];
 
-          localArr.forEach(localItem => {
+          cleanLocal.forEach(localItem => {
             if (localItem && localItem.id && !cloudIdMap.has(localItem.id)) {
               merged.push(localItem);
               localHasUnsynced = true;
@@ -205,9 +224,9 @@ export async function pullAllFromCloud() {
           });
 
           merged.sort((a, b) => {
-            const getSeq = (r) => {
-              if (!r || !r.receipt_no) return 0;
-              const parts = String(r.receipt_no).split('/');
+            const getSeq = (rec) => {
+              if (!rec || !rec.receipt_no) return 0;
+              const parts = String(rec.receipt_no).split('/');
               const lastPart = parts[parts.length - 1];
               const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
               const str = String(lastPart).trim();
@@ -225,7 +244,7 @@ export async function pullAllFromCloud() {
             window.dispatchEvent(new CustomEvent('magra_data_sync', { detail: { key: r.key } }));
           }
 
-          if (localHasUnsynced) {
+          if (localHasUnsynced || cloudArr.length !== r.value.length) {
             pushKeyToCloud(r.key, merged);
           }
           return;
