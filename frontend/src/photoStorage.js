@@ -106,6 +106,71 @@ export async function idbDeletePhoto(key) {
   }
 }
 
+// Detect Assistant Head Teacher (Tapasi Sarker) photo to prevent cross-contamination into Head Teacher's card
+export function getAssistantHeadPhoto() {
+  const asstKeys = [
+    'teacher_t-2',
+    'teacher_emp-002',
+    'teacher_emp_002',
+    'emp_002',
+    'emp_2',
+    'teacher_t_2',
+    't-2',
+    'teacher_name_তাপসী সরকার',
+    'leadership_asst_head'
+  ];
+  for (const k of asstKeys) {
+    const val = PHOTO_CACHE.get(k.toLowerCase());
+    if (val && typeof val === 'string' && val.startsWith('data:image')) {
+      return val;
+    }
+  }
+  try {
+    const lsVal = localStorage.getItem('magra_photo_teacher_EMP-002') || localStorage.getItem('magra_photo_teacher_t-2');
+    if (lsVal && typeof lsVal === 'string' && lsVal.startsWith('data:image')) {
+      return lsVal;
+    }
+    const rawTch = localStorage.getItem('magra_db_teachers');
+    if (rawTch) {
+      const list = JSON.parse(rawTch);
+      if (Array.isArray(list)) {
+        const asstT = list.find(t => t && ((t.employee_id || '').toUpperCase() === 'EMP-002' || t.id === 't-2' || (t.name_bn || '').includes('তাপসী')));
+        const p = asstT?.photo_url || asstT?.photo;
+        if (p && typeof p === 'string' && p.startsWith('data:image')) return p;
+      }
+    }
+    const rawLeader = localStorage.getItem('magra_db_leadership_settings');
+    if (rawLeader) {
+      const leaderObj = JSON.parse(rawLeader);
+      const asstP = leaderObj.asst_head?.photo;
+      if (asstP && typeof asstP === 'string' && asstP.startsWith('data:image')) return asstP;
+    }
+  } catch {}
+  return null;
+}
+
+export function isAssistantHeadPhoto(photo) {
+  if (!photo || typeof photo !== 'string' || !photo.startsWith('data:image')) return false;
+  const asstPhoto = getAssistantHeadPhoto();
+  if (asstPhoto && photo === asstPhoto) return true;
+  const asstKeys = [
+    'teacher_t-2',
+    'teacher_emp-002',
+    'teacher_emp_002',
+    'emp_002',
+    'emp_2',
+    'teacher_t_2',
+    't-2',
+    'teacher_name_তাপসী সরকার',
+    'leadership_asst_head'
+  ];
+  for (const k of asstKeys) {
+    const val = PHOTO_CACHE.get(k.toLowerCase());
+    if (val && val === photo) return true;
+  }
+  return false;
+}
+
 // Load all photos from IndexedDB and localStorage into PHOTO_CACHE on startup
 export async function initPhotoStorage() {
   if (typeof window === 'undefined') return;
@@ -119,8 +184,8 @@ export async function initPhotoStorage() {
       if (leaderObj.head) {
         const hName = (leaderObj.head.name || '').toLowerCase();
         const hDesig = (leaderObj.head.designation || '').toLowerCase();
-        const asstPhoto = leaderObj.asst_head?.photo || PHOTO_CACHE.get('leadership_asst_head');
-        if (hName.includes('তাপসী') || hDesig.includes('সহকারী') || (asstPhoto && leaderObj.head.photo === asstPhoto)) {
+        const asstPhoto = leaderObj.asst_head?.photo || PHOTO_CACHE.get('leadership_asst_head') || getAssistantHeadPhoto();
+        if (hName.includes('তাপসী') || hDesig.includes('সহকারী') || (asstPhoto && leaderObj.head.photo === asstPhoto) || isAssistantHeadPhoto(leaderObj.head.photo)) {
           delete leaderObj.head;
           changed = true;
         }
@@ -132,7 +197,7 @@ export async function initPhotoStorage() {
 
     const headPhotoInCache = PHOTO_CACHE.get('leadership_head');
     const asstPhotoInCache = PHOTO_CACHE.get('leadership_asst_head');
-    if (headPhotoInCache && asstPhotoInCache && headPhotoInCache === asstPhotoInCache) {
+    if (headPhotoInCache && (headPhotoInCache === asstPhotoInCache || isAssistantHeadPhoto(headPhotoInCache))) {
       PHOTO_CACHE.delete('leadership_head');
       idbDeletePhoto('leadership_head');
     }
@@ -278,6 +343,13 @@ export async function initPhotoStorage() {
             cursor.continue();
             return;
           }
+          // Purge corrupt leadership_head or t-1 if it mistakenly contains Assistant Head Teacher's photo
+          if ((k === 'leadership_head' || k.startsWith('teacher_t-1') || k.startsWith('emp_001')) && isAssistantHeadPhoto(cursor.value)) {
+            cursor.delete();
+            PHOTO_CACHE.delete(k);
+            cursor.continue();
+            return;
+          }
           PHOTO_CACHE.set(k, cursor.value);
           cursor.continue();
         } else {
@@ -286,6 +358,28 @@ export async function initPhotoStorage() {
             if ((k.startsWith('cls_10_') || k.startsWith('cls_9_') || k.startsWith('10_') || k.startsWith('9_') || k.startsWith('class_10_') || k.startsWith('class_9_')) && !k.includes('_sci_') && !k.includes('_hum_') && !k.includes('_bs_')) {
               PHOTO_CACHE.delete(k);
             }
+          }
+          // Double check leadership_head and head teacher keys in memory cache
+          const lh = PHOTO_CACHE.get('leadership_head');
+          if (lh && isAssistantHeadPhoto(lh)) {
+            PHOTO_CACHE.delete('leadership_head');
+            idbDeletePhoto('leadership_head');
+          }
+          const t1Photo = PHOTO_CACHE.get('teacher_t-1');
+          if (t1Photo && isAssistantHeadPhoto(t1Photo)) {
+            PHOTO_CACHE.delete('teacher_t-1');
+            idbDeletePhoto('teacher_t-1');
+          }
+          const emp1Photo = PHOTO_CACHE.get('emp_001');
+          if (emp1Photo && isAssistantHeadPhoto(emp1Photo)) {
+            PHOTO_CACHE.delete('emp_001');
+            idbDeletePhoto('emp_001');
+          }
+          // Ensure asst photo is correctly assigned to leadership_asst_head if missing
+          const asstP = getAssistantHeadPhoto();
+          if (asstP && !PHOTO_CACHE.get('leadership_asst_head')) {
+            PHOTO_CACHE.set('leadership_asst_head', asstP);
+            idbSetPhoto('leadership_asst_head', asstP);
           }
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('magra_photos_synced'));
@@ -394,6 +488,15 @@ export function getTeacherPhotoKeys(teacher) {
 
 export function saveTeacherCustomPhoto(teacher, dataUrl) {
   if (!teacher || !dataUrl) return;
+  const isHead = (
+    teacher.id === 't-1' || 
+    (teacher.employee_id || '').toUpperCase() === 'EMP-001' ||
+    ((teacher.designation || '').includes('প্রধান শিক্ষক') && !(teacher.designation || '').includes('সহকারী')) ||
+    (teacher.name_bn || '').includes('শফিকুল')
+  );
+  if (isHead && isAssistantHeadPhoto(dataUrl)) {
+    return; // Strictly reject assigning Assistant Head photo to Head Teacher!
+  }
   const keys = getTeacherPhotoKeys(teacher);
   keys.forEach(k => {
     PHOTO_CACHE.set(k, dataUrl);
@@ -413,18 +516,30 @@ export function saveTeacherCustomPhoto(teacher, dataUrl) {
 
 export function getTeacherCustomPhoto(teacher) {
   if (!teacher) return null;
+  const isHead = (
+    teacher.id === 't-1' || 
+    (teacher.employee_id || '').toUpperCase() === 'EMP-001' ||
+    ((teacher.designation || '').includes('প্রধান শিক্ষক') && !(teacher.designation || '').includes('সহকারী')) ||
+    (teacher.name_bn || '').includes('শফিকুল')
+  );
   const keys = getTeacherPhotoKeys(teacher);
   for (const k of keys) {
     const val = PHOTO_CACHE.get(k);
-    if (val && val.length > 50) return val;
+    if (val && val.length > 50) {
+      if (!isHead || !isAssistantHeadPhoto(val)) {
+        return val;
+      }
+    }
   }
   const empId = String(teacher.employee_id || teacher.id || '').trim();
   if (empId) {
     try {
       const lsVal = localStorage.getItem(`magra_photo_teacher_${empId}`);
       if (lsVal && lsVal.length > 50) {
-        PHOTO_CACHE.set(`teacher_${empId}`, lsVal);
-        return lsVal;
+        if (!isHead || !isAssistantHeadPhoto(lsVal)) {
+          PHOTO_CACHE.set(`teacher_${empId}`, lsVal);
+          return lsVal;
+        }
       }
     } catch {}
   }
@@ -433,6 +548,9 @@ export function getTeacherCustomPhoto(teacher) {
 
 export async function saveLeadershipPhoto(roleKey, dataUrl) {
   if (!roleKey || !dataUrl) return;
+  if (roleKey === 'head' && isAssistantHeadPhoto(dataUrl)) {
+    return; // Strictly reject saving assistant head photo as head photo
+  }
   const key = `leadership_${roleKey}`.toLowerCase();
   PHOTO_CACHE.set(key, dataUrl);
   await idbSetPhoto(key, dataUrl);
@@ -445,7 +563,13 @@ export async function saveLeadershipPhoto(roleKey, dataUrl) {
 export function getLeadershipPhoto(roleKey) {
   if (!roleKey) return null;
   const key = `leadership_${roleKey}`.toLowerCase();
-  return PHOTO_CACHE.get(key) || null;
+  const val = PHOTO_CACHE.get(key) || null;
+  if (key === 'leadership_head' && isAssistantHeadPhoto(val)) {
+    PHOTO_CACHE.delete('leadership_head');
+    idbDeletePhoto('leadership_head');
+    return null;
+  }
+  return val;
 }
 
 // Client-side lightweight canvas image compressor to prevent LocalStorage 5MB quota errors

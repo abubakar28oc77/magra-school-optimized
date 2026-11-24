@@ -108,7 +108,7 @@ import {
   getLeadershipData,
   DEFAULT_LEADERSHIP_DATA
 } from './mockData';
-import { saveLeadershipPhoto, compressImageToDataUrl, saveTeacherCustomPhoto, getTeacherCustomPhoto } from './photoStorage.js';
+import { saveLeadershipPhoto, compressImageToDataUrl, saveTeacherCustomPhoto, getTeacherCustomPhoto, isAssistantHeadPhoto } from './photoStorage.js';
 
 // Immediate Startup Session Sanitizer
 try {
@@ -6365,7 +6365,7 @@ function StaffPanel({ sub, onLivePreview }) {
           );
           if (isHead) {
             leaderStored.head = { ...(leaderStored.head || {}), name: payload.name_bn || 'মুহাম্মদ শফিকুল ইসলাম' };
-            if (photoToSave) {
+            if (photoToSave && !isAssistantHeadPhoto(photoToSave)) {
               leaderStored.head.photo = photoToSave;
               saveLeadershipPhoto('head', photoToSave);
             }
@@ -7931,7 +7931,9 @@ function LeadershipSettingsPanel() {
 
       // Persist to high-capacity IndexedDB & PHOTO_CACHE
       if (photoVal && photoVal.startsWith('data:image/')) {
-        saveLeadershipPhoto(roleKey, photoVal);
+        if (roleKey !== 'head' || !isAssistantHeadPhoto(photoVal)) {
+          saveLeadershipPhoto(roleKey, photoVal);
+        }
       }
 
       // 2. Prepare payload for magra_db_leadership_settings
@@ -7950,11 +7952,14 @@ function LeadershipSettingsPanel() {
       const resolvedDesig = roleKey === 'head' && ((current.designation || '').includes('সহকারী'))
         ? 'প্রধান শিক্ষক'
         : (current.designation || current.role || '').trim();
+      const resolvedPhoto = (roleKey === 'head' && isAssistantHeadPhoto(photoVal))
+        ? ''
+        : photoVal;
 
       stored[roleKey] = {
         name: resolvedName,
         designation: resolvedDesig,
-        photo: photoVal,
+        photo: resolvedPhoto,
         msg: (current.msg || '').trim(),
         speech: cleanSpeech
       };

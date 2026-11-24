@@ -205,7 +205,7 @@ import {
   MOCK_SSC_RESULTS,
   CANONICAL_TEACHER_EDUCATION
 } from './mockData.js';
-import { saveTeacherCustomPhoto, getTeacherCustomPhoto, compressImageToDataUrl } from './photoStorage.js';
+import { saveTeacherCustomPhoto, getTeacherCustomPhoto, compressImageToDataUrl, isAssistantHeadPhoto } from './photoStorage.js';
 import { getSupabaseConfig, supabaseRequest, pushKeyToCloud } from './supabaseClient.js';
 import { processClassResults, generateResultAnalytics, toBnDigits, areExamsEquivalent } from './boardExamEngine.js';
 import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, DEFAULT_PERIODS } from './routineData.js';
@@ -600,16 +600,29 @@ function getLocalStore(key, defaultVal = []) {
     }
     if (key === 'teachers' && Array.isArray(parsed)) {
       const cleaned = deduplicateTeachers(parsed);
+      let teachersUpdated = false;
       cleaned.forEach(t => {
+        const isHeadT = t && (
+          t.id === 't-1' || 
+          (t.employee_id || '').toUpperCase() === 'EMP-001' ||
+          ((t.designation || '').includes('প্রধান শিক্ষক') && !(t.designation || '').includes('সহকারী')) ||
+          (t.name_bn || '').includes('শফিকুল')
+        );
+        if (isHeadT && (isAssistantHeadPhoto(t.photo_url) || isAssistantHeadPhoto(t.photo))) {
+          t.photo_url = '';
+          t.photo = '';
+          teachersUpdated = true;
+        }
         if (!t.photo_url || t.photo_url.length < 50) {
           const vaultPhoto = getTeacherCustomPhoto(t);
-          if (vaultPhoto) {
+          if (vaultPhoto && (!isHeadT || !isAssistantHeadPhoto(vaultPhoto))) {
             t.photo_url = vaultPhoto;
             t.photo = vaultPhoto;
+            teachersUpdated = true;
           }
         }
       });
-      if (cleaned.length !== parsed.length) {
+      if (cleaned.length !== parsed.length || teachersUpdated) {
         try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleaned)); } catch { }
       }
       return cleaned;

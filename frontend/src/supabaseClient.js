@@ -1,5 +1,5 @@
 // Supabase Client & Real-time Cloud Sync Engine for Magra School Management ERP V118
-import { saveTeacherCustomPhoto } from './photoStorage.js';
+import { saveTeacherCustomPhoto, isAssistantHeadPhoto } from './photoStorage.js';
 
 const DEFAULT_URL = 'https://iyznvucpjubelabwsiba.supabase.co';
 const DEFAULT_KEY = 'sb_publishable_bIhO90sDYYb5Wi5pqlrAdg_G4TUov22';
@@ -312,16 +312,29 @@ export async function pullAllFromCloud() {
             const localT = localMap.get(idKey) || localMap.get(empKey);
 
             let photo = cloudT.photo_url || cloudT.photo || '';
+            const isHeadT = (
+              cloudT.id === 't-1' || 
+              (cloudT.employee_id || '').toUpperCase() === 'EMP-001' ||
+              ((cloudT.designation || '').includes('প্রধান শিক্ষক') && !(cloudT.designation || '').includes('সহকারী')) ||
+              (cloudT.name_bn || '').includes('শফিকুল')
+            );
+            if (isHeadT && isAssistantHeadPhoto(photo)) {
+              photo = '';
+            }
             // If cloud has placeholder or empty, but local has real photo, keep local!
             if ((!photo || !photo.startsWith('data:image')) && localT) {
               const localPhoto = localT.photo_url || localT.photo || '';
               if (localPhoto && localPhoto.startsWith('data:image')) {
-                photo = localPhoto;
-                hasLocalNewerPhoto = true;
+                if (!isHeadT || !isAssistantHeadPhoto(localPhoto)) {
+                  photo = localPhoto;
+                  hasLocalNewerPhoto = true;
+                }
               }
             }
             if (photo && photo.startsWith('data:image')) {
-              saveTeacherCustomPhoto(cloudT, photo);
+              if (!isHeadT || !isAssistantHeadPhoto(photo)) {
+                saveTeacherCustomPhoto(cloudT, photo);
+              }
             }
             return {
               ...cloudT,

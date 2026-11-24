@@ -10,6 +10,7 @@ import {
   getTeacherPhoto, 
   getLeadershipData 
 } from './mockData';
+import { isAssistantHeadPhoto } from './photoStorage.js';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
 
 export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
@@ -195,13 +196,18 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
     // 2. Update leadership settings speech
     const roleKey = isHead ? 'head' : 'asst_head';
+    let saveLeaderPhoto = leaderForm.photo_url || (isHead ? headTeacher.photo : asstTeacher.photo);
+    if (isHead && isAssistantHeadPhoto(saveLeaderPhoto)) {
+      saveLeaderPhoto = headTeacher.photo || '';
+      if (isAssistantHeadPhoto(saveLeaderPhoto)) saveLeaderPhoto = '';
+    }
     const updatedLeadership = {
       ...leadershipSettings,
       [roleKey]: {
         ...(leadershipSettings[roleKey] || {}),
         name: leaderForm.name_bn,
         title: leaderForm.designation,
-        photo: leaderForm.photo_url || (isHead ? headTeacher.photo : asstTeacher.photo),
+        photo: saveLeaderPhoto,
         speech: leaderForm.speech.split('\n\n').filter(Boolean)
       }
     };
