@@ -6344,6 +6344,45 @@ function StaffPanel({ sub, onLivePreview }) {
       if (isTeacher && photoToSave && photoToSave.startsWith('data:image')) {
         saveTeacherCustomPhoto(form, photoToSave);
       }
+      try {
+        if (isTeacher) {
+          let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
+          const dName = (payload.designation || '').toLowerCase();
+          const nBn = (payload.name_bn || '').toLowerCase();
+          const empId = (payload.employee_id || payload.id || '').toUpperCase();
+
+          const isAsst = (
+            payload.id === 't-2' || 
+            empId === 'EMP-002' || 
+            dName.includes('সহকারী প্রধান শিক্ষক') || 
+            nBn.includes('তাপসী')
+          );
+          const isHead = !isAsst && (
+            payload.id === 't-1' || 
+            empId === 'EMP-001' || 
+            (dName.includes('প্রধান শিক্ষক') && !dName.includes('সহকারী')) || 
+            nBn.includes('শফিকুল')
+          );
+          if (isHead) {
+            leaderStored.head = { ...(leaderStored.head || {}), name: payload.name_bn || 'মুহাম্মদ শফিকুল ইসলাম' };
+            if (photoToSave) {
+              leaderStored.head.photo = photoToSave;
+              saveLeadershipPhoto('head', photoToSave);
+            }
+            localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
+          } else if (isAsst) {
+            leaderStored.asst_head = { ...(leaderStored.asst_head || {}), name: payload.name_bn || 'তাপসী সরকার' };
+            if (photoToSave) {
+              leaderStored.asst_head.photo = photoToSave;
+              saveLeadershipPhoto('asst_head', photoToSave);
+            }
+            if (leaderStored.head && (leaderStored.head.name?.includes('তাপসী') || leaderStored.head.designation?.includes('সহকারী'))) {
+              delete leaderStored.head;
+            }
+            localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
+          }
+        }
+      } catch { }
       await api(editing ? `/${base}/${editing}` : `/${base}`, { method: editing ? 'PUT' : 'POST', body: JSON.stringify(payload) });
       setMsg(editing ? 'তথ্য আপডেট হয়েছে' : (isTeacher ? 'শিক্ষক সফলভাবে যুক্ত হয়েছে' : 'কর্মচারী সফলভাবে যুক্ত হয়েছে'));
       setEditing(null);
@@ -6436,13 +6475,32 @@ function StaffPanel({ sub, onLivePreview }) {
         let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
         const dName = (x.designation || '').toLowerCase();
         const nBn = (x.name_bn || '').toLowerCase();
-        if (x.id === 't-1' || dName.includes('প্রধান শিক্ষক') || nBn.includes('শফিকুল')) {
-          leaderStored.head = { ...(leaderStored.head || {}), photo: compressed, name: x.name_bn || leaderStored.head?.name };
+        const empId = (x.employee_id || x.id || '').toUpperCase();
+
+        const isAsst = (
+          x.id === 't-2' || 
+          empId === 'EMP-002' || 
+          dName.includes('সহকারী প্রধান শিক্ষক') || 
+          nBn.includes('তাপসী')
+        );
+        const isHead = !isAsst && (
+          x.id === 't-1' || 
+          empId === 'EMP-001' || 
+          (dName.includes('প্রধান শিক্ষক') && !dName.includes('সহকারী')) || 
+          nBn.includes('শফিকুল')
+        );
+        const isPres = (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল') || nBn.includes('খোরশেদ'));
+
+        if (isHead) {
+          leaderStored.head = { ...(leaderStored.head || {}), photo: compressed, name: x.name_bn || 'মুহাম্মদ শফিকুল ইসলাম' };
           saveLeadershipPhoto('head', compressed);
-        } else if (x.id === 't-2' || dName.includes('সহকারী প্রধান শিক্ষক') || nBn.includes('তাপসী')) {
-          leaderStored.asst_head = { ...(leaderStored.asst_head || {}), photo: compressed, name: x.name_bn || leaderStored.asst_head?.name };
+        } else if (isAsst) {
+          leaderStored.asst_head = { ...(leaderStored.asst_head || {}), photo: compressed, name: x.name_bn || 'তাপসী সরকার' };
           saveLeadershipPhoto('asst_head', compressed);
-        } else if (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল')) {
+          if (leaderStored.head && (leaderStored.head.name?.includes('তাপসী') || leaderStored.head.designation?.includes('সহকারী') || leaderStored.head.photo === compressed)) {
+            delete leaderStored.head;
+          }
+        } else if (isPres) {
           leaderStored.president = { ...(leaderStored.president || {}), photo: compressed, name: x.name_bn || leaderStored.president?.name };
           saveLeadershipPhoto('president', compressed);
         }
@@ -7886,9 +7944,16 @@ function LeadershipSettingsPanel() {
         ? current.speech.split('\n\n').map(s => s.trim()).filter(Boolean)
         : (Array.isArray(current.speech) ? current.speech : []);
 
+      const resolvedName = roleKey === 'head' && ((current.name || '').includes('তাপসী'))
+        ? 'মুহাম্মদ শফিকুল ইসলাম'
+        : (current.name || '').trim();
+      const resolvedDesig = roleKey === 'head' && ((current.designation || '').includes('সহকারী'))
+        ? 'প্রধান শিক্ষক'
+        : (current.designation || current.role || '').trim();
+
       stored[roleKey] = {
-        name: (current.name || '').trim(),
-        designation: (current.designation || current.role || '').trim(),
+        name: resolvedName,
+        designation: resolvedDesig,
         photo: photoVal,
         msg: (current.msg || '').trim(),
         speech: cleanSpeech

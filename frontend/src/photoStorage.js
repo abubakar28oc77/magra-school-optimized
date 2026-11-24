@@ -92,9 +92,53 @@ export async function idbGetPhoto(key) {
   }
 }
 
+// Delete photo from IndexedDB
+export async function idbDeletePhoto(key) {
+  if (!key) return;
+  try {
+    const db = await openDB();
+    if (!db) return;
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.delete(String(key).toLowerCase());
+  } catch (err) {
+    console.warn('idbDeletePhoto error:', err);
+  }
+}
+
 // Load all photos from IndexedDB and localStorage into PHOTO_CACHE on startup
 export async function initPhotoStorage() {
   if (typeof window === 'undefined') return;
+
+  // 1a. Sanitize leadership settings & photos: Head Teacher must NEVER inherit Assistant Head Teacher's photo or name
+  try {
+    const rawLeader = localStorage.getItem('magra_db_leadership_settings');
+    if (rawLeader) {
+      const leaderObj = JSON.parse(rawLeader);
+      let changed = false;
+      if (leaderObj.head) {
+        const hName = (leaderObj.head.name || '').toLowerCase();
+        const hDesig = (leaderObj.head.designation || '').toLowerCase();
+        const asstPhoto = leaderObj.asst_head?.photo || PHOTO_CACHE.get('leadership_asst_head');
+        if (hName.includes('তাপসী') || hDesig.includes('সহকারী') || (asstPhoto && leaderObj.head.photo === asstPhoto)) {
+          delete leaderObj.head;
+          changed = true;
+        }
+      }
+      if (changed) {
+        localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderObj));
+      }
+    }
+
+    const headPhotoInCache = PHOTO_CACHE.get('leadership_head');
+    const asstPhotoInCache = PHOTO_CACHE.get('leadership_asst_head');
+    if (headPhotoInCache && asstPhotoInCache && headPhotoInCache === asstPhotoInCache) {
+      PHOTO_CACHE.delete('leadership_head');
+      idbDeletePhoto('leadership_head');
+    }
+  } catch (err) {
+    console.warn('Leadership photo sanitize error:', err);
+  }
 
   // 1. Purge ambiguous non-department roll keys for Classes 9 & 10 from localStorage
   try {

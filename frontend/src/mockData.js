@@ -442,18 +442,7 @@ export function getLeadershipData(teachersListInput) {
     speech: (presCustom.speech && Array.isArray(presCustom.speech) && presCustom.speech.length) ? presCustom.speech : (typeof presCustom.speech === 'string' ? presCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.president.speech)
   };
 
-  const headCustom = custom.head || {};
-  const headPhoto = headCustom.photo || PHOTO_CACHE.get('leadership_head') || (liveHead ? getTeacherPhoto(liveHead) : PHOTO_HEAD_TEACHER);
-  const headName = headCustom.name || liveHead?.name_bn || DEFAULT_LEADERSHIP_DATA.head.name;
-  const head = {
-    ...DEFAULT_LEADERSHIP_DATA.head,
-    ...headCustom,
-    name: headName,
-    photo: headPhoto,
-    msg: headCustom.msg || DEFAULT_LEADERSHIP_DATA.head.msg,
-    speech: (headCustom.speech && Array.isArray(headCustom.speech) && headCustom.speech.length) ? headCustom.speech : (typeof headCustom.speech === 'string' ? headCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.head.speech)
-  };
-
+  // Assistant Head Teacher
   const asstCustom = custom.asst_head || {};
   const asstPhoto = asstCustom.photo || PHOTO_CACHE.get('leadership_asst_head') || (liveAsst ? getTeacherPhoto(liveAsst) : PHOTO_ASST_HEAD_TEACHER);
   const asstName = asstCustom.name || liveAsst?.name_bn || DEFAULT_LEADERSHIP_DATA.asst_head.name;
@@ -464,6 +453,48 @@ export function getLeadershipData(teachersListInput) {
     photo: asstPhoto,
     msg: asstCustom.msg || DEFAULT_LEADERSHIP_DATA.asst_head.msg,
     speech: (asstCustom.speech && Array.isArray(asstCustom.speech) && asstCustom.speech.length) ? asstCustom.speech : (typeof asstCustom.speech === 'string' ? asstCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.asst_head.speech)
+  };
+
+  // Sanitize custom.head: if it mistakenly contains Tapasi Sarker or Assistant Head info, discard it!
+  const headCustomRaw = custom.head || {};
+  const isHeadCustomCorrupted = (
+    (headCustomRaw.name && headCustomRaw.name.includes('তাপসী')) ||
+    (headCustomRaw.designation && headCustomRaw.designation.includes('সহকারী')) ||
+    (headCustomRaw.role && headCustomRaw.role.includes('সহকারী')) ||
+    (asstPhoto && headCustomRaw.photo === asstPhoto)
+  );
+  if (isHeadCustomCorrupted) {
+    delete custom.head;
+    try {
+      const raw = localStorage.getItem('magra_db_leadership_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.head && (parsed.head.name?.includes('তাপসী') || parsed.head.designation?.includes('সহকারী') || (asstPhoto && parsed.head.photo === asstPhoto))) {
+          delete parsed.head;
+          localStorage.setItem('magra_db_leadership_settings', JSON.stringify(parsed));
+        }
+      }
+    } catch {}
+  }
+  const headCustom = isHeadCustomCorrupted ? {} : headCustomRaw;
+
+  // Resolve Head Teacher photo & name: must NEVER be assistant head teacher's photo or name
+  let headPhoto = headCustom.photo || PHOTO_CACHE.get('leadership_head');
+  if (!headPhoto || headPhoto === asstPhoto || headPhoto === PHOTO_CACHE.get('leadership_asst_head')) {
+    PHOTO_CACHE.delete('leadership_head');
+    headPhoto = (liveHead ? getTeacherPhoto(liveHead) : '') || PHOTO_HEAD_TEACHER;
+    if (headPhoto === asstPhoto) {
+      headPhoto = PHOTO_HEAD_TEACHER;
+    }
+  }
+  const headName = headCustom.name || liveHead?.name_bn || DEFAULT_LEADERSHIP_DATA.head.name;
+  const head = {
+    ...DEFAULT_LEADERSHIP_DATA.head,
+    ...headCustom,
+    name: headName,
+    photo: headPhoto,
+    msg: headCustom.msg || DEFAULT_LEADERSHIP_DATA.head.msg,
+    speech: (headCustom.speech && Array.isArray(headCustom.speech) && headCustom.speech.length) ? headCustom.speech : (typeof headCustom.speech === 'string' ? headCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.head.speech)
   };
 
   return {
