@@ -83,10 +83,14 @@ export const parseReceiptSequence = (receiptNo) => {
 export const isLegacyMockReceipt = (x) => {
   if (!x) return true;
   const id = String(x.id || '');
-  const rno = String(x.receipt_no || '');
-  if (id.startsWith('FEE-173209') || id.startsWith('FEE-173210')) return true;
-  if (rno.startsWith('মপাউইবি')) return true;
-  if (x.date === '2026-11-20' && (x.paid_amount === 1070 || x.paid_amount === 1065)) return true;
+  const rno = String(x.receipt_no || x.receiptNo || '');
+  const depId = String(x.deposit_id || x.depositId || '');
+  const amt = Number(x.paid_amount || x.paidAmount || 0);
+  const date = String(x.date || '');
+  if (id.startsWith('FEE-17320') || id.startsWith('FEE-17321')) return true;
+  if (depId.startsWith('DEP-173210')) return true;
+  if (rno.includes('মপাউইবি')) return true;
+  if (date === '2026-11-20' && (amt === 1070 || amt === 1065)) return true;
   return false;
 };
 
@@ -1183,7 +1187,7 @@ export function FinancePanel({ sub }) {
     if (assignedClass) {
       list = list.filter(r => normalizeClass(r.class_name) === assignedClass);
     }
-    return [...list].sort((a, b) => parseReceiptSequence(a.receipt_no) - parseReceiptSequence(b.receipt_no));
+    return [...list].sort((a, b) => parseReceiptSequence(a.receipt_no || a.receiptNo) - parseReceiptSequence(b.receipt_no || b.receiptNo));
   }, [feeRecords, assignedClass]);
 
   // Filtered fee records for search & class filter
@@ -1195,16 +1199,16 @@ export function FinancePanel({ sub }) {
     if (receiptSearchQuery && receiptSearchQuery.trim()) {
       const q = receiptSearchQuery.trim().toLowerCase();
       list = list.filter(r => {
-        const name = String(r.student_name || '').toLowerCase();
-        const rno = String(r.receipt_no || '').toLowerCase();
-        const roll = String(r.roll_no || '');
+        const name = String(r.student_name || r.studentName || '').toLowerCase();
+        const rno = String(r.receipt_no || r.receiptNo || '').toLowerCase();
+        const roll = String(r.roll_no || r.rollNo || '');
         const bnRoll = toBnDigits(roll);
         return name.includes(q) || rno.includes(q) || roll.includes(q) || bnRoll.includes(q);
       });
     }
     return [...list].sort((a, b) => {
-      const sA = parseReceiptSequence(a.receipt_no);
-      const sB = parseReceiptSequence(b.receipt_no);
+      const sA = parseReceiptSequence(a.receipt_no || a.receiptNo);
+      const sB = parseReceiptSequence(b.receipt_no || b.receiptNo);
       return receiptSortOrder === 'desc' ? (sB - sA) : (sA - sB);
     });
   }, [displayedFeeRecords, receiptFilterClass, receiptSearchQuery, receiptSortOrder]);
@@ -3735,7 +3739,7 @@ export function FinancePanel({ sub }) {
 
   // Filtered fee collections ready for deposit selection
   const displayedPendingFeeRecords = useMemo(() => {
-    let list = feeRecords.filter(r => !isLegacyMockReceipt(r)).sort((a, b) => parseReceiptSequence(a.receipt_no) - parseReceiptSequence(b.receipt_no));
+    let list = feeRecords.filter(r => !isLegacyMockReceipt(r)).sort((a, b) => parseReceiptSequence(a.receipt_no || a.receiptNo) - parseReceiptSequence(b.receipt_no || b.receiptNo));
 
     if (depositShowOnlyPending) {
       list = list.filter(r => !r.deposit_id);

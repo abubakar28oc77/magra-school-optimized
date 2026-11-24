@@ -124,10 +124,14 @@ export async function supabaseRequest(table, options = {}) {
 export const isLegacyMockReceipt = (x) => {
   if (!x) return true;
   const id = String(x.id || '');
-  const rno = String(x.receipt_no || '');
-  if (id.startsWith('FEE-173209') || id.startsWith('FEE-173210')) return true;
-  if (rno.startsWith('মপাউইবি')) return true;
-  if (x.date === '2026-11-20' && (x.paid_amount === 1070 || x.paid_amount === 1065)) return true;
+  const rno = String(x.receipt_no || x.receiptNo || '');
+  const depId = String(x.deposit_id || x.depositId || '');
+  const amt = Number(x.paid_amount || x.paidAmount || 0);
+  const date = String(x.date || '');
+  if (id.startsWith('FEE-17320') || id.startsWith('FEE-17321')) return true;
+  if (depId.startsWith('DEP-173210')) return true;
+  if (rno.includes('মপাউইবি')) return true;
+  if (date === '2026-11-20' && (amt === 1070 || amt === 1065)) return true;
   return false;
 };
 
@@ -225,8 +229,10 @@ export async function pullAllFromCloud() {
 
           merged.sort((a, b) => {
             const getSeq = (rec) => {
-              if (!rec || !rec.receipt_no) return 0;
-              const parts = String(rec.receipt_no).split('/');
+              if (!rec) return 0;
+              const rno = rec.receipt_no || rec.receiptNo;
+              if (!rno) return 0;
+              const parts = String(rno).split('/');
               const lastPart = parts[parts.length - 1];
               const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
               const str = String(lastPart).trim();
