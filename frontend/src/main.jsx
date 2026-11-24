@@ -7045,7 +7045,7 @@ function StaffPanel({ sub, onLivePreview }) {
                 <th style={{ width: '36px', textAlign: 'center' }}>
                   <input type="checkbox" style={{ cursor: 'pointer' }} checked={(list || []).length > 0 && selectedStaffIds.length === (list || []).length} onChange={toggleSelectAllStaff} />
                 </th>
-                <th style={{ width: '50px', textAlign: 'center' }}>ছবি</th>
+                <th style={{ width: '75px', minWidth: '75px', textAlign: 'center' }}>ছবি</th>
                 <th style={{ whiteSpace: 'nowrap' }}>আইডি (ID)</th>
                 <th style={{ whiteSpace: 'nowrap' }}>{isTeacher ? 'শিক্ষকের নাম' : 'কর্মচারীর নাম'}</th>
                 <th style={{ whiteSpace: 'nowrap' }}>পদবি</th>
@@ -7066,9 +7066,9 @@ function StaffPanel({ sub, onLivePreview }) {
                     <td style={{ textAlign: 'center' }}>
                       <input type="checkbox" style={{ cursor: 'pointer' }} checked={isSelected} onChange={() => toggleSelectOneStaff(x.id)} />
                     </td>
-                    <td style={{ textAlign: 'center', padding: '4px 6px' }}>
-                      <div style={{ position: 'relative', width: '38px', height: '42px', margin: '0 auto' }}>
-                        <div style={{ width: '38px', height: '42px', borderRadius: '5px', overflow: 'hidden', border: '1.5px solid #cbd5e1', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>
+                    <td style={{ textAlign: 'center', padding: '6px 8px' }}>
+                      <div style={{ position: 'relative', width: '58px', height: '64px', margin: '0 auto' }}>
+                        <div style={{ width: '58px', height: '64px', borderRadius: '7px', overflow: 'hidden', border: '1.5px solid #cbd5e1', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
                           <img
                             src={getTeacherPhoto(x)}
                             alt=""
@@ -7080,16 +7080,16 @@ function StaffPanel({ sub, onLivePreview }) {
                           title={`${x.name_bn}-এর ছবি সরাসরি আপলোড বা পরিবর্তন করুন`}
                           style={{
                             position: 'absolute',
-                            bottom: '-3px',
-                            right: '-3px',
+                            bottom: '-4px',
+                            right: '-4px',
                             background: '#0284c7',
                             color: '#fff',
-                            width: '16px',
-                            height: '16px',
-                            borderRadius: '4px',
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '5px',
                             display: 'grid',
                             placeItems: 'center',
-                            fontSize: '9px',
+                            fontSize: '11px',
                             cursor: 'pointer',
                             border: '1.5px solid #fff',
                             boxShadow: '0 1px 3px rgba(0,0,0,0.35)'
