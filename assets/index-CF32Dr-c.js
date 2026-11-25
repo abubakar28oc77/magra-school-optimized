@@ -2800,7 +2800,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     justify-content: space-between;
     font-family: 'Noto Sans Bengali', Arial, sans-serif;
   }
-`,qn={bonafide:{label:`📜 প্রত্যয়নপত্র`,title:`প্রত্যয়নপত্র (Bonafide Certificate)`,color:`#047857`,bg:`#ecfdf5`,border:`#a7f3d0`},experience:{label:`🏆 অভিজ্ঞতার সনদ`,title:`অভিজ্ঞতার সনদ (Experience Certificate)`,color:`#b45309`,bg:`#fffbeb`,border:`#fde68a`},professional:{label:`🎖️ পেশাগত সনদ`,title:`পেশাগত সনদ (Professional Certificate)`,color:`#0d9488`,bg:`#f0fdfa`,border:`#99f6e4`},continuous:{label:`⏱️ নিরবিচ্ছিন্ন চাকুরী সনদ`,title:`নিরবিচ্ছিন্ন চাকুরী সনদ (Continuous Service)`,color:`#7e22ce`,bg:`#faf5ff`,border:`#e9d5ff`},release_order:{label:`✈️ প্রশিক্ষণ ছাড়পত্র`,title:`প্রশিক্ষণ ছাড়পত্র ও অবমুক্তি আদেশ (Release Order)`,color:`#c2410c`,bg:`#fff7ed`,border:`#fed7aa`},biodata:{label:`📄 আকর্ষণীয় বায়োডাটা (CV)`,title:`শিক্ষক/কর্মচারী প্রাতিষ্ঠানিক বায়োডাটা (CV)`,color:`#1e3a8a`,bg:`#eff6ff`,border:`#bfdbfe`},id_card:{label:`🪪 শিক্ষক পরিচয়পত্র`,title:`অফিশিয়াল পরিচয়পত্র (ID Card)`,color:`#4338ca`,bg:`#eef2ff`,border:`#c7d2fe`}},Jn=[`০`,`১`,`২`,`৩`,`৪`,`৫`,`৬`,`৭`,`৮`,`৯`],Yn=e=>e==null?``:String(e).replace(/\d/g,e=>Jn[e]);function Xn({isOpen:e,onClose:t,people:n=[],initialPersonId:r=``,initialTab:i=`bonafide`}){let[a,o]=(0,Z.useState)(i||`bonafide`),[s,l]=(0,Z.useState)(r||n[0]?.id||``),[u,d]=(0,Z.useState)(``),[f,p]=(0,Z.useState)(()=>{try{let e=localStorage.getItem(`magra_staff_certificate_office_copies`);return e?JSON.parse(e):[]}catch(e){return console.error(`Failed to load staff office copies`,e),[]}}),[h,g]=(0,Z.useState)(``),[_,v]=(0,Z.useState)(null),[y,b]=(0,Z.useState)(``),[x,S]=(0,Z.useState)(`all`),[C,w]=(0,Z.useState)(`all`),[T,D]=(0,Z.useState)(null),[O,ee]=(0,Z.useState)(`office`),[k,A]=(0,Z.useState)(``),[j,M]=(0,Z.useState)(()=>new Date().toISOString().slice(0,10)),[N,P]=(0,Z.useState)(`উত্তম, দায়িত্বশীল ও প্রশংসনীয়`),[F,I]=(0,Z.useState)(`নতুন জাতীয় শিক্ষাক্রম বিস্তরণ ও বিষয়ভিত্তিক শ্রেণি মূল্যায়ন প্রশিক্ষণ`),[te,ne]=(0,Z.useState)(`সরকারি টিচার্স ট্রেনিং কলেজ (TTC), ময়মনসিংহ`),[ie,ae]=(0,Z.useState)(`ময়মনসিংহ`),[R,oe]=(0,Z.useState)(()=>{let e=new Date;return e.setDate(e.getDate()+2),e.toISOString().slice(0,10)}),[se,ce]=(0,Z.useState)(()=>{let e=new Date;return e.setDate(e.getDate()+7),e.toISOString().slice(0,10)}),[z,le]=(0,Z.useState)(`৬ দিনব্যাপী`),[B,V]=(0,Z.useState)(`চাকুরীর ধারাবাহিকতায় কোনো প্রকার বিরতি (Break of Service) বা বিভাগীয় অসন্তোষজনক রেকর্ড নেই।`),ue=(0,Z.useMemo)(()=>{if(!u.trim())return n;let e=u.toLowerCase();return n.filter(t=>t.name_bn&&t.name_bn.toLowerCase().includes(e)||t.name_en&&t.name_en.toLowerCase().includes(e)||t.employee_id&&String(t.employee_id).toLowerCase().includes(e)||t.designation&&t.designation.toLowerCase().includes(e)||t.phone&&t.phone.includes(e))},[n,u]),H=(0,Z.useMemo)(()=>n.find(e=>String(e.id)===String(s)||String(e.employee_id)===String(s))||n[0]||null,[n,s]);if(!e)return null;let de=re,U=e=>{if(!e)return`—`;let t=String(e).slice(0,10),n=t.split(`-`);return n.length===3&&n[0].length===4?Yn(`${n[2]}-${n[1]}-${n[0]}`):Yn(t)},fe=e=>{if(!e)return`দীর্ঘদিন`;try{let t=new Date(e),n=new Date;if(isNaN(t.getTime()))return`দীর্ঘদিন`;let r=n.getFullYear()-t.getFullYear(),i=n.getMonth()-t.getMonth();return i<0&&(--r,i+=12),r<0?`কয়েক মাস`:r===0?`${Yn(i)} মাস`:i===0?`${Yn(r)} বছর`:`${Yn(r)} বছর ${Yn(i)} মাস`}catch{return`দীর্ঘদিন`}},pe=H?.name_bn||H?.name||`—`,me=H?.name_en||``,W=H?.designation||`সহকারী শিক্ষক`,he=H?.subject||``,ge=H?.employee_id||H?.id||`—`,_e=H?.mpo_index_no||H?.mpo_code||H?.index_no||`প্রযোজ্য নয়`,ve=H?.first_joining_date||H?.current_post_joining_date||H?.joining_date||`২০১২-০১-০১`,ye=H?.current_post_joining_date||H?.joining_date||H?.first_joining_date||`২০১২-০১-০১`,be=H?.father_name_bn||H?.father_name||`—`,xe=H?.mother_name_bn||H?.mother_name||`—`,G=H?.gender===`female`?`মহিলা`:`পুরুষ`,K=H?.gender===`female`?`জনাবা`:`জনাব`;H?.gender;let Se=H?.blood_group||`O+`,Ce=H?.phone||`—`,we=H?.email||`—`,Te=H?.address||`গ্রাম ও ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল`,Ee=H?.permanent_address||Te,De=H?.nid_no||H?.extended_profile?.nid||`—`,Oe=L(H),ke=fe(ye),Ae=typeof E==`function`?E():null,je=Ae?.head?.name||de.headTeacher||`মুহাম্মদ শফিকুল ইসলাম`,Me=Ae?.president?.name||de.president||`নেয়ামুল হক খান`,Ne=!!(H?.public_contact_role===`head_teacher`||H?.designation&&H.designation.includes(`প্রধান শিক্ষক`)&&!H.designation.includes(`সহকারী`)&&!H.designation.includes(`প্রাক্তন`)||H?.role===`head_teacher`||pe&&(pe.includes(`শফিকুল ইসলাম`)||pe.trim()===je.trim())),Pe=Ne?Me:je,q=Ne?Ae?.president?.role||`সভাপতি`:`প্রধান শিক্ষক`,Fe=de.nameBn,Ie=(k||``).trim(),J=()=>{let e=U(j),t=U(ve),n=U(ye),r=U(R),i=U(se);if(a===`bonafide`)return`
+`,qn={bonafide:{label:`📜 প্রত্যয়নপত্র`,title:`প্রত্যয়নপত্র (Bonafide Certificate)`,color:`#047857`,bg:`#ecfdf5`,border:`#a7f3d0`},experience:{label:`🏆 অভিজ্ঞতার সনদ`,title:`অভিজ্ঞতার সনদ (Experience Certificate)`,color:`#b45309`,bg:`#fffbeb`,border:`#fde68a`},professional:{label:`🎖️ পেশাগত সনদ`,title:`পেশাগত সনদ (Professional Certificate)`,color:`#0d9488`,bg:`#f0fdfa`,border:`#99f6e4`},continuous:{label:`⏱️ নিরবিচ্ছিন্ন চাকুরী সনদ`,title:`নিরবিচ্ছিন্ন চাকুরী সনদ (Continuous Service)`,color:`#7e22ce`,bg:`#faf5ff`,border:`#e9d5ff`},release_order:{label:`✈️ প্রশিক্ষণ ছাড়পত্র`,title:`প্রশিক্ষণ ছাড়পত্র ও অবমুক্তি আদেশ (Release Order)`,color:`#c2410c`,bg:`#fff7ed`,border:`#fed7aa`},biodata:{label:`📄 আকর্ষণীয় বায়োডাটা (CV)`,title:`ব্যক্তিগত ও শিক্ষাগত বায়োডাটা (CV)`,color:`#133e68`,bg:`#f0f7ff`,border:`#93c5fd`},id_card:{label:`🪪 শিক্ষক পরিচয়পত্র`,title:`অফিশিয়াল পরিচয়পত্র (ID Card)`,color:`#4338ca`,bg:`#eef2ff`,border:`#c7d2fe`}},Jn=[`০`,`১`,`২`,`৩`,`৪`,`৫`,`৬`,`৭`,`৮`,`৯`],Yn=e=>e==null?``:String(e).replace(/\d/g,e=>Jn[e]);function Xn({isOpen:e,onClose:t,people:n=[],initialPersonId:r=``,initialTab:i=`bonafide`}){let[a,o]=(0,Z.useState)(i||`bonafide`),[s,l]=(0,Z.useState)(r||n[0]?.id||``),[u,d]=(0,Z.useState)(``),[f,p]=(0,Z.useState)(()=>{try{let e=localStorage.getItem(`magra_staff_certificate_office_copies`);return e?JSON.parse(e):[]}catch(e){return console.error(`Failed to load staff office copies`,e),[]}}),[h,g]=(0,Z.useState)(``),[_,v]=(0,Z.useState)(null),[y,b]=(0,Z.useState)(``),[x,S]=(0,Z.useState)(`all`),[C,w]=(0,Z.useState)(`all`),[T,D]=(0,Z.useState)(null),[O,ee]=(0,Z.useState)(`office`),[k,A]=(0,Z.useState)(``),[j,M]=(0,Z.useState)(()=>new Date().toISOString().slice(0,10)),[N,P]=(0,Z.useState)(`উত্তম, দায়িত্বশীল ও প্রশংসনীয়`),[F,I]=(0,Z.useState)(`নতুন জাতীয় শিক্ষাক্রম বিস্তরণ ও বিষয়ভিত্তিক শ্রেণি মূল্যায়ন প্রশিক্ষণ`),[te,ne]=(0,Z.useState)(`সরকারি টিচার্স ট্রেনিং কলেজ (TTC), ময়মনসিংহ`),[ie,ae]=(0,Z.useState)(`ময়মনসিংহ`),[R,oe]=(0,Z.useState)(()=>{let e=new Date;return e.setDate(e.getDate()+2),e.toISOString().slice(0,10)}),[se,ce]=(0,Z.useState)(()=>{let e=new Date;return e.setDate(e.getDate()+7),e.toISOString().slice(0,10)}),[z,le]=(0,Z.useState)(`৬ দিনব্যাপী`),[B,V]=(0,Z.useState)(`চাকুরীর ধারাবাহিকতায় কোনো প্রকার বিরতি (Break of Service) বা বিভাগীয় অসন্তোষজনক রেকর্ড নেই।`),ue=(0,Z.useMemo)(()=>{if(!u.trim())return n;let e=u.toLowerCase();return n.filter(t=>t.name_bn&&t.name_bn.toLowerCase().includes(e)||t.name_en&&t.name_en.toLowerCase().includes(e)||t.employee_id&&String(t.employee_id).toLowerCase().includes(e)||t.designation&&t.designation.toLowerCase().includes(e)||t.phone&&t.phone.includes(e))},[n,u]),H=(0,Z.useMemo)(()=>n.find(e=>String(e.id)===String(s)||String(e.employee_id)===String(s))||n[0]||null,[n,s]);if(!e)return null;let de=re,U=e=>{if(!e)return`—`;let t=String(e).slice(0,10),n=t.split(`-`);return n.length===3&&n[0].length===4?Yn(`${n[2]}-${n[1]}-${n[0]}`):Yn(t)},fe=e=>{if(!e)return`দীর্ঘদিন`;try{let t=new Date(e),n=new Date;if(isNaN(t.getTime()))return`দীর্ঘদিন`;let r=n.getFullYear()-t.getFullYear(),i=n.getMonth()-t.getMonth();return i<0&&(--r,i+=12),r<0?`কয়েক মাস`:r===0?`${Yn(i)} মাস`:i===0?`${Yn(r)} বছর`:`${Yn(r)} বছর ${Yn(i)} মাস`}catch{return`দীর্ঘদিন`}},pe=H?.name_bn||H?.name||`—`,me=H?.name_en||``,W=H?.designation||`সহকারী শিক্ষক`,he=H?.subject||``,ge=H?.employee_id||H?.id||`—`,_e=H?.mpo_index_no||H?.mpo_code||H?.index_no||`প্রযোজ্য নয়`,ve=H?.first_joining_date||H?.current_post_joining_date||H?.joining_date||`২০১২-০১-০১`,ye=H?.current_post_joining_date||H?.joining_date||H?.first_joining_date||`২০১২-০১-০১`,be=H?.father_name_bn||H?.father_name||`—`,xe=H?.mother_name_bn||H?.mother_name||`—`,G=H?.gender===`female`?`মহিলা`:`পুরুষ`,K=H?.gender===`female`?`জনাবা`:`জনাব`;H?.gender;let Se=H?.blood_group||`O+`,Ce=H?.phone||`—`,we=H?.email||`—`,Te=H?.address||`গ্রাম ও ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল`,Ee=H?.permanent_address||Te,De=H?.nid_no||H?.extended_profile?.nid||`—`,Oe=L(H),ke=fe(ye),Ae=typeof E==`function`?E():null,je=Ae?.head?.name||de.headTeacher||`মুহাম্মদ শফিকুল ইসলাম`,Me=Ae?.president?.name||de.president||`নেয়ামুল হক খান`,Ne=!!(H?.public_contact_role===`head_teacher`||H?.designation&&H.designation.includes(`প্রধান শিক্ষক`)&&!H.designation.includes(`সহকারী`)&&!H.designation.includes(`প্রাক্তন`)||H?.role===`head_teacher`||pe&&(pe.includes(`শফিকুল ইসলাম`)||pe.trim()===je.trim())),Pe=Ne?Me:je,q=Ne?Ae?.president?.role||`সভাপতি`:`প্রধান শিক্ষক`,Fe=de.nameBn,Ie=(k||``).trim(),J=()=>{let e=U(j),t=U(ve),n=U(ye),r=U(R),i=U(se);if(a===`bonafide`)return`
         <div class="cert-card-sheet bonafide-doc">
           <div class="cert-inner-border">
             ${m}
@@ -3057,234 +3057,317 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
 
           </div>
         </div>
-      `;if(a===`biodata`){let e=H?.extended_profile||{},r=e.education||[],i=e.training||[],a=e.in_service_training||[];return e.ntrca,`
-        <div class="cert-card-sheet biodata-sheet">
-          <!-- Institutional Header -->
-          <div class="bio-header">
-            <div class="bio-header-left">
-              <img src="${c}" class="bio-logo" alt="Logo">
-              <div>
-                <h2>${de.nameBn}</h2>
-                <h4>${de.nameEn} • EIIN: ${de.eiin}</h4>
-                <p>মগড়া, কালিহাতি, টাঙ্গাইল • স্থাপিত: ১৯৪৬</p>
-              </div>
+      `;if(a===`biodata`){let e=H?.extended_profile||{},t=H?.employee_id===`EMP-006`||String(H?.id)===`t-6`,n=e=>{if(!e)return`—`;let t=String(e).trim(),n=t.split(/[-/]/);if(n.length===3){if(n[0].length===4)return Yn(`${n[2].padStart(2,`0`)}/${n[1].padStart(2,`0`)}/${n[0]}`);if(n[2].length===4)return Yn(`${n[0].padStart(2,`0`)}/${n[1].padStart(2,`0`)}/${n[2]}`)}return Yn(t)},r=e=>{if(!e)return`২১ বছর ১০ মাস (প্রায়)`;try{let t=new Date(e),n=new Date;if(isNaN(t.getTime()))return`২১ বছর ১০ মাস (প্রায়)`;let r=n.getFullYear()-t.getFullYear(),i=n.getMonth()-t.getMonth();return i<0&&(--r,i+=12),r<0?`কয়েক মাস`:r===0?`${Yn(i)} মাস (প্রায়)`:i===0?`${Yn(r)} বছর (প্রায়)`:`${Yn(r)} বছর ${Yn(i)} মাস (প্রায়)`}catch{return`২১ বছর ১০ মাস (প্রায়)`}},i=e=>{if(!e)return`A(+)`;let t=String(e).trim().toUpperCase();return t.endsWith(`+`)?`${t.slice(0,-1)}(+)`:t.endsWith(`-`)?`${t.slice(0,-1)}(-)`:t},a=t?`মুহাম্মদ আবুবকর সিদ্দিক`:pe,o=t?`MUHAMMAD ABUBAKAR SIDDIQUE`:(me||H?.name_en||``).toUpperCase(),s=t?`সিনিয়র শিক্ষক (আইসিটি)`:he&&!W.includes(he)?`${W} (${he})`:W,c=`মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, মগড়া, কালিহাতী, টাঙ্গাইল`,l=t?`আব্দুস ছামাদ`:be,u=t?`নাজমা সুলতানা`:xe,d=t?`২৮/১০/১৯৭৭`:H?.date_of_birth?n(H.date_of_birth):`২৮/১০/১৯৭৭`,f=t?`টাঙ্গাইল`:H?.birth_place||H?.district||`টাঙ্গাইল`,p=H?.religion||`ইসলাম`,m=H?.marital_status||`বিবাহিত`,h=t?`A(+)`:i(H?.blood_group||Se||`A+`),g=t?`৫ ফুট ৫ ইঞ্চি`:H?.height||`৫ ফুট ৫ ইঞ্চি`,_=t?`D1031044`:_e,v=t?`০১/০১/২০০৫`:n(ve||`2005-01-01`),y=t?`০১/০২/২০০৬`:n(H?.first_mpo_date||`2006-02-01`),b=t?`০১/০১/২০০৫`:n(ye||ve||`2005-01-01`),x=t?`২১ বছর ১০ মাস (প্রায়)`:r(ve||`2005-01-01`),S=t?`01710689846`:Ce,C=t?`01710689846`:H?.whatsapp||Ce,w=t?`abubakar.28oc77@gmail.com`:we,T=t?`1010349254`:H?.nid_no||De||`1010349254`,E=t?`গ্রাম- টুনিমরুড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতী, জেলা- টাঙ্গাইল।`:Te,D=t?`গ্রাম- টুনিমরুড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতী, জেলা- টাঙ্গাইল।`:Ee,O=``;if(t)O=`
+          <tr>
+            <td class="cv-td">এস.এস.সি</td>
+            <td class="cv-td">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</td>
+            <td class="cv-td">ঢাকা</td>
+            <td class="cv-td">বিজ্ঞান / প্রথম বিভাগ</td>
+            <td class="cv-td" style="text-align:center">১৯৯২</td>
+          </tr>
+          <tr>
+            <td class="cv-td">এইচ.এস.সি</td>
+            <td class="cv-td">হাজী ওয়াছেদ মরিয়ম ডিগ্রী কলেজ সিরাজগঞ্জ</td>
+            <td class="cv-td">ঢাকা</td>
+            <td class="cv-td">বিজ্ঞান / দ্বিতীয় বিভাগ</td>
+            <td class="cv-td" style="text-align:center">১৯৯৪</td>
+          </tr>
+          <tr>
+            <td class="cv-td">বি.এস-সি</td>
+            <td class="cv-td">কালিহাতি কলেজ, কালিহাতি</td>
+            <td class="cv-td">জাতীয় বিশ্ববিদ্যালয়</td>
+            <td class="cv-td">বিজ্ঞান / দ্বিতীয় বিভাগ</td>
+            <td class="cv-td" style="text-align:center">১৯৯৬</td>
+          </tr>
+        `;else{let t=e.education;O=Array.isArray(t)&&t.length?t.map(e=>{let t=e.exam||`—`;t.includes(`এসএসসি`)||t.includes(`SSC`)?t=`এস.এস.সি`:t.includes(`এইচএসসি`)||t.includes(`HSC`)?t=`এইচ.এস.সি`:t.includes(`স্নাতক (পাস)`)||t.includes(`বিএসসি`)||t.includes(`বি.এস.সি`)?t=`বি.এস-সি`:t.includes(`স্নাতক (সম্মান)`)||t.includes(`অনার্স`)?t=`স্নাতক (সম্মান)`:(t.includes(`স্নাতকোত্তর`)||t.includes(`মাস্টার্স`))&&(t=`স্নাতকোত্তর`);let n=e.result||`—`;return e.subject&&!n.includes(e.subject)&&(n=`${e.subject} / ${n}`),`
+              <tr>
+                <td class="cv-td">${t}</td>
+                <td class="cv-td">${e.institution||`—`}</td>
+                <td class="cv-td">${e.board||`—`}</td>
+                <td class="cv-td">${n}</td>
+                <td class="cv-td" style="text-align:center">${Yn(e.year||`—`)}</td>
+              </tr>
+            `}).join(``):H?.educational_qualifications&&typeof H.educational_qualifications==`string`?H.educational_qualifications.split(`;`).map(e=>e.trim()).filter(Boolean).map(e=>{let t=e.split(`-`).map(e=>e.trim()),n=t[0]||`—`;n.includes(`এসএসসি`)||n.includes(`SSC`)?n=`এস.এস.সি`:n.includes(`এইচএসসি`)||n.includes(`HSC`)?n=`এইচ.এস.সি`:(n.includes(`স্নাতক (পাস)`)||n.includes(`বিএসসি`))&&(n=`বি.এস-সি`);let r=t[1]||`—`,i=t[2]||`—`,a=t[3]||``,o=t[4]||`—`,s=t[5]||t[4]||`—`,c=a?`${a} / ${s}`:s;return`
+              <tr>
+                <td class="cv-td">${n}</td>
+                <td class="cv-td">${r}</td>
+                <td class="cv-td">${i}</td>
+                <td class="cv-td">${c}</td>
+                <td class="cv-td" style="text-align:center">${Yn(o)}</td>
+              </tr>
+            `}).join(``):`
+            <tr>
+              <td class="cv-td">এস.এস.সি</td>
+              <td class="cv-td">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</td>
+              <td class="cv-td">ঢাকা</td>
+              <td class="cv-td">বিজ্ঞান / প্রথম বিভাগ</td>
+              <td class="cv-td" style="text-align:center">১৯৯২</td>
+            </tr>
+            <tr>
+              <td class="cv-td">এইচ.এস.সি</td>
+              <td class="cv-td">হাজী ওয়াছেদ মরিয়ম ডিগ্রী কলেজ সিরাজগঞ্জ</td>
+              <td class="cv-td">ঢাকা</td>
+              <td class="cv-td">বিজ্ঞান / দ্বিতীয় বিভাগ</td>
+              <td class="cv-td" style="text-align:center">১৯৯৪</td>
+            </tr>
+            <tr>
+              <td class="cv-td">বি.এস-সি</td>
+              <td class="cv-td">কালিহাতি কলেজ, কালিহাতি</td>
+              <td class="cv-td">জাতীয় বিশ্ববিদ্যালয়</td>
+              <td class="cv-td">বিজ্ঞান / দ্বিতীয় বিভাগ</td>
+              <td class="cv-td" style="text-align:center">১৯৯৬</td>
+            </tr>
+          `}let ee=``;if(t)ee=`
+          <tr>
+            <td class="cv-td">ডিপ্লোমা-ইন কম্পিউটার সাইন্স</td>
+            <td class="cv-td">ন্যাশনাল ইউথ ডেভেলপমেন্ট কম্পিউটার ট্রেনিং একাডেমি</td>
+            <td class="cv-td" style="text-align:center">২০০৪</td>
+            <td class="cv-td" style="text-align:center">জিপি- A</td>
+          </tr>
+          <tr>
+            <td class="cv-td">বি.এড</td>
+            <td class="cv-td">এশিয়ান ইউনিভার্সিটি</td>
+            <td class="cv-td" style="text-align:center">২০০৮</td>
+            <td class="cv-td" style="text-align:center">CGPA: 3.94</td>
+          </tr>
+        `;else{let t=e.professional_qualifications;ee=Array.isArray(t)&&t.length?t.map(e=>{let t=e.exam||`—`;t===`ডিপ্লোমা`||t.includes(`ডিপ্লোমা`)?t=`ডিপ্লোমা-ইন কম্পিউটার সাইন্স`:t===`বিএড`&&(t=`বি.এড`);let n=e.result||`—`;return(n===`৩.৯৪`||n===`3.94`)&&(n=`CGPA: 3.94`),`
+              <tr>
+                <td class="cv-td">${t}</td>
+                <td class="cv-td">${e.institution||`—`}</td>
+                <td class="cv-td" style="text-align:center">${Yn(e.year||`—`)}</td>
+                <td class="cv-td" style="text-align:center">${n}</td>
+              </tr>
+            `}).join(``):H?.professional_degrees&&typeof H.professional_degrees==`string`?H.professional_degrees.split(`;`).map(e=>e.trim()).filter(Boolean).map(e=>{let t=e.split(`-`).map(e=>e.trim()),n=t[0]||`—`;return n.includes(`ডিপ্লোমা`)?n=`ডিপ্লোমা-ইন কম্পিউটার সাইন্স`:n.includes(`বিএড`)&&(n=`বি.এড`),`
+              <tr>
+                <td class="cv-td">${n}</td>
+                <td class="cv-td">${t[1]||`—`}</td>
+                <td class="cv-td" style="text-align:center">${Yn(t[3]||t[2]||`—`)}</td>
+                <td class="cv-td" style="text-align:center">${t[4]||t[3]||`—`}</td>
+              </tr>
+            `}).join(``):`
+            <tr>
+              <td class="cv-td">ডিপ্লোমা-ইন কম্পিউটার সাইন্স</td>
+              <td class="cv-td">ন্যাশনাল ইউথ ডেভেলপমেন্ট কম্পিউটার ট্রেনিং একাডেমি</td>
+              <td class="cv-td" style="text-align:center">২০০৪</td>
+              <td class="cv-td" style="text-align:center">জিপি- A</td>
+            </tr>
+            <tr>
+              <td class="cv-td">বি.এড</td>
+              <td class="cv-td">এশিয়ান ইউনিভার্সিটি</td>
+              <td class="cv-td" style="text-align:center">২০০৮</td>
+              <td class="cv-td" style="text-align:center">CGPA: 3.94</td>
+            </tr>
+          `}let k=(he||``).trim(),A=`আইসিটি বিষয়ের মাস্টার ট্রেইনার`;t?A=`আইসিটি বিষয়ের মাস্টার ট্রেইনার`:k.includes(`গণিত`)?A=`গণিত বিষয়ের মাস্টার ট্রেইনার`:k.includes(`বিজ্ঞান`)||k.includes(`পদার্থ`)||k.includes(`রসায়ন`)?A=`বিজ্ঞান বিষয়ের মাস্টার ট্রেইনার`:k.includes(`ইংরেজি`)?A=`ইংরেজি বিষয়ের মাস্টার ট্রেইনার`:k.includes(`বাংলা`)?A=`বাংলা বিষয়ের মাস্টার ট্রেইনার`:Ne&&(A=`প্রাতিষ্ঠানিক নেতৃত্ব ও মাস্টার ট্রেইনার`);let j=t?`ICT4E জেলা শিক্ষক অ্যাম্বাসেডর শিক্ষক`:e.achievement_title||(Ne?`শ্রেষ্ঠ প্রতিষ্ঠান প্রধান ও শিক্ষা উন্নয়ন অ্যাওয়ার্ড`:`ICT4E জেলা শিক্ষক অ্যাম্বাসেডর শিক্ষক`);return`
+        <div class="cert-card-sheet biodata-official-sheet">
+          <!-- Top Centered Header Box -->
+          <div class="cv-title-wrap">
+            <div class="cv-title-box">ব্যক্তিগত ও শিক্ষাগত বায়োডাটা</div>
+          </div>
+
+          <!-- Profile Header Box -->
+          <div class="cv-profile-box">
+            <div class="cv-profile-info">
+              <h1 class="cv-name-bn">${a}</h1>
+              <h3 class="cv-name-en">${o}</h3>
+              <div class="cv-desig-school">${s}, ${c}</div>
             </div>
-            <div class="bio-tag-box">
-              <span>অফিশিয়াল শিক্ষক/কর্মচারী জীবনবৃত্তান্ত</span>
-              <b>CURRICULUM VITAE</b>
+            <div class="cv-photo-frame">
+              <img src="${Oe}" alt="${a}" onerror="this.src='/school-building.jpg'">
             </div>
           </div>
 
-          <!-- Top Profile Banner -->
-          <div class="bio-profile-banner">
-            <div class="bio-photo-frame">
-              <img src="${Oe}" alt="${pe}" onerror="this.src='/school-building.jpg'">
-            </div>
-            <div class="bio-primary-meta">
-              <h1 class="bio-name-bn">${pe}</h1>
-              ${me?`<h3 class="bio-name-en">${me}</h3>`:``}
-              <div class="bio-designation-badge">${W} ${he?`• ${he}`:``}</div>
-              <div class="bio-quick-specs">
-                <span><b>আইডি:</b> ${ge}</span>
-                <span><b>ইনডেক্স:</b> ${_e}</span>
-                <span><b>রক্তের গ্রুপ:</b> 🩸 ${Se}</span>
-                <span><b>স্ট্যাটাস:</b> <span class="badge-active">সক্রিয়</span></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 1: ব্যক্তিগত ও পারিবারিক তথ্যাবলি -->
-          <div class="bio-sec-title"><span>১. ব্যক্তিগত ও পারিবারিক তথ্যাবলি (Personal Details)</span></div>
-          <table class="bio-details-table">
-            <tr>
-              <td class="b-lbl">পিতার নাম</td>
-              <td class="b-sep">:</td>
-              <td class="b-val">${be}</td>
-              <td class="b-lbl">মাতার নাম</td>
-              <td class="b-sep">:</td>
-              <td class="b-val">${xe}</td>
-            </tr>
-            <tr>
-              <td class="b-lbl">জন্ম তারিখ</td>
-              <td class="b-sep">:</td>
-              <td class="b-val">${U(H?.date_of_birth||e?.dob||`১৯৮৫-০১-০১`)} খ্রি.</td>
-              <td class="b-lbl">লিঙ্গ ও ধর্ম</td>
-              <td class="b-sep">:</td>
-              <td class="b-val">${G} • ${H?.religion||`ইসলাম`}</td>
-            </tr>
-            <tr>
-              <td class="b-lbl">জাতীয় পরিচয়পত্র (NID)</td>
-              <td class="b-sep">:</td>
-              <td class="b-val"><b>${De}</b></td>
-              <td class="b-lbl">বৈবাহিক অবস্থা</td>
-              <td class="b-sep">:</td>
-              <td class="b-val">${H?.marital_status||`বিবাহিত`}</td>
-            </tr>
-            <tr>
-              <td class="b-lbl">মোবাইল নম্বর</td>
-              <td class="b-sep">:</td>
-              <td class="b-val"><b class="mono">${Ce}</b></td>
-              <td class="b-lbl">ই-মেইল এড্রেস</td>
-              <td class="b-sep">:</td>
-              <td class="b-val"><span class="mono">${we}</span></td>
-            </tr>
-            <tr>
-              <td class="b-lbl">বর্তমান ঠিকানা</td>
-              <td class="b-sep">:</td>
-              <td class="b-val" colspan="4">${Te}</td>
-            </tr>
-            <tr>
-              <td class="b-lbl">স্থায়ী ঠিকানা</td>
-              <td class="b-sep">:</td>
-              <td class="b-val" colspan="4">${Ee}</td>
-            </tr>
-          </table>
-
-          <!-- Section 2: নিয়োগ ও চাকুরীর তথ্যাবলি -->
-          <div class="bio-sec-title"><span>২. নিয়োগ ও চাকুরীর ধারাবাহিক বিবরণ (Employment & MPO History)</span></div>
-          <table class="bio-details-table">
-            <tr>
-              <td class="b-lbl">বর্তমান পদবী ও বিষয়</td>
-              <td class="b-sep">:</td>
-              <td class="b-val"><b>${W}</b> ${he?`(${he})`:``}</td>
-              <td class="b-lbl">এমপিও ইনডেক্স নং</td>
-              <td class="b-sep">:</td>
-              <td class="b-val"><b class="highlight-code">${_e}</b></td>
-            </tr>
-            <tr>
-              <td class="b-lbl">প্রথম চাকুরীতে যোগদান</td>
-              <td class="b-sep">:</td>
-              <td class="b-val">${t} খ্রি.</td>
-              <td class="b-lbl">বর্তমান পদে যোগদান</td>
-              <td class="b-sep">:</td>
-              <td class="b-val">${n} খ্রি.</td>
-            </tr>
-            <tr>
-              <td class="b-lbl">শিক্ষক বাতায়ন আইডি</td>
-              <td class="b-sep">:</td>
-              <td class="b-val">${H?.teacher_portal_id||`—`}</td>
-              <td class="b-lbl">মোট চাকুরীর অভিজ্ঞতা</td>
-              <td class="b-sep">:</td>
-              <td class="b-val"><b>${ke}</b></td>
-            </tr>
-          </table>
-
-          <!-- Section 3: শিক্ষাগত যোগ্যতা -->
-          <div class="bio-sec-title"><span>৩. শিক্ষাগত যোগ্যতার বিবরণ (Academic Qualifications)</span></div>
-          <table class="bio-grid-table">
+          <!-- ১. ব্যক্তিগত পরিচিতিঃ -->
+          <div class="cv-sec-title">ব্যক্তিগত পরিচিতিঃ</div>
+          <table class="cv-table">
             <thead>
               <tr>
-                <th style="width:35px">ক্র.</th>
-                <th>পরীক্ষার নাম</th>
-                <th>বিভাগ / বিষয়</th>
-                <th>বোর্ড / বিশ্ববিদ্যালয়</th>
-                <th>পাশের সন</th>
-                <th>ফলাফল / গ্রেড</th>
+                <th style="width: 18%; text-align: left;">বিষয়</th>
+                <th style="width: 32%; text-align: left;">বিবরণ</th>
+                <th style="width: 18%; text-align: left;">বিষয়</th>
+                <th style="width: 32%; text-align: left;">বিবরণ</th>
               </tr>
             </thead>
             <tbody>
-              ${r&&r.length?r.map((e,t)=>`
-                <tr>
-                  <td style="text-align:center">${t+1}</td>
-                  <td><b>${e.exam||`—`}</b></td>
-                  <td>${e.subject||`—`}</td>
-                  <td>${e.board||`—`}</td>
-                  <td style="text-align:center">${Yn(e.year)||e.year||`—`}</td>
-                  <td style="text-align:center"><b>${Yn(e.result)||e.result||`—`}</b></td>
-                </tr>
-              `).join(``):`
-                <tr>
-                  <td style="text-align:center">১</td>
-                  <td><b>স্নাতকোত্তর (মাস্টার্স)</b></td>
-                  <td>${he||`কলা / বিজ্ঞান`}</td>
-                  <td>জাতীয় বিশ্ববিদ্যালয়</td>
-                  <td style="text-align:center">২০১১</td>
-                  <td style="text-align:center"><b>১ম শ্রেণি / ৩.৫০</b></td>
-                </tr>
-                <tr>
-                  <td style="text-align:center">২</td>
-                  <td><b>স্নাতক (সম্মান)</b></td>
-                  <td>${he||`কলা / বিজ্ঞান`}</td>
-                  <td>জাতীয় বিশ্ববিদ্যালয়</td>
-                  <td style="text-align:center">২০১০</td>
-                  <td style="text-align:center"><b>২য় শ্রেণি / ৩.২৫</b></td>
-                </tr>
-                <tr>
-                  <td style="text-align:center">৩</td>
-                  <td><b>উচ্চ মাধ্যমিক (HSC)</b></td>
-                  <td>বিজ্ঞান / মানবিক</td>
-                  <td>ঢাকা বোর্ড</td>
-                  <td style="text-align:center">২০০৬</td>
-                  <td style="text-align:center"><b>৪.৫০ (A)</b></td>
-                </tr>
-                <tr>
-                  <td style="text-align:center">৪</td>
-                  <td><b>মাধ্যমিক (SSC)</b></td>
-                  <td>সাধারণ</td>
-                  <td>ঢাকা বোর্ড</td>
-                  <td style="text-align:center">২০০৪</td>
-                  <td style="text-align:center"><b>৪.৮০ (A)</b></td>
-                </tr>
-              `}
+              <tr>
+                <td class="cv-lbl">পিতার নাম</td>
+                <td class="cv-val">${l}</td>
+                <td class="cv-lbl">মাতার নাম</td>
+                <td class="cv-val">${u}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">জন্মতারিখ</td>
+                <td class="cv-val">${d}</td>
+                <td class="cv-lbl">জন্মস্থান</td>
+                <td class="cv-val">${f}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">ধর্ম</td>
+                <td class="cv-val">${p}</td>
+                <td class="cv-lbl">বৈবাহিক অবস্থা</td>
+                <td class="cv-val">${m}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">রক্তের গ্রুপ</td>
+                <td class="cv-val"><span class="cv-val-blood">${h}</span></td>
+                <td class="cv-lbl">উচ্চতা</td>
+                <td class="cv-val">${g}</td>
+              </tr>
             </tbody>
           </table>
 
-          <!-- Section 4: পেশাগত প্রশিক্ষণ ও কর্মশালা -->
-          <div class="bio-sec-title"><span>৪. পেশাগত প্রশিক্ষণ ও কর্মশালা (Training & Workshops)</span></div>
-          <table class="bio-grid-table">
+          <!-- ২. পেশাগত পরিচিতিঃ -->
+          <div class="cv-sec-title">পেশাগত পরিচিতিঃ</div>
+          <table class="cv-table">
+            <tbody>
+              <tr>
+                <td class="cv-lbl" style="width: 18%;">পদবি</td>
+                <td class="cv-val" style="width: 32%; font-weight: 600;">${s}</td>
+                <td class="cv-lbl" style="width: 22%;">এমপিও ইনডেক্স</td>
+                <td class="cv-val" style="width: 28%; font-weight: 700;">${_}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">প্রতিষ্ঠানের নাম</td>
+                <td class="cv-val" colspan="3">${c}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">১ম যোগদানের তারিখ</td>
+                <td class="cv-val">${v}</td>
+                <td class="cv-lbl">১ম এমপিও ভুক্তির তারিখ</td>
+                <td class="cv-val">${y}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">বর্তমান পদে যোগদান</td>
+                <td class="cv-val">${b}</td>
+                <td class="cv-lbl">চাকুরিতে মোট অভিজ্ঞতা</td>
+                <td class="cv-val" style="font-weight: 700;">${x}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ৩. যোগাযোগের তথ্যঃ -->
+          <div class="cv-sec-title">যোগাযোগের তথ্যঃ</div>
+          <table class="cv-table">
+            <tbody>
+              <tr>
+                <td class="cv-lbl" style="width: 18%;">মোবাইল নাম্বার</td>
+                <td class="cv-val" style="width: 32%; font-weight: 600;">${S}</td>
+                <td class="cv-lbl" style="width: 22%;">হোয়াটসঅ্যাপ নাম্বার</td>
+                <td class="cv-val" style="width: 28%; font-weight: 600;">${C}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">ই-মেইল</td>
+                <td class="cv-val" colspan="3"><span class="cv-val-email">${w}</span></td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">জাতীয় পরিচয়পত্র নাম্বার</td>
+                <td class="cv-val" colspan="3" style="font-weight: 700;">${T}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">বর্তমান ঠিকানা</td>
+                <td class="cv-val" colspan="3">${E}</td>
+              </tr>
+              <tr>
+                <td class="cv-lbl">স্থায়ী ঠিকানা</td>
+                <td class="cv-val" colspan="3">${D}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ৪. শিক্ষাগত যোগ্যতাঃ -->
+          <div class="cv-sec-title">শিক্ষাগত যোগ্যতাঃ</div>
+          <table class="cv-table">
             <thead>
               <tr>
-                <th style="width:35px">ক্র.</th>
-                <th>প্রশিক্ষণের নাম / কোর্স</th>
-                <th>প্রতিষ্ঠান ও স্থান</th>
-                <th>শুরুর তারিখ</th>
-                <th>শেষের তারিখ</th>
-                <th>স্থিতিকাল</th>
+                <th style="width: 16%; text-align: left;">পরীক্ষা/ডিগ্রি</th>
+                <th style="width: 36%; text-align: left;">প্রতিষ্ঠান</th>
+                <th style="width: 20%; text-align: left;">বোর্ড/বিশ্ববিদ্যালয়</th>
+                <th style="width: 18%; text-align: left;">বিভাগ/ফলাফল</th>
+                <th style="width: 10%; text-align: center;">সাল</th>
               </tr>
             </thead>
             <tbody>
-              ${[...i,...a].length?[...i,...a].map((e,t)=>`
-                <tr>
-                  <td style="text-align:center">${t+1}</td>
-                  <td><b>${e.title||e.name||`—`}</b></td>
-                  <td>${e.institution||e.place||`—`}</td>
-                  <td style="text-align:center">${U(e.start_date)}</td>
-                  <td style="text-align:center">${U(e.end_date)}</td>
-                  <td style="text-align:center">${Yn(e.duration)||e.duration||`—`}</td>
-                </tr>
-              `).join(``):`
-                <tr>
-                  <td style="text-align:center">১</td>
-                  <td><b>জাতীয় শিক্ষাক্রম রূপরেখা বিস্তরণ প্রশিক্ষণ</b></td>
-                  <td>উপজেলা রিসোর্স সেন্টার, কালিহাতি</td>
-                  <td style="text-align:center">০১-০২-২০২৪</td>
-                  <td style="text-align:center">০৬-০২-২০২৪</td>
-                  <td style="text-align:center">৬ দিন</td>
-                </tr>
-                <tr>
-                  <td style="text-align:center">২</td>
-                  <td><b>আইসিটি ও ডিজিটাল পেডাগোজি প্রশিক্ষণ</b></td>
-                  <td>টিচার্স ট্রেনিং কলেজ (TTC), ময়মনসিংহ</td>
-                  <td style="text-align:center">১০-০৫-২০২৩</td>
-                  <td style="text-align:center">২৩-০৫-২০২৩</td>
-                  <td style="text-align:center">১৪ দিন</td>
-                </tr>
-              `}
+              ${O}
             </tbody>
           </table>
 
-          <div class="bio-footer-signatures">
-            <div class="b-sig">
-              <div class="b-sig-line"></div>
-              <b>${pe}</b>
-              <span>সংশ্লিষ্ট শিক্ষক/কর্মচারীর স্বাক্ষর</span>
-            </div>
-            <div class="b-sig">
-              <div class="b-sig-line"></div>
-              <b>${Pe}</b>
-              <span>${q}</span>
-              <span>${Fe}</span>
-            </div>
+          <!-- ৫. পেশাগত যোগ্যতাঃ -->
+          <div class="cv-sec-title">পেশাগত যোগ্যতাঃ</div>
+          <table class="cv-table">
+            <thead>
+              <tr>
+                <th style="width: 28%; text-align: left;">প্রশিক্ষণের নাম</th>
+                <th style="width: 44%; text-align: left;">প্রতিষ্ঠান</th>
+                <th style="width: 12%; text-align: center;">সাল</th>
+                <th style="width: 16%; text-align: center;">ফলাফল</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ee}
+            </tbody>
+          </table>
+
+          <!-- ৬. দক্ষতা ও পেশাগত সক্ষমতাঃ -->
+          <div class="cv-sec-title">দক্ষতা ও পেশাগত সক্ষমতাঃ</div>
+          <table class="cv-table">
+            <tbody>
+              <tr>
+                <td class="cv-lbl" style="width: 30%; font-weight: 700; vertical-align: middle;">
+                  ${A}
+                </td>
+                <td style="width: 70%; padding: 0;">
+                  <div class="cv-sub-item">জাতীয় শিক্ষাক্রম বিস্তরণ-২০২১</div>
+                  <div class="cv-sub-item">নেটওয়ার্কিং এন্ড প্রোগ্রামিং</div>
+                  <div class="cv-sub-item">ইনহাউজ ট্রেনিং (IHT) : নেটওয়ার্কিং এন্ড প্রোগ্রামিং</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ৭. অর্জনঃ -->
+          <div class="cv-sec-title">অর্জনঃ</div>
+          <table class="cv-table">
+            <tbody>
+              <tr>
+                <td class="cv-lbl" style="width: 30%; font-weight: 700; vertical-align: middle;">
+                  অ্যাম্বাসেডর
+                </td>
+                <td class="cv-val" style="width: 55%; font-weight: 700; color: #133e68; vertical-align: middle;">
+                  ${j}
+                </td>
+                <td style="width: 15%; text-align: center; vertical-align: middle; padding: 4px 6px;">
+                  
+        <svg width="42" height="46" viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;">
+          <path d="M38 65 L26 102 L48 90 L52 102 L48 65 Z" fill="#92400e" stroke="#78350f" stroke-width="1.5"/>
+          <path d="M62 65 L74 102 L52 90 L48 102 L52 65 Z" fill="#b45309" stroke="#78350f" stroke-width="1.5"/>
+          <path d="M30 102 L40 70 L50 90 Z" fill="#78350f" opacity="0.4"/>
+          <circle cx="50" cy="45" r="38" fill="url(#goldGrad)" stroke="#78350f" stroke-width="2"/>
+          <circle cx="50" cy="45" r="33" fill="none" stroke="#92400e" stroke-width="1.5" stroke-dasharray="3 2"/>
+          <circle cx="50" cy="45" r="30" fill="url(#goldInner)" stroke="#b45309" stroke-width="1"/>
+          <polygon points="50,23 54,35 67,35 56,43 60,56 50,47 40,56 44,43 33,35 46,35" fill="#fef08a" stroke="#854d0e" stroke-width="1"/>
+          <circle cx="50" cy="45" r="8" fill="#d97706" stroke="#78350f" stroke-width="1"/>
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fef08a"/>
+              <stop offset="35%" stop-color="#f59e0b"/>
+              <stop offset="70%" stop-color="#d97706"/>
+              <stop offset="100%" stop-color="#78350f"/>
+            </linearGradient>
+            <linearGradient id="goldInner" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fffbeb"/>
+              <stop offset="50%" stop-color="#fde68a"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Signature -->
+          <div class="cv-signature-area">
+            স্বাক্ষরঃ.........................
           </div>
         </div>
       `}return a===`id_card`?`
@@ -3847,213 +3930,170 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     color: #475569;
   }
 
-  /* BIODATA STYLES */
-  .biodata-sheet {
+  /* ==================================================================== */
+  /* NEW OFFICIAL INSTITUTIONAL BIODATA (CV) STYLES - EXACT MATCH IMAGE 2 */
+  /* ==================================================================== */
+  .biodata-official-sheet {
+    background: #ffffff;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
     padding: 24px 28px;
+    box-sizing: border-box;
+    font-family: 'Hind Siliguri', 'SolaimanLipi', sans-serif;
+    color: #000000;
   }
 
-  .bio-header {
+  .cv-title-wrap {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .cv-title-box {
+    display: inline-block;
+    border: 1.5px solid #133e68;
+    padding: 4px 28px;
+    font-size: 19px;
+    font-weight: 800;
+    color: #0f2e5a;
+    letter-spacing: 0.5px;
+    background: #ffffff;
+  }
+
+  .cv-profile-box {
+    border: 1.5px solid #133e68;
+    padding: 10px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #064e3b;
-    padding-bottom: 12px;
+    margin-bottom: 12px;
+    background: #ffffff;
   }
 
-  .bio-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .bio-logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    border-radius: 50%;
-  }
-
-  .bio-header-left h2 {
-    margin: 0;
-    font-size: 20px;
-    color: #064e3b;
-    font-weight: 800;
-  }
-
-  .bio-header-left h4 {
-    margin: 2px 0 0;
-    font-size: 12px;
-    color: #0284c7;
-    font-family: 'Outfit', sans-serif;
-  }
-
-  .bio-header-left p {
-    margin: 2px 0 0;
-    font-size: 10.5px;
-    color: #64748b;
-  }
-
-  .bio-tag-box {
-    text-align: right;
-  }
-
-  .bio-tag-box span {
-    display: block;
-    font-size: 11px;
-    color: #047857;
-    font-weight: 700;
-  }
-
-  .bio-tag-box b {
-    font-size: 17px;
-    color: #0f172a;
-    letter-spacing: 1px;
-    font-family: 'Outfit', sans-serif;
-  }
-
-  .bio-profile-banner {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin: 16px 0;
-  }
-
-  .bio-photo-frame {
-    width: 110px;
-    height: 130px;
-    border-radius: 8px;
-    border: 2px solid #047857;
-    overflow: hidden;
-    background: #e2e8f0;
-    flex-shrink: 0;
-  }
-
-  .bio-photo-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .bio-primary-meta {
+  .cv-profile-info {
     flex: 1;
   }
 
-  .bio-name-bn {
+  .cv-name-bn {
     margin: 0;
-    font-size: 22px;
-    color: #064e3b;
-    font-weight: 900;
+    font-size: 24px;
+    font-weight: 800;
+    color: #000000;
+    line-height: 1.25;
   }
 
-  .bio-name-en {
-    margin: 2px 0 0;
-    font-size: 13px;
-    color: #0284c7;
+  .cv-name-en {
+    margin: 4px 0 0;
+    font-size: 14.5px;
+    font-weight: 800;
+    color: #0f2e5a;
+    letter-spacing: 0.5px;
     font-family: 'Outfit', sans-serif;
+  }
+
+  .cv-desig-school {
+    margin-top: 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.35;
+  }
+
+  .cv-photo-frame {
+    width: 100px;
+    height: 120px;
+    border: 1.5px solid #133e68;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: #f8fafc;
+    margin-left: 14px;
+  }
+
+  .cv-photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .cv-sec-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #000000;
+    margin: 12px 0 3px 0;
+    letter-spacing: 0.2px;
+  }
+
+  .cv-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1.5px solid #133e68;
+    font-size: 12px;
+    page-break-inside: avoid;
+    background: #ffffff;
+  }
+
+  .cv-table th, .cv-table td {
+    border: 1px solid #133e68;
+    padding: 4.5px 8px;
+    vertical-align: middle;
+    line-height: 1.4;
+  }
+
+  .cv-table thead tr {
+    background: #133e68 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .cv-table th {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+  }
+
+  .cv-lbl {
+    font-weight: 600;
+    color: #000000;
+    background: #ffffff;
+  }
+
+  .cv-val {
+    color: #0f172a;
+  }
+
+  .cv-val-email {
+    color: #0284c7;
+    text-decoration: underline;
     font-weight: 600;
   }
 
-  .bio-designation-badge {
-    margin: 5px 0 8px;
-    display: inline-block;
-    background: #dcfce7;
-    color: #166534;
-    padding: 3px 10px;
-    border-radius: 4px;
+  .cv-val-blood {
+    color: #b91c1c;
+    font-weight: 800;
+  }
+
+  .cv-sub-item {
+    padding: 4px 8px;
+    border-bottom: 1px solid #133e68;
+  }
+  .cv-sub-item:last-child {
+    border-bottom: none;
+  }
+
+  .cv-signature-area {
+    margin-top: 28px;
     font-size: 13px;
     font-weight: 700;
-  }
-
-  .bio-quick-specs {
-    display: flex;
-    gap: 14px;
-    font-size: 12px;
-    color: #475569;
-    flex-wrap: wrap;
-  }
-
-  .bio-sec-title {
-    margin: 18px 0 8px;
-    background: #f1f5f9;
-    padding: 5px 10px;
-    border-left: 4px solid #047857;
-    font-size: 13.5px;
-    font-weight: 800;
-    color: #0f172a;
-  }
-
-  .bio-details-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  .bio-details-table td {
-    padding: 4px 6px;
-    vertical-align: top;
-  }
-
-  .bio-details-table td.b-lbl {
-    width: 130px;
-    font-weight: 700;
-    color: #475569;
-  }
-
-  .bio-details-table td.b-sep {
-    width: 10px;
-    text-align: center;
-    font-weight: 700;
-  }
-
-  .bio-details-table td.b-val {
-    color: #0f172a;
-  }
-
-  .bio-grid-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    margin-top: 4px;
-  }
-
-  .bio-grid-table th, .bio-grid-table td {
-    border: 1px solid #cbd5e1;
-    padding: 5px 8px;
-  }
-
-  .bio-grid-table th {
-    background: #f8fafc;
-    color: #334155;
-    font-weight: 700;
-    text-align: left;
-  }
-
-  .bio-footer-signatures {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 45px;
+    color: #000000;
     page-break-inside: avoid;
   }
 
-  .b-sig {
-    text-align: center;
-    width: 180px;
-    font-size: 12px;
-  }
-
-  .b-sig-line {
-    border-top: 1.5px dashed #334155;
-    margin-bottom: 4px;
-  }
-
-  .b-sig span {
-    display: block;
-    font-size: 11px;
-    color: #64748b;
+  /* Legacy biodata-sheet alias */
+  .biodata-sheet {
+    padding: 24px 28px;
   }
 
   /* STAFF ID CARD (CR-80 Format) */

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  getStoredFormerPersonnelData, 
-  saveStoredFormerPersonnelData, 
-  DEFAULT_FORMER_PERSONNEL 
+import {
+  getStoredFormerPersonnelData,
+  saveStoredFormerPersonnelData,
+  DEFAULT_FORMER_PERSONNEL
 } from './formerPersonnelData';
-import { 
-  MOCK_TEACHERS, 
-  MOCK_STAFF, 
-  getTeacherPhoto, 
-  getLeadershipData 
+import {
+  MOCK_TEACHERS,
+  MOCK_STAFF,
+  getTeacherPhoto,
+  getLeadershipData
 } from './mockData';
 import { isAssistantHeadPhoto } from './photoStorage.js';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
@@ -49,7 +49,7 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) return parsed;
       }
-    } catch {}
+    } catch { }
     return MOCK_TEACHERS;
   });
 
@@ -58,23 +58,23 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
     try {
       const raw = localStorage.getItem('magra_db_leadership_settings');
       if (raw) return JSON.parse(raw);
-    } catch {}
+    } catch { }
     return {};
   });
 
   // Current Head and Asst objects
-  const headTeacher = teachersList.find(t => 
+  const headTeacher = teachersList.find(t =>
     t && (
-      t.public_contact_role === 'head_teacher' || 
+      t.public_contact_role === 'head_teacher' ||
       (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) ||
       t.id === 't-1' ||
       (t.name_bn && t.name_bn.includes('শফিকুল'))
     )
   ) || teachersList[0] || {};
 
-  const asstTeacher = teachersList.find(t => 
+  const asstTeacher = teachersList.find(t =>
     t && (
-      t.public_contact_role === 'assistant_head_teacher' || 
+      t.public_contact_role === 'assistant_head_teacher' ||
       (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) ||
       t.id === 't-2' ||
       (t.name_bn && t.name_bn.includes('তাপসী'))
@@ -110,8 +110,8 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
   // Sync leader form when switching to head or assistant
   useEffect(() => {
     if (activeTab === 'head') {
-      const speech = leadershipSettings.head?.speech || 
-        (Array.isArray(getLeadershipData().map['public.nav.leadership.head']?.speech) 
+      const speech = leadershipSettings.head?.speech ||
+        (Array.isArray(getLeadershipData().map['public.nav.leadership.head']?.speech)
           ? getLeadershipData().map['public.nav.leadership.head'].speech.join('\n\n')
           : getLeadershipData().map['public.nav.leadership.head']?.speech || '');
       setLeaderForm({
@@ -129,8 +129,8 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
         speech: typeof speech === 'string' ? speech : ''
       });
     } else if (activeTab === 'assistant') {
-      const speech = leadershipSettings.asst_head?.speech || 
-        (Array.isArray(getLeadershipData().map['public.nav.leadership.asst_head']?.speech) 
+      const speech = leadershipSettings.asst_head?.speech ||
+        (Array.isArray(getLeadershipData().map['public.nav.leadership.asst_head']?.speech)
           ? getLeadershipData().map['public.nav.leadership.asst_head'].speech.join('\n\n')
           : getLeadershipData().map['public.nav.leadership.asst_head']?.speech || '');
       setLeaderForm({
@@ -192,7 +192,7 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
     setTeachersList(updatedTeachers);
     try {
       localStorage.setItem('magra_db_teachers', JSON.stringify(updatedTeachers));
-    } catch {}
+    } catch { }
 
     // 2. Update leadership settings speech
     const roleKey = isHead ? 'head' : 'asst_head';
@@ -214,7 +214,7 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
     setLeadershipSettings(updatedLeadership);
     try {
       localStorage.setItem('magra_db_leadership_settings', JSON.stringify(updatedLeadership));
-    } catch {}
+    } catch { }
 
     showToast(`✓ ${isHead ? 'প্রধান শিক্ষক' : 'সহকারী প্রধান শিক্ষক'} এর প্রোফাইল ও তথ্য সফলভাবে সংরক্ষিত হয়েছে!`);
   };
@@ -397,10 +397,10 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
               <div style={{ width: '84px', height: '84px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #047857', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                <img 
-                  src={leaderForm.photo_url || getTeacherPhoto(headTeacher)} 
-                  alt={leaderForm.name_bn} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                <img
+                  src={leaderForm.photo_url || getTeacherPhoto(headTeacher)}
+                  alt={leaderForm.name_bn}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
               <div>
@@ -459,101 +459,101 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
             <form onSubmit={handleSaveLeader} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div style={{ gridColumn: 'span 1' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>নাম (বাংলা) *</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.name_bn} 
-                  onChange={e => setLeaderForm({ ...leaderForm, name_bn: e.target.value })} 
-                  required 
+                <input
+                  type="text"
+                  value={leaderForm.name_bn}
+                  onChange={e => setLeaderForm({ ...leaderForm, name_bn: e.target.value })}
+                  required
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 1' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Name (English)</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.name_en} 
-                  onChange={e => setLeaderForm({ ...leaderForm, name_en: e.target.value })} 
+                <input
+                  type="text"
+                  value={leaderForm.name_en}
+                  onChange={e => setLeaderForm({ ...leaderForm, name_en: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>মোবাইল নম্বর</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.phone} 
-                  onChange={e => setLeaderForm({ ...leaderForm, phone: e.target.value })} 
+                <input
+                  type="text"
+                  value={leaderForm.phone}
+                  onChange={e => setLeaderForm({ ...leaderForm, phone: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>ইমেইল</label>
-                <input 
-                  type="email" 
-                  value={leaderForm.email} 
-                  onChange={e => setLeaderForm({ ...leaderForm, email: e.target.value })} 
+                <input
+                  type="email"
+                  value={leaderForm.email}
+                  onChange={e => setLeaderForm({ ...leaderForm, email: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>বর্তমান পদে যোগদান</label>
-                <input 
-                  type="date" 
-                  value={leaderForm.current_post_joining_date} 
-                  onChange={e => setLeaderForm({ ...leaderForm, current_post_joining_date: e.target.value })} 
+                <input
+                  type="date"
+                  value={leaderForm.current_post_joining_date}
+                  onChange={e => setLeaderForm({ ...leaderForm, current_post_joining_date: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>MPO ইনডেক্স নম্বর</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.mpo_index_no} 
-                  onChange={e => setLeaderForm({ ...leaderForm, mpo_index_no: e.target.value })} 
+                <input
+                  type="text"
+                  value={leaderForm.mpo_index_no}
+                  onChange={e => setLeaderForm({ ...leaderForm, mpo_index_no: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>ছবি (URL অথবা Base64)</label>
-                <input 
-                  type="text" 
-                  placeholder="https://... অথবা data:image/..." 
-                  value={leaderForm.photo_url} 
-                  onChange={e => setLeaderForm({ ...leaderForm, photo_url: e.target.value })} 
+                <input
+                  type="text"
+                  placeholder="https://... অথবা data:image/..."
+                  value={leaderForm.photo_url}
+                  onChange={e => setLeaderForm({ ...leaderForm, photo_url: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>শিক্ষাগত যোগ্যতা</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.educational_qualifications} 
-                  onChange={e => setLeaderForm({ ...leaderForm, educational_qualifications: e.target.value })} 
+                <input
+                  type="text"
+                  value={leaderForm.educational_qualifications}
+                  onChange={e => setLeaderForm({ ...leaderForm, educational_qualifications: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>প্রধান শিক্ষকের বাণী / বক্তব্য</label>
-                <textarea 
-                  rows="4" 
-                  value={leaderForm.speech} 
-                  onChange={e => setLeaderForm({ ...leaderForm, speech: e.target.value })} 
+                <textarea
+                  rows="4"
+                  value={leaderForm.speech}
+                  onChange={e => setLeaderForm({ ...leaderForm, speech: e.target.value })}
                   placeholder="প্রধান শিক্ষকের শুভেচ্ছা বাণী লিখুন..."
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', lineHeight: 1.5 }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2', display: 'flex', gap: '8px', marginTop: '6px' }}>
-                <button 
-                  type="submit" 
-                  className="btn" 
+                <button
+                  type="submit"
+                  className="btn"
                   style={{ background: '#047857', color: '#fff', fontWeight: 700, padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                 >
                   ✓ প্রধান শিক্ষকের তথ্য সংরক্ষণ করুন
@@ -571,10 +571,10 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
               <div style={{ width: '84px', height: '84px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #0d9488', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                <img 
-                  src={leaderForm.photo_url || getTeacherPhoto(asstTeacher)} 
-                  alt={leaderForm.name_bn} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                <img
+                  src={leaderForm.photo_url || getTeacherPhoto(asstTeacher)}
+                  alt={leaderForm.name_bn}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
               <div>
@@ -633,101 +633,101 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
             <form onSubmit={handleSaveLeader} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div style={{ gridColumn: 'span 1' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>নাম (বাংলা) *</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.name_bn} 
-                  onChange={e => setLeaderForm({ ...leaderForm, name_bn: e.target.value })} 
-                  required 
+                <input
+                  type="text"
+                  value={leaderForm.name_bn}
+                  onChange={e => setLeaderForm({ ...leaderForm, name_bn: e.target.value })}
+                  required
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 1' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Name (English)</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.name_en} 
-                  onChange={e => setLeaderForm({ ...leaderForm, name_en: e.target.value })} 
+                <input
+                  type="text"
+                  value={leaderForm.name_en}
+                  onChange={e => setLeaderForm({ ...leaderForm, name_en: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>মোবাইল নম্বর</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.phone} 
-                  onChange={e => setLeaderForm({ ...leaderForm, phone: e.target.value })} 
+                <input
+                  type="text"
+                  value={leaderForm.phone}
+                  onChange={e => setLeaderForm({ ...leaderForm, phone: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>ইমেইল</label>
-                <input 
-                  type="email" 
-                  value={leaderForm.email} 
-                  onChange={e => setLeaderForm({ ...leaderForm, email: e.target.value })} 
+                <input
+                  type="email"
+                  value={leaderForm.email}
+                  onChange={e => setLeaderForm({ ...leaderForm, email: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>বর্তমান পদে যোগদান</label>
-                <input 
-                  type="date" 
-                  value={leaderForm.current_post_joining_date} 
-                  onChange={e => setLeaderForm({ ...leaderForm, current_post_joining_date: e.target.value })} 
+                <input
+                  type="date"
+                  value={leaderForm.current_post_joining_date}
+                  onChange={e => setLeaderForm({ ...leaderForm, current_post_joining_date: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>MPO ইনডেক্স নম্বর</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.mpo_index_no} 
-                  onChange={e => setLeaderForm({ ...leaderForm, mpo_index_no: e.target.value })} 
+                <input
+                  type="text"
+                  value={leaderForm.mpo_index_no}
+                  onChange={e => setLeaderForm({ ...leaderForm, mpo_index_no: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>ছবি (URL অথবা Base64)</label>
-                <input 
-                  type="text" 
-                  placeholder="https://... অথবা data:image/..." 
-                  value={leaderForm.photo_url} 
-                  onChange={e => setLeaderForm({ ...leaderForm, photo_url: e.target.value })} 
+                <input
+                  type="text"
+                  placeholder="https://... অথবা data:image/..."
+                  value={leaderForm.photo_url}
+                  onChange={e => setLeaderForm({ ...leaderForm, photo_url: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>শিক্ষাগত যোগ্যতা</label>
-                <input 
-                  type="text" 
-                  value={leaderForm.educational_qualifications} 
-                  onChange={e => setLeaderForm({ ...leaderForm, educational_qualifications: e.target.value })} 
+                <input
+                  type="text"
+                  value={leaderForm.educational_qualifications}
+                  onChange={e => setLeaderForm({ ...leaderForm, educational_qualifications: e.target.value })}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>সহকারী প্রধান শিক্ষকের একাডেমিক বার্তা</label>
-                <textarea 
-                  rows="4" 
-                  value={leaderForm.speech} 
-                  onChange={e => setLeaderForm({ ...leaderForm, speech: e.target.value })} 
+                <textarea
+                  rows="4"
+                  value={leaderForm.speech}
+                  onChange={e => setLeaderForm({ ...leaderForm, speech: e.target.value })}
                   placeholder="সহকারী প্রধান শিক্ষকের একাডেমিক বার্তা লিখুন..."
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', lineHeight: 1.5 }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2', display: 'flex', gap: '8px', marginTop: '6px' }}>
-                <button 
-                  type="submit" 
-                  className="btn" 
+                <button
+                  type="submit"
+                  className="btn"
                   style={{ background: '#0d9488', color: '#fff', fontWeight: 700, padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                 >
                   ✓ সহকারী প্রধান শিক্ষকের তথ্য সংরক্ষণ করুন
@@ -740,16 +740,16 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
       {/* TAB 3: Active Teachers (কর্মরত শিক্ষকবৃন্দ - Directly renders StaffPanelComponent for full table visibility without duplicate top tabs) */}
       {activeTab === 'active_teachers' && StaffPanelComponent && (
-        <StaffPanelComponent 
-          sub="teachers_list" 
+        <StaffPanelComponent
+          sub="teachers_list"
           onLivePreview={() => setPreviewModal({ key: 'public.nav.staff.active_teachers', title: 'কর্মরত শিক্ষকবৃন্দ' })}
         />
       )}
 
       {/* TAB 4: Active Staff (কর্মরত কর্মচারীবৃন্দ) */}
       {activeTab === 'active_staff' && StaffPanelComponent && (
-        <StaffPanelComponent 
-          sub="staff_list" 
+        <StaffPanelComponent
+          sub="staff_list"
           onLivePreview={() => setPreviewModal({ key: 'public.nav.staff.active_staff', title: 'কর্মরত কর্মচারীবৃন্দ' })}
         />
       )}
@@ -767,9 +767,9 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
                 </span>
               </h3>
               {editingFormerId && (
-                <button 
-                  type="button" 
-                  className="mini" 
+                <button
+                  type="button"
+                  className="mini"
                   onClick={() => {
                     setEditingFormerId(null);
                     setFormerForm({
@@ -795,11 +795,11 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
             <form onSubmit={handleSaveFormer} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div style={{ gridColumn: 'span 1' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>নাম (বাংলা) *</label>
-                <input 
-                  type="text" 
-                  value={formerForm.name_bn} 
-                  onChange={e => setFormerForm({ ...formerForm, name_bn: e.target.value })} 
-                  required 
+                <input
+                  type="text"
+                  value={formerForm.name_bn}
+                  onChange={e => setFormerForm({ ...formerForm, name_bn: e.target.value })}
+                  required
                   placeholder="যেমন: বাবু নরেশ চন্দ্র বর্মন"
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
@@ -807,10 +807,10 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
               <div style={{ gridColumn: 'span 1' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Name (English)</label>
-                <input 
-                  type="text" 
-                  value={formerForm.name_en} 
-                  onChange={e => setFormerForm({ ...formerForm, name_en: e.target.value })} 
+                <input
+                  type="text"
+                  value={formerForm.name_en}
+                  onChange={e => setFormerForm({ ...formerForm, name_en: e.target.value })}
                   placeholder="e.g. Naresh Chandra Barman"
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
@@ -818,10 +818,10 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>কার্যকাল / মেয়াদ *</label>
-                <input 
-                  type="text" 
-                  value={formerForm.tenure} 
-                  onChange={e => setFormerForm({ ...formerForm, tenure: e.target.value })} 
+                <input
+                  type="text"
+                  value={formerForm.tenure}
+                  onChange={e => setFormerForm({ ...formerForm, tenure: e.target.value })}
                   required
                   placeholder="যেমন: ১৯৮৯ – ২০০৫"
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
@@ -830,14 +830,14 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>পদবি</label>
-                <input 
-                  type="text" 
-                  value={formerForm.designation} 
-                  onChange={e => setFormerForm({ ...formerForm, designation: e.target.value })} 
+                <input
+                  type="text"
+                  value={formerForm.designation}
+                  onChange={e => setFormerForm({ ...formerForm, designation: e.target.value })}
                   placeholder={
                     activeTab === 'former_heads' ? 'প্রাক্তন প্রধান শিক্ষক' :
-                    activeTab === 'former_assistants' ? 'প্রাক্তন সহকারী প্রধান শিক্ষক' :
-                    activeTab === 'former_teachers' ? 'সিনিয়র শিক্ষক (অবসরপ্রাপ্ত)' : 'সাবেক অফিস সহকারী'
+                      activeTab === 'former_assistants' ? 'প্রাক্তন সহকারী প্রধান শিক্ষক' :
+                        activeTab === 'former_teachers' ? 'সিনিয়র শিক্ষক (অবসরপ্রাপ্ত)' : 'সাবেক অফিস সহকারী'
                   }
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
@@ -847,20 +847,20 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
                 <>
                   <div>
                     <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>মূল বিষয়</label>
-                    <input 
-                      type="text" 
-                      value={formerForm.subject} 
-                      onChange={e => setFormerForm({ ...formerForm, subject: e.target.value })} 
+                    <input
+                      type="text"
+                      value={formerForm.subject}
+                      onChange={e => setFormerForm({ ...formerForm, subject: e.target.value })}
                       placeholder="যেমন: গণিত / ইংরেজি / বিজ্ঞান"
                       style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                     />
                   </div>
                   <div>
                     <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>অবসর সন</label>
-                    <input 
-                      type="text" 
-                      value={formerForm.retired_year} 
-                      onChange={e => setFormerForm({ ...formerForm, retired_year: e.target.value })} 
+                    <input
+                      type="text"
+                      value={formerForm.retired_year}
+                      onChange={e => setFormerForm({ ...formerForm, retired_year: e.target.value })}
                       placeholder="যেমন: ২০১০"
                       style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                     />
@@ -870,10 +870,10 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
               <div style={{ gridColumn: activeTab === 'former_teachers' ? 'span 2' : 'span 1' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>শিক্ষাগত যোগ্যতা</label>
-                <input 
-                  type="text" 
-                  value={formerForm.education} 
-                  onChange={e => setFormerForm({ ...formerForm, education: e.target.value })} 
+                <input
+                  type="text"
+                  value={formerForm.education}
+                  onChange={e => setFormerForm({ ...formerForm, education: e.target.value })}
                   placeholder="যেমন: এম.এ, বি.এড"
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
@@ -881,10 +881,10 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>ছবি (URL অথবা Base64)</label>
-                <input 
-                  type="text" 
-                  value={formerForm.photo_url} 
-                  onChange={e => setFormerForm({ ...formerForm, photo_url: e.target.value })} 
+                <input
+                  type="text"
+                  value={formerForm.photo_url}
+                  onChange={e => setFormerForm({ ...formerForm, photo_url: e.target.value })}
                   placeholder="https://... অথবা data:image/..."
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
@@ -892,19 +892,19 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>বিশেষ অবদান ও সংক্ষিপ্ত পরিচিতি</label>
-                <textarea 
-                  rows="3" 
-                  value={formerForm.notes} 
-                  onChange={e => setFormerForm({ ...formerForm, notes: e.target.value })} 
+                <textarea
+                  rows="3"
+                  value={formerForm.notes}
+                  onChange={e => setFormerForm({ ...formerForm, notes: e.target.value })}
                   placeholder="বিদ্যালয়ে দায়িত্ব পালনকালীন বিশেষ অবদান বা স্মরণীয় ভূমিকা..."
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ gridColumn: 'span 2', display: 'flex', gap: '8px', marginTop: '6px' }}>
-                <button 
-                  type="submit" 
-                  className="btn" 
+                <button
+                  type="submit"
+                  className="btn"
                   style={{ background: '#047857', color: '#fff', fontWeight: 700, padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                 >
                   ✓ {editingFormerId ? 'তথ্য আপডেট করুন' : 'রেকর্ড সংরক্ষণ করুন'}
@@ -920,9 +920,9 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
                 <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a' }}>{currentTabObj.label}</h3>
                 <small style={{ color: '#64748b' }}>মোট তালিকাভুক্ত: {(formerData[activeTab] || []).length} জন</small>
               </div>
-              <button 
-                type="button" 
-                className="mini" 
+              <button
+                type="button"
+                className="mini"
                 onClick={handleResetFormerCategory}
                 style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', fontWeight: 600, padding: '4px 10px', borderRadius: '6px', cursor: 'pointer' }}
               >
@@ -932,8 +932,8 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '560px', overflowY: 'auto', paddingRight: '4px' }}>
               {(formerData[activeTab] || []).map((item, idx) => (
-                <div 
-                  key={item.id || idx} 
+                <div
+                  key={item.id || idx}
                   style={{
                     display: 'flex',
                     gap: '14px',
@@ -988,17 +988,17 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
                     )}
 
                     <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                      <button 
-                        type="button" 
-                        className="mini" 
+                      <button
+                        type="button"
+                        className="mini"
                         onClick={() => handleEditFormer(item)}
                         style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                       >
                         ✏️ সম্পাদনা
                       </button>
-                      <button 
-                        type="button" 
-                        className="mini" 
+                      <button
+                        type="button"
+                        className="mini"
                         onClick={() => handleDeleteFormer(item.id)}
                         style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                       >

@@ -603,7 +603,7 @@ function getLocalStore(key, defaultVal = []) {
       let teachersUpdated = false;
       cleaned.forEach(t => {
         const isHeadT = t && (
-          t.id === 't-1' || 
+          t.id === 't-1' ||
           (t.employee_id || '').toUpperCase() === 'EMP-001' ||
           ((t.designation || '').includes('প্রধান শিক্ষক') && !(t.designation || '').includes('সহকারী')) ||
           (t.name_bn || '').includes('শফিকুল')
@@ -2783,7 +2783,7 @@ function handleMockRequest(path, opts = {}) {
       // Reclaim English marks (107=33, 108=38) for Science Roll 38 if misassigned
       if (isEnglish && (rollNum === 38 || Number(rec.roll_no) === 38)) {
         const isWalidScore = (normSubCode === '107' && Number(rec.written || rec.total) === 33) ||
-                             (normSubCode === '108' && Number(rec.written || rec.total) === 38);
+          (normSubCode === '108' && Number(rec.written || rec.total) === 38);
         const isExplicitSci = recExplicitSci || recDept.includes('বিজ্ঞান') || recId.includes('sci') || recCode.includes('sci');
         if (isWalidScore || isExplicitSci || (!recExplicitHum && !recDept.includes('মানবিক') && !recId.includes('hum') && !recCode.includes('hum'))) {
           const sci38 = sciByRoll.get(38);

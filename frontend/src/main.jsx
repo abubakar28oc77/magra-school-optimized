@@ -1136,7 +1136,7 @@ function Home() {
       if (!Array.isArray(curMarks) || curMarks.length < 500) {
         localStorage.setItem('magra_db_marks', JSON.stringify(AUTHENTIC_TEST_MARKS));
       }
-    } catch {}
+    } catch { }
 
     api('/notices').then(setNotices).catch(() => { });
     api('/public/content').then(setItems).catch(() => { });
@@ -3246,11 +3246,11 @@ function OfficeAssistantPanel({ sub, setSub }) {
         const staff = JSON.parse(rawStaff);
         if (Array.isArray(staff)) {
           const match = staff.find(s => s && !s.name_bn?.includes('আলমগীর') && (s.public_contact_role === 'office_assistant' || (s.designation && s.designation.includes('অফিস')))) ||
-                        staff.find(s => s && !s.name_bn?.includes('আলমগীর'));
+            staff.find(s => s && !s.name_bn?.includes('আলমগীর'));
           if (match?.name_bn) return match.name_bn;
         }
       }
-    } catch {}
+    } catch { }
     return 'অফিস সহকারী';
   }, []);
 
@@ -6352,15 +6352,15 @@ function StaffPanel({ sub, onLivePreview }) {
           const empId = (payload.employee_id || payload.id || '').toUpperCase();
 
           const isAsst = (
-            payload.id === 't-2' || 
-            empId === 'EMP-002' || 
-            dName.includes('সহকারী প্রধান শিক্ষক') || 
+            payload.id === 't-2' ||
+            empId === 'EMP-002' ||
+            dName.includes('সহকারী প্রধান শিক্ষক') ||
             nBn.includes('তাপসী')
           );
           const isHead = !isAsst && (
-            payload.id === 't-1' || 
-            empId === 'EMP-001' || 
-            (dName.includes('প্রধান শিক্ষক') && !dName.includes('সহকারী')) || 
+            payload.id === 't-1' ||
+            empId === 'EMP-001' ||
+            (dName.includes('প্রধান শিক্ষক') && !dName.includes('সহকারী')) ||
             nBn.includes('শফিকুল')
           );
           if (isHead) {
@@ -6478,15 +6478,15 @@ function StaffPanel({ sub, onLivePreview }) {
         const empId = (x.employee_id || x.id || '').toUpperCase();
 
         const isAsst = (
-          x.id === 't-2' || 
-          empId === 'EMP-002' || 
-          dName.includes('সহকারী প্রধান শিক্ষক') || 
+          x.id === 't-2' ||
+          empId === 'EMP-002' ||
+          dName.includes('সহকারী প্রধান শিক্ষক') ||
           nBn.includes('তাপসী')
         );
         const isHead = !isAsst && (
-          x.id === 't-1' || 
-          empId === 'EMP-001' || 
-          (dName.includes('প্রধান শিক্ষক') && !dName.includes('সহকারী')) || 
+          x.id === 't-1' ||
+          empId === 'EMP-001' ||
+          (dName.includes('প্রধান শিক্ষক') && !dName.includes('সহকারী')) ||
           nBn.includes('শফিকুল')
         );
         const isPres = (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল') || nBn.includes('খোরশেদ'));
