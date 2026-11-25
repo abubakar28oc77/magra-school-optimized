@@ -3057,7 +3057,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
 
           </div>
         </div>
-      `;if(a===`biodata`){let e=H?.extended_profile||{},t=H?.employee_id===`EMP-006`||String(H?.id)===`t-6`,n=e=>{if(!e)return`—`;let t=String(e).trim(),n=t.split(/[-/]/);if(n.length===3){if(n[0].length===4)return Yn(`${n[2].padStart(2,`0`)}/${n[1].padStart(2,`0`)}/${n[0]}`);if(n[2].length===4)return Yn(`${n[0].padStart(2,`0`)}/${n[1].padStart(2,`0`)}/${n[2]}`)}return Yn(t)},r=e=>{if(!e)return`২১ বছর ১০ মাস (প্রায়)`;try{let t=new Date(e),n=new Date;if(isNaN(t.getTime()))return`২১ বছর ১০ মাস (প্রায়)`;let r=n.getFullYear()-t.getFullYear(),i=n.getMonth()-t.getMonth();return i<0&&(--r,i+=12),r<0?`কয়েক মাস`:r===0?`${Yn(i)} মাস (প্রায়)`:i===0?`${Yn(r)} বছর (প্রায়)`:`${Yn(r)} বছর ${Yn(i)} মাস (প্রায়)`}catch{return`২১ বছর ১০ মাস (প্রায়)`}},i=e=>{if(!e)return`A(+)`;let t=String(e).trim().toUpperCase();return t.endsWith(`+`)?`${t.slice(0,-1)}(+)`:t.endsWith(`-`)?`${t.slice(0,-1)}(-)`:t},a=t?`মুহাম্মদ আবুবকর সিদ্দিক`:pe,o=t?`MUHAMMAD ABUBAKAR SIDDIQUE`:(me||H?.name_en||``).toUpperCase(),s=t?`সিনিয়র শিক্ষক (আইসিটি)`:he&&!W.includes(he)?`${W} (${he})`:W,c=`মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, মগড়া, কালিহাতী, টাঙ্গাইল`,l=t?`আব্দুস ছামাদ`:be,u=t?`নাজমা সুলতানা`:xe,d=t?`২৮/১০/১৯৭৭`:H?.date_of_birth?n(H.date_of_birth):`২৮/১০/১৯৭৭`,f=t?`টাঙ্গাইল`:H?.birth_place||H?.district||`টাঙ্গাইল`,p=H?.religion||`ইসলাম`,m=H?.marital_status||`বিবাহিত`,h=t?`A(+)`:i(H?.blood_group||Se||`A+`),g=t?`৫ ফুট ৫ ইঞ্চি`:H?.height||`৫ ফুট ৫ ইঞ্চি`,_=t?`D1031044`:_e,v=t?`০১/০১/২০০৫`:n(ve||`2005-01-01`),y=t?`০১/০২/২০০৬`:n(H?.first_mpo_date||`2006-02-01`),b=t?`০১/০১/২০০৫`:n(ye||ve||`2005-01-01`),x=t?`২১ বছর ১০ মাস (প্রায়)`:r(ve||`2005-01-01`),S=t?`01710689846`:Ce,C=t?`01710689846`:H?.whatsapp||Ce,w=t?`abubakar.28oc77@gmail.com`:we,T=t?`1010349254`:H?.nid_no||De||`1010349254`,E=t?`গ্রাম- টুনিমরুড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতী, জেলা- টাঙ্গাইল।`:Te,D=t?`গ্রাম- টুনিমরুড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতী, জেলা- টাঙ্গাইল।`:Ee,O=``;if(t)O=`
+      `;if(a===`biodata`){let e=H?.extended_profile||{},t=H?.employee_id===`EMP-006`||String(H?.id)===`t-6`,n=e=>{if(!e)return`—`;let t=String(e).trim(),n=t.split(/[-/]/);if(n.length===3){if(n[0].length===4)return Yn(`${n[2].padStart(2,`0`)}/${n[1].padStart(2,`0`)}/${n[0]}`);if(n[2].length===4)return Yn(`${n[0].padStart(2,`0`)}/${n[1].padStart(2,`0`)}/${n[2]}`)}return Yn(t)},r=e=>{if(!e)return`২১ বছর ১০ মাস (প্রায়)`;try{let t=new Date(e),n=new Date;if(isNaN(t.getTime()))return`২১ বছর ১০ মাস (প্রায়)`;let r=n.getFullYear()-t.getFullYear(),i=n.getMonth()-t.getMonth();return i<0&&(--r,i+=12),r<0?`কয়েক মাস`:r===0?`${Yn(i)} মাস (প্রায়)`:i===0?`${Yn(r)} বছর (প্রায়)`:`${Yn(r)} বছর ${Yn(i)} মাস (প্রায়)`}catch{return`২১ বছর ১০ মাস (প্রায়)`}},i=e=>{if(!e)return`A(+)`;let t=String(e).trim().toUpperCase();return t.endsWith(`+`)?`${t.slice(0,-1)}(+)`:t.endsWith(`-`)?`${t.slice(0,-1)}(-)`:t},a=t?`মুহাম্মদ আবুবকর সিদ্দিক`:pe,o=t?`MUHAMMAD ABUBAKAR SIDDIQUE`:(me||H?.name_en||``).toUpperCase(),s=t?`সিনিয়র শিক্ষক (আইসিটি)`:he&&!W.includes(he)?`${W} (${he})`:W,c=t?`আব্দুস ছামাদ`:be,l=t?`নাজমা সুলতানা`:xe,u=t?`২৮/১০/১৯৭৭`:H?.date_of_birth?n(H.date_of_birth):`২৮/১০/১৯৭৭`,d=t?`টাঙ্গাইল`:H?.birth_place||H?.district||`টাঙ্গাইল`,f=H?.religion||`ইসলাম`,p=H?.marital_status||`বিবাহিত`,m=t?`A(+)`:i(H?.blood_group||Se||`A+`),h=t?`৫ ফুট ৫ ইঞ্চি`:H?.height||`৫ ফুট ৫ ইঞ্চি`,g=t?`D1031044`:_e,_=t?`০১/০১/২০০৫`:n(ve||`2005-01-01`),v=t?`০১/০২/২০০৬`:n(H?.first_mpo_date||`2006-02-01`),y=t?`০১/০১/২০০৫`:n(ye||ve||`2005-01-01`),b=t?`২১ বছর ১০ মাস (প্রায়)`:r(ve||`2005-01-01`),x=t?`01710689846`:Ce,S=t?`01710689846`:H?.whatsapp||Ce,C=t?`abubakar.28oc77@gmail.com`:we,w=t?`1010349254`:H?.nid_no||De||`1010349254`,T=t?`গ্রাম- টুনিমরুড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতী, জেলা- টাঙ্গাইল।`:Te,E=t?`গ্রাম- টুনিমরুড়া, ডাকঘর- মগড়া, উপজেলা- কালিহাতী, জেলা- টাঙ্গাইল।`:Ee,D=``;if(t)D=`
           <tr>
             <td class="cv-td">এস.এস.সি</td>
             <td class="cv-td">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</td>
@@ -3079,7 +3079,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
             <td class="cv-td">বিজ্ঞান / দ্বিতীয় বিভাগ</td>
             <td class="cv-td" style="text-align:center">১৯৯৬</td>
           </tr>
-        `;else{let t=e.education;O=Array.isArray(t)&&t.length?t.map(e=>{let t=e.exam||`—`;t.includes(`এসএসসি`)||t.includes(`SSC`)?t=`এস.এস.সি`:t.includes(`এইচএসসি`)||t.includes(`HSC`)?t=`এইচ.এস.সি`:t.includes(`স্নাতক (পাস)`)||t.includes(`বিএসসি`)||t.includes(`বি.এস.সি`)?t=`বি.এস-সি`:t.includes(`স্নাতক (সম্মান)`)||t.includes(`অনার্স`)?t=`স্নাতক (সম্মান)`:(t.includes(`স্নাতকোত্তর`)||t.includes(`মাস্টার্স`))&&(t=`স্নাতকোত্তর`);let n=e.result||`—`;return e.subject&&!n.includes(e.subject)&&(n=`${e.subject} / ${n}`),`
+        `;else{let t=e.education;D=Array.isArray(t)&&t.length?t.map(e=>{let t=e.exam||`—`;t.includes(`এসএসসি`)||t.includes(`SSC`)?t=`এস.এস.সি`:t.includes(`এইচএসসি`)||t.includes(`HSC`)?t=`এইচ.এস.সি`:t.includes(`স্নাতক (পাস)`)||t.includes(`বিএসসি`)||t.includes(`বি.এস.সি`)?t=`বি.এস-সি`:t.includes(`স্নাতক (সম্মান)`)||t.includes(`অনার্স`)?t=`স্নাতক (সম্মান)`:(t.includes(`স্নাতকোত্তর`)||t.includes(`মাস্টার্স`))&&(t=`স্নাতকোত্তর`);let n=e.result||`—`;return e.subject&&!n.includes(e.subject)&&(n=`${e.subject} / ${n}`),`
               <tr>
                 <td class="cv-td">${t}</td>
                 <td class="cv-td">${e.institution||`—`}</td>
@@ -3117,7 +3117,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
               <td class="cv-td">বিজ্ঞান / দ্বিতীয় বিভাগ</td>
               <td class="cv-td" style="text-align:center">১৯৯৬</td>
             </tr>
-          `}let ee=``;if(t)ee=`
+          `}let O=``;if(t)O=`
           <tr>
             <td class="cv-td">ডিপ্লোমা-ইন কম্পিউটার সাইন্স</td>
             <td class="cv-td">ন্যাশনাল ইউথ ডেভেলপমেন্ট কম্পিউটার ট্রেনিং একাডেমি</td>
@@ -3130,7 +3130,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
             <td class="cv-td" style="text-align:center">২০০৮</td>
             <td class="cv-td" style="text-align:center">CGPA: 3.94</td>
           </tr>
-        `;else{let t=e.professional_qualifications;ee=Array.isArray(t)&&t.length?t.map(e=>{let t=e.exam||`—`;t===`ডিপ্লোমা`||t.includes(`ডিপ্লোমা`)?t=`ডিপ্লোমা-ইন কম্পিউটার সাইন্স`:t===`বিএড`&&(t=`বি.এড`);let n=e.result||`—`;return(n===`৩.৯৪`||n===`3.94`)&&(n=`CGPA: 3.94`),`
+        `;else{let t=e.professional_qualifications;O=Array.isArray(t)&&t.length?t.map(e=>{let t=e.exam||`—`;t===`ডিপ্লোমা`||t.includes(`ডিপ্লোমা`)?t=`ডিপ্লোমা-ইন কম্পিউটার সাইন্স`:t===`বিএড`&&(t=`বি.এড`);let n=e.result||`—`;return(n===`৩.৯৪`||n===`3.94`)&&(n=`CGPA: 3.94`),`
               <tr>
                 <td class="cv-td">${t}</td>
                 <td class="cv-td">${e.institution||`—`}</td>
@@ -3157,7 +3157,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
               <td class="cv-td" style="text-align:center">২০০৮</td>
               <td class="cv-td" style="text-align:center">CGPA: 3.94</td>
             </tr>
-          `}let k=(he||``).trim(),A=`আইসিটি বিষয়ের মাস্টার ট্রেইনার`;t?A=`আইসিটি বিষয়ের মাস্টার ট্রেইনার`:k.includes(`গণিত`)?A=`গণিত বিষয়ের মাস্টার ট্রেইনার`:k.includes(`বিজ্ঞান`)||k.includes(`পদার্থ`)||k.includes(`রসায়ন`)?A=`বিজ্ঞান বিষয়ের মাস্টার ট্রেইনার`:k.includes(`ইংরেজি`)?A=`ইংরেজি বিষয়ের মাস্টার ট্রেইনার`:k.includes(`বাংলা`)?A=`বাংলা বিষয়ের মাস্টার ট্রেইনার`:Ne&&(A=`প্রাতিষ্ঠানিক নেতৃত্ব ও মাস্টার ট্রেইনার`);let j=t?`ICT4E জেলা শিক্ষক অ্যাম্বাসেডর শিক্ষক`:e.achievement_title||(Ne?`শ্রেষ্ঠ প্রতিষ্ঠান প্রধান ও শিক্ষা উন্নয়ন অ্যাওয়ার্ড`:`ICT4E জেলা শিক্ষক অ্যাম্বাসেডর শিক্ষক`);return`
+          `}let ee=(he||``).trim(),k=`আইসিটি বিষয়ের মাস্টার ট্রেইনার`;t?k=`আইসিটি বিষয়ের মাস্টার ট্রেইনার`:ee.includes(`গণিত`)?k=`গণিত বিষয়ের মাস্টার ট্রেইনার`:ee.includes(`বিজ্ঞান`)||ee.includes(`পদার্থ`)||ee.includes(`রসায়ন`)?k=`বিজ্ঞান বিষয়ের মাস্টার ট্রেইনার`:ee.includes(`ইংরেজি`)?k=`ইংরেজি বিষয়ের মাস্টার ট্রেইনার`:ee.includes(`বাংলা`)?k=`বাংলা বিষয়ের মাস্টার ট্রেইনার`:Ne&&(k=`প্রাতিষ্ঠানিক নেতৃত্ব ও মাস্টার ট্রেইনার`);let A=t?`ICT4E জেলা শিক্ষক অ্যাম্বাসেডর শিক্ষক`:e.achievement_title||(Ne?`শ্রেষ্ঠ প্রতিষ্ঠান প্রধান ও শিক্ষা উন্নয়ন অ্যাওয়ার্ড`:`ICT4E জেলা শিক্ষক অ্যাম্বাসেডর শিক্ষক`);return`
         <div class="cert-card-sheet biodata-official-sheet">
           <!-- Top Centered Header Box -->
           <div class="cv-title-wrap">
@@ -3167,9 +3167,9 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
           <!-- Profile Header Box -->
           <div class="cv-profile-box">
             <div class="cv-profile-info">
-              <h1 class="cv-name-bn">${a}</h1>
-              <h3 class="cv-name-en">${o}</h3>
-              <div class="cv-desig-school">${s}, ${c}</div>
+              <div class="cv-name-bn">${a}</div>
+              <div class="cv-name-en">${o}</div>
+              <div class="cv-desig-school">${s}, ${de.nameBn}</div>
             </div>
             <div class="cv-photo-frame">
               <img src="${Oe}" alt="${a}" onerror="this.src='/school-building.jpg'">
@@ -3181,36 +3181,36 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
           <table class="cv-table">
             <thead>
               <tr>
-                <th style="width: 18%; text-align: left;">বিষয়</th>
-                <th style="width: 32%; text-align: left;">বিবরণ</th>
-                <th style="width: 18%; text-align: left;">বিষয়</th>
-                <th style="width: 32%; text-align: left;">বিবরণ</th>
+                <th style="width: 15%; text-align: left;">বিষয়</th>
+                <th style="width: 35%; text-align: left;">বিবরণ</th>
+                <th style="width: 15%; text-align: left;">বিষয়</th>
+                <th style="width: 35%; text-align: left;">বিবরণ</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td class="cv-lbl">পিতার নাম</td>
-                <td class="cv-val">${l}</td>
+                <td class="cv-val">${c}</td>
                 <td class="cv-lbl">মাতার নাম</td>
-                <td class="cv-val">${u}</td>
+                <td class="cv-val">${l}</td>
               </tr>
               <tr>
                 <td class="cv-lbl">জন্মতারিখ</td>
-                <td class="cv-val">${d}</td>
+                <td class="cv-val">${u}</td>
                 <td class="cv-lbl">জন্মস্থান</td>
-                <td class="cv-val">${f}</td>
+                <td class="cv-val">${d}</td>
               </tr>
               <tr>
                 <td class="cv-lbl">ধর্ম</td>
-                <td class="cv-val">${p}</td>
+                <td class="cv-val">${f}</td>
                 <td class="cv-lbl">বৈবাহিক অবস্থা</td>
-                <td class="cv-val">${m}</td>
+                <td class="cv-val">${p}</td>
               </tr>
               <tr>
                 <td class="cv-lbl">রক্তের গ্রুপ</td>
-                <td class="cv-val"><span class="cv-val-blood">${h}</span></td>
+                <td class="cv-val"><span class="cv-val-blood">${m}</span></td>
                 <td class="cv-lbl">উচ্চতা</td>
-                <td class="cv-val">${g}</td>
+                <td class="cv-val">${h}</td>
               </tr>
             </tbody>
           </table>
@@ -3220,26 +3220,26 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
           <table class="cv-table">
             <tbody>
               <tr>
-                <td class="cv-lbl" style="width: 18%;">পদবি</td>
-                <td class="cv-val" style="width: 32%; font-weight: 600;">${s}</td>
-                <td class="cv-lbl" style="width: 22%;">এমপিও ইনডেক্স</td>
-                <td class="cv-val" style="width: 28%; font-weight: 700;">${_}</td>
+                <td class="cv-lbl" style="width: 15%;">পদবি</td>
+                <td class="cv-val" style="width: 35%; font-weight: 600;">${s}</td>
+                <td class="cv-lbl" style="width: 20%;">এমপিও ইনডেক্স</td>
+                <td class="cv-val" style="width: 30%; font-weight: 700;">${g}</td>
               </tr>
               <tr>
                 <td class="cv-lbl">প্রতিষ্ঠানের নাম</td>
-                <td class="cv-val" colspan="3">${c}</td>
+                <td class="cv-val" colspan="3">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, মগড়া, কালিহাতী, টাঙ্গাইল</td>
               </tr>
               <tr>
                 <td class="cv-lbl">১ম যোগদানের তারিখ</td>
-                <td class="cv-val">${v}</td>
+                <td class="cv-val">${_}</td>
                 <td class="cv-lbl">১ম এমপিও ভুক্তির তারিখ</td>
-                <td class="cv-val">${y}</td>
+                <td class="cv-val">${v}</td>
               </tr>
               <tr>
                 <td class="cv-lbl">বর্তমান পদে যোগদান</td>
-                <td class="cv-val">${b}</td>
+                <td class="cv-val">${y}</td>
                 <td class="cv-lbl">চাকুরিতে মোট অভিজ্ঞতা</td>
-                <td class="cv-val" style="font-weight: 700;">${x}</td>
+                <td class="cv-val" style="font-weight: 700;">${b}</td>
               </tr>
             </tbody>
           </table>
@@ -3249,26 +3249,26 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
           <table class="cv-table">
             <tbody>
               <tr>
-                <td class="cv-lbl" style="width: 18%;">মোবাইল নাম্বার</td>
-                <td class="cv-val" style="width: 32%; font-weight: 600;">${S}</td>
-                <td class="cv-lbl" style="width: 22%;">হোয়াটসঅ্যাপ নাম্বার</td>
-                <td class="cv-val" style="width: 28%; font-weight: 600;">${C}</td>
+                <td class="cv-lbl" style="width: 15%;">মোবাইল নাম্বার</td>
+                <td class="cv-val" style="width: 35%; font-weight: 600;">${x}</td>
+                <td class="cv-lbl" style="width: 20%;">হোয়াটসঅ্যাপ নাম্বার</td>
+                <td class="cv-val" style="width: 30%; font-weight: 600;">${S}</td>
               </tr>
               <tr>
                 <td class="cv-lbl">ই-মেইল</td>
-                <td class="cv-val" colspan="3"><span class="cv-val-email">${w}</span></td>
+                <td class="cv-val" colspan="3"><span class="cv-val-email">${C}</span></td>
               </tr>
               <tr>
                 <td class="cv-lbl">জাতীয় পরিচয়পত্র নাম্বার</td>
-                <td class="cv-val" colspan="3" style="font-weight: 700;">${T}</td>
+                <td class="cv-val" colspan="3" style="font-weight: 700;">${w}</td>
               </tr>
               <tr>
                 <td class="cv-lbl">বর্তমান ঠিকানা</td>
-                <td class="cv-val" colspan="3">${E}</td>
+                <td class="cv-val" colspan="3">${T}</td>
               </tr>
               <tr>
                 <td class="cv-lbl">স্থায়ী ঠিকানা</td>
-                <td class="cv-val" colspan="3">${D}</td>
+                <td class="cv-val" colspan="3">${E}</td>
               </tr>
             </tbody>
           </table>
@@ -3278,15 +3278,15 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
           <table class="cv-table">
             <thead>
               <tr>
-                <th style="width: 16%; text-align: left;">পরীক্ষা/ডিগ্রি</th>
-                <th style="width: 36%; text-align: left;">প্রতিষ্ঠান</th>
-                <th style="width: 20%; text-align: left;">বোর্ড/বিশ্ববিদ্যালয়</th>
-                <th style="width: 18%; text-align: left;">বিভাগ/ফলাফল</th>
+                <th style="width: 14%; text-align: left;">পরীক্ষা/ডিগ্রি</th>
+                <th style="width: 38%; text-align: left;">প্রতিষ্ঠান</th>
+                <th style="width: 18%; text-align: left;">বোর্ড/বিশ্ববিদ্যালয়</th>
+                <th style="width: 20%; text-align: left;">বিভাগ/ফলাফল</th>
                 <th style="width: 10%; text-align: center;">সাল</th>
               </tr>
             </thead>
             <tbody>
-              ${O}
+              ${D}
             </tbody>
           </table>
 
@@ -3296,13 +3296,13 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
             <thead>
               <tr>
                 <th style="width: 28%; text-align: left;">প্রশিক্ষণের নাম</th>
-                <th style="width: 44%; text-align: left;">প্রতিষ্ঠান</th>
+                <th style="width: 46%; text-align: left;">প্রতিষ্ঠান</th>
                 <th style="width: 12%; text-align: center;">সাল</th>
-                <th style="width: 16%; text-align: center;">ফলাফল</th>
+                <th style="width: 14%; text-align: center;">ফলাফল</th>
               </tr>
             </thead>
             <tbody>
-              ${ee}
+              ${O}
             </tbody>
           </table>
 
@@ -3311,10 +3311,10 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
           <table class="cv-table">
             <tbody>
               <tr>
-                <td class="cv-lbl" style="width: 30%; font-weight: 700; vertical-align: middle;">
-                  ${A}
+                <td class="cv-lbl" style="width: 28%; font-weight: 700; vertical-align: middle;">
+                  ${k}
                 </td>
-                <td style="width: 70%; padding: 0;">
+                <td style="width: 72%; padding: 0;">
                   <div class="cv-sub-item">জাতীয় শিক্ষাক্রম বিস্তরণ-২০২১</div>
                   <div class="cv-sub-item">নেটওয়ার্কিং এন্ড প্রোগ্রামিং</div>
                   <div class="cv-sub-item">ইনহাউজ ট্রেনিং (IHT) : নেটওয়ার্কিং এন্ড প্রোগ্রামিং</div>
@@ -3328,15 +3328,15 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
           <table class="cv-table">
             <tbody>
               <tr>
-                <td class="cv-lbl" style="width: 30%; font-weight: 700; vertical-align: middle;">
+                <td class="cv-lbl" style="width: 28%; font-weight: 700; vertical-align: middle;">
                   অ্যাম্বাসেডর
                 </td>
-                <td class="cv-val" style="width: 55%; font-weight: 700; color: #133e68; vertical-align: middle;">
-                  ${j}
+                <td class="cv-val" style="width: 60%; font-weight: 700; color: #133e68; vertical-align: middle;">
+                  ${A}
                 </td>
-                <td style="width: 15%; text-align: center; vertical-align: middle; padding: 4px 6px;">
+                <td style="width: 12%; text-align: center; vertical-align: middle; padding: 1px 4px;">
                   
-        <svg width="42" height="46" viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;">
+        <svg width="30" height="32" viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;">
           <path d="M38 65 L26 102 L48 90 L52 102 L48 65 Z" fill="#92400e" stroke="#78350f" stroke-width="1.5"/>
           <path d="M62 65 L74 102 L52 90 L48 102 L52 65 Z" fill="#b45309" stroke="#78350f" stroke-width="1.5"/>
           <path d="M30 102 L40 70 L50 90 Z" fill="#78350f" opacity="0.4"/>
@@ -3522,7 +3522,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
             }
             @page {
               size: A4 portrait;
-              margin: 8mm 12mm;
+              margin: ${a===`biodata`?`6mm 8mm`:`8mm 12mm`};
             }
           }
         </style>
@@ -3603,7 +3603,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
             }
             @page {
               size: ${e.certificate_type,`A4 portrait`};
-              margin: 8mm 12mm;
+              margin: ${e.certificate_type===`biodata`?`6mm 8mm`:`8mm 12mm`};
             }
           }
         </style>
@@ -3932,28 +3932,40 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
 
   /* ==================================================================== */
   /* NEW OFFICIAL INSTITUTIONAL BIODATA (CV) STYLES - EXACT MATCH IMAGE 2 */
+  /* STRICT SINGLE A4 PAGE PRINT FIT & SINGLE LINE UNBROKEN CELLS         */
   /* ==================================================================== */
   .biodata-official-sheet {
-    background: #ffffff;
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     width: 100%;
-    max-width: 760px;
+    max-width: 710px;
     margin: 0 auto;
-    padding: 24px 28px;
+    padding: 2px 6px;
     box-sizing: border-box;
     font-family: 'Hind Siliguri', 'SolaimanLipi', sans-serif;
     color: #000000;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .live-document-preview-box .biodata-official-sheet {
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+    border-radius: 4px !important;
   }
 
   .cv-title-wrap {
     text-align: center;
-    margin-bottom: 12px;
+    margin-bottom: 5px;
   }
 
   .cv-title-box {
     display: inline-block;
     border: 1.5px solid #133e68;
-    padding: 4px 28px;
-    font-size: 19px;
+    padding: 1.5px 22px;
+    font-size: 15.5px;
     font-weight: 800;
     color: #0f2e5a;
     letter-spacing: 0.5px;
@@ -3962,51 +3974,56 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
 
   .cv-profile-box {
     border: 1.5px solid #133e68;
-    padding: 10px 14px;
+    padding: 4px 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 5px;
     background: #ffffff;
   }
 
   .cv-profile-info {
     flex: 1;
+    overflow: hidden;
   }
 
   .cv-name-bn {
     margin: 0;
-    font-size: 24px;
+    font-size: 18.5px;
     font-weight: 800;
     color: #000000;
-    line-height: 1.25;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 
   .cv-name-en {
-    margin: 4px 0 0;
-    font-size: 14.5px;
+    margin: 1.5px 0 0;
+    font-size: 12.5px;
     font-weight: 800;
     color: #0f2e5a;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     font-family: 'Outfit', sans-serif;
+    white-space: nowrap;
   }
 
   .cv-desig-school {
-    margin-top: 6px;
-    font-size: 13.5px;
+    margin-top: 3px;
+    font-size: 11.5px;
     font-weight: 700;
     color: #1e293b;
-    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .cv-photo-frame {
-    width: 100px;
-    height: 120px;
+    width: 78px;
+    height: 94px;
     border: 1.5px solid #133e68;
     flex-shrink: 0;
     overflow: hidden;
     background: #f8fafc;
-    margin-left: 14px;
+    margin-left: 10px;
   }
 
   .cv-photo-frame img {
@@ -4017,27 +4034,32 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
   }
 
   .cv-sec-title {
-    font-size: 13.5px;
+    font-size: 11px;
     font-weight: 800;
     color: #000000;
-    margin: 12px 0 3px 0;
-    letter-spacing: 0.2px;
+    margin: 5px 0 1.5px 0;
+    letter-spacing: 0.1px;
   }
 
   .cv-table {
     width: 100%;
     border-collapse: collapse;
     border: 1.5px solid #133e68;
-    font-size: 12px;
+    font-size: 10px;
     page-break-inside: avoid;
+    break-inside: avoid;
     background: #ffffff;
+    table-layout: fixed;
   }
 
   .cv-table th, .cv-table td {
     border: 1px solid #133e68;
-    padding: 4.5px 8px;
+    padding: 1.8px 4px;
     vertical-align: middle;
-    line-height: 1.4;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .cv-table thead tr {
@@ -4049,9 +4071,9 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
 
   .cv-table th {
     font-weight: 700;
-    color: #ffffff;
-    font-size: 12px;
-    letter-spacing: 0.3px;
+    color: #ffffff !important;
+    font-size: 10px;
+    letter-spacing: 0.2px;
   }
 
   .cv-lbl {
@@ -4076,24 +4098,41 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
   }
 
   .cv-sub-item {
-    padding: 4px 8px;
+    padding: 1.8px 4px;
     border-bottom: 1px solid #133e68;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .cv-sub-item:last-child {
     border-bottom: none;
   }
 
   .cv-signature-area {
-    margin-top: 28px;
-    font-size: 13px;
+    margin-top: 12px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #000000;
     page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  @media print {
+    .biodata-official-sheet {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
   }
 
   /* Legacy biodata-sheet alias */
   .biodata-sheet {
-    padding: 24px 28px;
+    padding: 4px 6px;
   }
 
   /* STAFF ID CARD (CR-80 Format) */
