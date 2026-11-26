@@ -1606,9 +1606,12 @@ export function FinancePanel({ sub }) {
     try {
       const savedFees = localStorage.getItem('magra_finance_fees');
       const parsedSaved = savedFees ? JSON.parse(savedFees) : [];
+      const combinedMap = new Map();
       if (Array.isArray(parsedSaved)) {
-        nextFees = [newTransaction, ...parsedSaved.filter(r => r.id !== uniqueId)];
+        parsedSaved.forEach(r => { if (r && r.id && r.id !== uniqueId) combinedMap.set(r.id, r); });
       }
+      (feeRecords || []).forEach(r => { if (r && r.id && r.id !== uniqueId) combinedMap.set(r.id, r); });
+      nextFees = [newTransaction, ...Array.from(combinedMap.values())];
       localStorage.setItem('magra_finance_fees', JSON.stringify(nextFees));
       pushKeyToCloud('magra_finance_fees', nextFees);
     } catch {}

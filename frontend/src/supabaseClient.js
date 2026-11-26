@@ -158,8 +158,8 @@ export function pushKeyToCloud(key, value) {
     }
   }
 
-  // Fast push (50ms) for financial transaction records to avoid window-focus sync race conditions
-  const delay = (key === 'magra_finance_fees' || key === 'magra_finance_deposits') ? 50 : 300;
+  // Instant push (0ms) for financial transaction records to completely avoid window-focus sync race conditions
+  const delay = (key === 'magra_finance_fees' || key === 'magra_finance_deposits') ? 0 : 300;
 
   if (syncDebounceTimers[key]) clearTimeout(syncDebounceTimers[key]);
   syncDebounceTimers[key] = setTimeout(async () => {
