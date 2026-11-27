@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MOCK_SCHOOL, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_STAFF, getStudentPhoto, AUTHENTIC_FEE_DEPOSITS } from './mockData';
+import { MOCK_SCHOOL, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_STAFF, getStudentPhoto, AUTHENTIC_FEE_DEPOSITS, AUTHENTIC_INCOMES } from './mockData';
 import schoolLogo from '../public/school-logo.png';
 import { pushKeyToCloud } from './supabaseClient';
 
@@ -975,14 +975,23 @@ export function FinancePanel({ sub }) {
     try {
       const saved = localStorage.getItem('magra_finance_incomes');
       let records = saved ? JSON.parse(saved) : null;
-      if (!Array.isArray(records)) {
-        records = [];
-      } else {
-        records = records.filter(r => !r.is_auto_deposit && !r.deposit_id);
+      if (Array.isArray(records) && records.length > 0) {
+        let hasAll = true;
+        (AUTHENTIC_INCOMES || []).forEach(ai => {
+          if (!records.some(r => r.id === ai.id || (r.deposit_id && r.deposit_id === ai.deposit_id))) {
+            records.push(ai);
+            hasAll = false;
+          }
+        });
+        if (!hasAll) {
+          try { localStorage.setItem('magra_finance_incomes', JSON.stringify(records)); } catch { }
+        }
+        return records;
       }
-      return records;
+      try { localStorage.setItem('magra_finance_incomes', JSON.stringify(AUTHENTIC_INCOMES)); } catch { }
+      return AUTHENTIC_INCOMES || [];
     } catch {
-      return [];
+      return AUTHENTIC_INCOMES || [];
     }
   });
 
@@ -1098,7 +1107,17 @@ export function FinancePanel({ sub }) {
       } else if (k === 'magra_finance_incomes') {
         try {
           const saved = localStorage.getItem('magra_finance_incomes');
-          if (saved) setIncomes(JSON.parse(saved));
+          if (saved) {
+            let parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              (AUTHENTIC_INCOMES || []).forEach(ai => {
+                if (!parsed.some(inc => inc.id === ai.id || (inc.deposit_id && inc.deposit_id === ai.deposit_id))) {
+                  parsed.push(ai);
+                }
+              });
+              setIncomes(parsed);
+            }
+          }
         } catch { }
       }
     };
@@ -1110,7 +1129,15 @@ export function FinancePanel({ sub }) {
   useEffect(() => {
     setIncomes(prevIncomes => {
       let changed = false;
-      let updated = [...prevIncomes];
+      let updated = Array.isArray(prevIncomes) ? [...prevIncomes] : [];
+
+      // Ensure authentic incomes are always preserved
+      (AUTHENTIC_INCOMES || []).forEach(ai => {
+        if (!updated.some(inc => inc.id === ai.id || (inc.deposit_id && inc.deposit_id === ai.deposit_id))) {
+          updated.push(ai);
+          changed = true;
+        }
+      });
 
       feeDeposits.forEach((dep) => {
         const existingIdx = updated.findIndex(inc => inc.deposit_id === dep.id);
@@ -1123,13 +1150,13 @@ export function FinancePanel({ sub }) {
           title: `শিক্ষার্থী ফি জমা (চালান নং: ${dep.deposit_no})`,
           payer_name: `${dep.deposited_by} ➔ ${dep.received_by}`,
           amount: Number(dep.total_amount) || 0,
-          method: dep.payment_method || 'cash',
+          method: dep.payment_method || 'নগদ ক্যাশ (Cash)',
           note: `চালান নং: ${dep.deposit_no} | অন্তর্ভুক্ত শিক্ষার্থী: ${toBnDigits(dep.student_count || (dep.receipt_ids || []).length)} জন | ${dep.remarks || ''}`,
           is_auto_deposit: true
         };
 
         if (existingIdx === -1) {
-          updated.unshift(autoIncomeItem);
+          updated.push(autoIncomeItem);
           changed = true;
         } else {
           const cur = updated[existingIdx];
@@ -1147,9 +1174,13 @@ export function FinancePanel({ sub }) {
         }
       });
 
-      // Clean up any orphan auto-deposit incomes whose deposit was deleted
+      // Clean up any orphan auto-deposit incomes whose deposit was deleted, preserving authentic
       const activeDepIds = new Set(feeDeposits.map(d => d.id));
-      const filtered = updated.filter(inc => !inc.is_auto_deposit || activeDepIds.has(inc.deposit_id));
+      const filtered = updated.filter(inc => {
+        if (!inc.is_auto_deposit || !inc.deposit_id) return true;
+        if ((AUTHENTIC_INCOMES || []).some(ai => ai.id === inc.id || ai.deposit_id === inc.deposit_id)) return true;
+        return activeDepIds.has(inc.deposit_id);
+      });
       if (filtered.length !== updated.length) {
         return filtered;
       }
@@ -1772,6 +1803,40 @@ export function FinancePanel({ sub }) {
 
   const budgetSurplusDeficit = totalBudgetIncome - totalBudgetExpense;
 
+  // Institutional Income Display Memo: guaranteed union of user incomes, authentic vouchers and deposit batches
+  const displayIncomes = useMemo(() => {
+    const list = Array.isArray(incomes) ? [...incomes] : [];
+    // 1. Ensure authentic vouchers (চালান ০০১ ও ০০২) are always included
+    (AUTHENTIC_INCOMES || []).forEach(ai => {
+      if (!list.some(inc => inc.id === ai.id || (inc.deposit_id && inc.deposit_id === ai.deposit_id))) {
+        list.push(ai);
+      }
+    });
+    // 2. Ensure every deposit in feeDeposits has a corresponding voucher
+    (feeDeposits || []).forEach(dep => {
+      if (!list.some(inc => inc.deposit_id === dep.id)) {
+        list.push({
+          id: `INC-DEP-${dep.id}`,
+          deposit_id: dep.id,
+          voucher_no: `আয়-ভাউচার-${dep.deposit_no}`,
+          date: dep.deposit_date,
+          category: 'শিক্ষার্থী ফি আদায় (অফিস সহকারীর নিকট জমাকৃত চালান)',
+          title: `শিক্ষার্থী ফি জমা (চালান নং: ${dep.deposit_no})`,
+          payer_name: `${dep.deposited_by} ➔ ${dep.received_by}`,
+          amount: Number(dep.total_amount) || 0,
+          method: dep.payment_method || 'নগদ ক্যাশ (Cash)',
+          note: `চালান নং: ${dep.deposit_no} | অন্তর্ভুক্ত শিক্ষার্থী: ${toBnDigits(dep.student_count || (dep.receipt_ids || []).length)} জন | ${dep.remarks || ''}`,
+          is_auto_deposit: true
+        });
+      }
+    });
+    return list;
+  }, [incomes, feeDeposits]);
+
+  const totalOtherIncome = useMemo(() => {
+    return displayIncomes.reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
+  }, [displayIncomes]);
+
   // Realized Actuals for Selected Budget Year
   const yearActualFeeIncome = useMemo(() => {
     return feeRecords
@@ -1780,10 +1845,10 @@ export function FinancePanel({ sub }) {
   }, [feeRecords, selectedBudgetYear]);
 
   const yearActualOtherIncome = useMemo(() => {
-    return incomes
+    return displayIncomes
       .filter(r => !r.date || String(r.date).startsWith(selectedBudgetYear))
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
-  }, [incomes, selectedBudgetYear]);
+  }, [displayIncomes, selectedBudgetYear]);
 
   const yearTotalActualIncome = yearActualFeeIncome + yearActualOtherIncome;
 
@@ -1923,7 +1988,7 @@ export function FinancePanel({ sub }) {
   // INCOME & EXPENSE EDIT & DELETE ACTIONS
   // ==========================================
   const handleDeleteIncome = (id, voucher) => {
-    const inc = incomes.find(x => x.id === id);
+    const inc = displayIncomes.find(x => x.id === id);
     if (inc && (inc.is_auto_deposit || inc.deposit_id)) {
       if (window.confirm(`মনোযোগ দিন: এই আয় ভাউচারটি ফি জমার চালান (${inc.title}) থেকে স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।\n\nএটি মুছে ফেললে "ফি জমার হিসাব ও ইতিহাস" থেকে সংশ্লিষ্ট চালানটিও মুছে যাবে এবং শিক্ষার্থীদের কালেকশন আবার অজমাকৃত তালিকায় ফেরত যাবে।\n\nআপনি কি নিশ্চিত যে এটি মুছে ফেলতে চান?`)) {
         setIncomes(prev => prev.filter(x => x.id !== id));
@@ -2110,7 +2175,7 @@ export function FinancePanel({ sub }) {
 
     // Grouping by category
     const catSummary = incomeCategories.map(cat => {
-      const items = incomes.filter(i => i.category === cat);
+      const items = displayIncomes.filter(i => i.category === cat);
       const total = items.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
       return {
         category: cat,
@@ -2120,7 +2185,7 @@ export function FinancePanel({ sub }) {
       };
     }).filter(c => c.count > 0 || c.total > 0);
 
-    const otherIncomes = incomes.filter(i => !incomeCategories.includes(i.category));
+    const otherIncomes = displayIncomes.filter(i => !incomeCategories.includes(i.category));
     if (otherIncomes.length > 0) {
       const distinctOther = [...new Set(otherIncomes.map(i => i.category))];
       distinctOther.forEach(cat => {
@@ -2245,7 +2310,7 @@ export function FinancePanel({ sub }) {
         <div class="meta-bar">
           <span><b>প্রতিবেদন তৈরির তারিখ:</b> ${formatDateBn(today)} খ্রি.</span>
           <span><b>আয় খাতসমূহ:</b> সাধারণ ও উন্নয়ন তহবিল</span>
-          <span><b>মোট ভাউচার সংখ্যা:</b> ${toBnDigits(incomes.length)} টি</span>
+          <span><b>মোট ভাউচার সংখ্যা:</b> ${toBnDigits(displayIncomes.length)} টি</span>
         </div>
 
         <div class="kpi-grid">
@@ -2255,7 +2320,7 @@ export function FinancePanel({ sub }) {
           </div>
           <div class="kpi-card">
             <span class="kpi-label">মোট আয় ভাউচার</span>
-            <span class="kpi-val">${toBnDigits(incomes.length)} টি</span>
+            <span class="kpi-val">${toBnDigits(displayIncomes.length)} টি</span>
           </div>
           <div class="kpi-card">
             <span class="kpi-label">অনুমোদিত আয়ের খাত</span>
@@ -2318,7 +2383,7 @@ export function FinancePanel({ sub }) {
             </tr>
           </thead>
           <tbody>
-            ${incomes.map((inc, idx) => `
+            ${displayIncomes.map((inc, idx) => `
               <tr>
                 <td class="text-center" style="color:#64748b">${toBnDigits(idx + 1)}</td>
                 <td class="voucher">${inc.voucher_no || '—'}</td>
@@ -2331,7 +2396,7 @@ export function FinancePanel({ sub }) {
                 <td style="color:#64748b;font-size:10px">${inc.note || '—'}</td>
               </tr>
             `).join('')}
-            ${!incomes.length ? `
+            ${!displayIncomes.length ? `
               <tr><td colspan="9" class="text-center" style="padding:15px;color:#64748b">কোনো আয়ের এন্ট্রি রেকর্ড নেই।</td></tr>
             ` : ''}
           </tbody>
@@ -3085,10 +3150,6 @@ export function FinancePanel({ sub }) {
     return feeRecords.reduce((acc, r) => acc + (Number(r.paid_amount) || 0), 0);
   }, [feeRecords]);
 
-  const totalOtherIncome = useMemo(() => {
-    return incomes.reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
-  }, [incomes]);
-
   const totalGrossIncome = totalFeesCollected + totalOtherIncome;
 
   const totalExpense = useMemo(() => {
@@ -3652,7 +3713,7 @@ export function FinancePanel({ sub }) {
     // Sort all records chronologically
     const combined = [
       ...feeRecords.map(f => ({ ...f, type: 'fee', title: `শিক্ষার্থী ফি: ${f.student_name} (${f.class_name}ম, রোল: ${f.roll_no})`, in: f.paid_amount, out: 0 })),
-      ...incomes.map(i => ({ ...i, type: 'income', in: i.amount, out: 0 })),
+      ...displayIncomes.map(i => ({ ...i, type: 'income', in: i.amount, out: 0 })),
       ...expenses.map(e => ({ ...e, type: 'expense', in: 0, out: e.amount }))
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -7460,7 +7521,7 @@ export function FinancePanel({ sub }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {incomes.map((inc, idx) => (
+                  {displayIncomes.map((inc, idx) => (
                     <tr key={inc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ textAlign: 'center', padding: '8px 4px', color: '#64748b' }}>{toBnDigits(idx + 1)}</td>
                       <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 700, color: '#0284c7' }}>{inc.voucher_no}</td>
@@ -7541,9 +7602,9 @@ export function FinancePanel({ sub }) {
                       </td>
                     </tr>
                   ))}
-                  {!incomes.length && (
+                  {!displayIncomes.length && (
                     <tr>
-                      <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                      <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
                         কোনো আয়ের এন্ট্রি নেই।
                       </td>
                     </tr>
@@ -8343,7 +8404,7 @@ export function FinancePanel({ sub }) {
               <tbody>
                 {[
                   ...feeRecords.map(f => ({ ...f, txType: 'fee', title: `ফি আদায়: ${f.student_name} (${toBnDigits(f.class_name)}ম শ্রেণি, রোল: ${toBnDigits(f.roll_no)})`, inAmt: f.paid_amount, outAmt: 0 })),
-                  ...incomes.map(i => ({ ...i, txType: 'income', inAmt: i.amount, outAmt: 0 })),
+                  ...displayIncomes.map(i => ({ ...i, txType: 'income', inAmt: i.amount, outAmt: 0 })),
                   ...expenses.map(e => ({ ...e, txType: 'expense', inAmt: 0, outAmt: e.amount }))
                 ]
                   .sort((a, b) => new Date(b.date) - new Date(a.date))

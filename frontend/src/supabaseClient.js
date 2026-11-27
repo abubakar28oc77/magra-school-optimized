@@ -1,6 +1,6 @@
 // Supabase Client & Real-time Cloud Sync Engine for Magra School Management ERP V118
 import { saveTeacherCustomPhoto, isAssistantHeadPhoto } from './photoStorage.js';
-import { AUTHENTIC_FEE_DEPOSITS } from './mockData.js';
+import { AUTHENTIC_FEE_DEPOSITS, AUTHENTIC_INCOMES } from './mockData.js';
 
 const DEFAULT_URL = 'https://iyznvucpjubelabwsiba.supabase.co';
 const DEFAULT_KEY = 'sb_publishable_bIhO90sDYYb5Wi5pqlrAdg_G4TUov22';
@@ -289,6 +289,47 @@ export async function pullAllFromCloud() {
           AUTHENTIC_FEE_DEPOSITS.forEach(ad => {
             if (!merged.some(d => d.id === ad.id || d.deposit_no === ad.deposit_no)) {
               merged.push(ad);
+              localHasUnsynced = true;
+            }
+          });
+
+          const mergedStr = JSON.stringify(merged);
+          if (cur !== mergedStr) {
+            localStorage.setItem(r.key, mergedStr);
+            updatedAny = true;
+            window.dispatchEvent(new CustomEvent('magra_data_sync', { detail: { key: r.key } }));
+          }
+
+          if (localHasUnsynced) {
+            pushKeyToCloud(r.key, merged);
+          }
+          return;
+        }
+
+        // Smart union merge for incomes, strictly preserving authentic income vouchers
+        if (r.key === 'magra_finance_incomes' && Array.isArray(r.value)) {
+          let localArr = [];
+          try {
+            if (cur) localArr = JSON.parse(cur);
+          } catch { }
+          if (!Array.isArray(localArr)) localArr = [];
+
+          const cloudArr = r.value;
+          const cloudIdMap = new Map(cloudArr.map(x => [x.id, x]));
+          let localHasUnsynced = false;
+          const merged = [...cloudArr];
+
+          localArr.forEach(localItem => {
+            if (localItem && localItem.id && !cloudIdMap.has(localItem.id)) {
+              merged.push(localItem);
+              localHasUnsynced = true;
+            }
+          });
+
+          // Ensure authentic income vouchers are always present
+          (AUTHENTIC_INCOMES || []).forEach(ai => {
+            if (!merged.some(inc => inc.id === ai.id || (inc.deposit_id && inc.deposit_id === ai.deposit_id))) {
+              merged.push(ai);
               localHasUnsynced = true;
             }
           });
