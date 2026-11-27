@@ -55,12 +55,13 @@ try {
         }
       }
     } catch (_) { }
-    // Ensure essential standard exams (অর্ধ-বার্ষিক পরীক্ষা, বার্ষিক পরীক্ষা, নির্বাচনী পরীক্ষা) are preserved and NEVER purged on refresh
+    // Ensure essential standard exams (অর্ধ-বার্ষিক পরীক্ষা, প্রাক-নির্বাচনী পরীক্ষা, বার্ষিক পরীক্ষা, নির্বাচনী পরীক্ষা) are preserved and NEVER purged on refresh
     try {
       const existingExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
       const hasHalfYearly = existingExams.some(e => e && e.name_bn && (e.name_bn.includes('অর্ধ') || (e.name_en && e.name_en.toLowerCase().includes('half'))));
+      const hasPreTest = existingExams.some(e => e && e.name_bn && e.name_bn.includes('প্রাক'));
       const hasAnnual = existingExams.some(e => e && e.name_bn && (e.name_bn.includes('বার্ষিক') || (e.name_en && e.name_en.toLowerCase().includes('annual'))));
-      const hasTest = existingExams.some(e => e && e.name_bn && (e.name_bn.includes('নির্বাচনী') || (e.name_en && e.name_en.toLowerCase().includes('test'))));
+      const hasTest = existingExams.some(e => e && e.name_bn && (e.name_bn.includes('নির্বাচনী') && !e.name_bn.includes('প্রাক')));
 
       let updatedExams = [...existingExams];
       let needsUpdate = false;
@@ -74,6 +75,19 @@ try {
           exam_type: 'সাময়িক পরীক্ষা',
           status: 'active',
           remarks: 'চলমান শিক্ষাবর্ষের অর্ধ-বার্ষিক পরীক্ষা',
+          created_at: new Date().toISOString()
+        });
+        needsUpdate = true;
+      }
+      if (!hasPreTest) {
+        updatedExams.push({
+          id: 'ex-pre-test-2026',
+          academic_year: '2026',
+          name_bn: 'প্রাক-নির্বাচনী পরীক্ষা',
+          name_en: 'Pre-Test Examination',
+          exam_type: 'প্রাক-নির্বাচনী পরীক্ষা',
+          status: 'active',
+          remarks: 'চলমান শিক্ষাবর্ষের প্রাক-নির্বাচনী পরীক্ষা',
           created_at: new Date().toISOString()
         });
         needsUpdate = true;
@@ -2377,8 +2391,15 @@ function handleMockRequest(path, opts = {}) {
         remarks: body.remarks || '',
         created_at: new Date().toISOString()
       };
-      exams = [newExam, ...exams];
+      const existingIdx = exams.findIndex(e => e && e.name_bn === newExam.name_bn && String(e.academic_year) === String(newExam.academic_year));
+      if (existingIdx >= 0) {
+        exams[existingIdx] = { ...exams[existingIdx], ...newExam, id: exams[existingIdx].id };
+      } else {
+        exams = [newExam, ...exams];
+      }
       setLocalStore('exams', exams);
+      pushKeyToCloud('magra_db_exams', exams);
+      window.dispatchEvent(new CustomEvent('magra_exams_updated'));
       return newExam;
     }
     const yearFilter = params.get('academic_year');
@@ -2394,11 +2415,15 @@ function handleMockRequest(path, opts = {}) {
     if (method === 'PUT' || method === 'PATCH') {
       exams = exams.map(e => String(e.id) === String(examId) ? { ...e, ...body } : e);
       setLocalStore('exams', exams);
+      pushKeyToCloud('magra_db_exams', exams);
+      window.dispatchEvent(new CustomEvent('magra_exams_updated'));
       return { success: true, exam: exams.find(e => String(e.id) === String(examId)) };
     }
     if (method === 'DELETE') {
       exams = exams.filter(e => String(e.id) !== String(examId));
       setLocalStore('exams', exams);
+      pushKeyToCloud('magra_db_exams', exams);
+      window.dispatchEvent(new CustomEvent('magra_exams_updated'));
       return { success: true, deleted: examId };
     }
     return exams.find(e => String(e.id) === String(examId)) || null;

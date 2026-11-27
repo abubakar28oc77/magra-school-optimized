@@ -107,12 +107,12 @@ const classes = ['6', '7', '8', '9', '10'];
 
 const STANDARD_EXAM_PRESETS = [
   { name_bn: '১ম সাময়িক পরীক্ষা', name_en: '1st Terminal Examination', exam_type: 'সাময়িক পরীক্ষা' },
-  { name_bn: 'অর্ধ-বার্ষিক পরীক্ষা', name_en: 'Half Yearly Examination', exam_type: 'সাময়িক পরীক্ষা' },
+  { name_bn: 'অর্ধ-বার্ষিক পরীক্ষা', name_en: 'Half Yearly Examination', exam_type: 'অর্ধবার্ষিক পরীক্ষা' },
   { name_bn: '২য় সাময়িক পরীক্ষা', name_en: '2nd Terminal Examination', exam_type: 'সাময়িক পরীক্ষা' },
-  { name_bn: 'প্রাক-নির্বাচনী পরীক্ষা', name_en: 'Pre-Test Examination', exam_type: 'নির্বাচনী পরীক্ষা' },
+  { name_bn: 'প্রাক-নির্বাচনী পরীক্ষা', name_en: 'Pre-Test Examination', exam_type: 'প্রাক-নির্বাচনী পরীক্ষা' },
   { name_bn: 'নির্বাচনী পরীক্ষা', name_en: 'Test Examination', exam_type: 'নির্বাচনী পরীক্ষা' },
-  { name_bn: 'বার্ষিক পরীক্ষা', name_en: 'Annual Examination', exam_type: 'চূড়ান্ত পরীক্ষা' },
-  { name_bn: 'মডেল টেস্ট / ক্লাস টেস্ট', name_en: 'Model Test / Class Assessment', exam_type: 'সাময়িক পরীক্ষা' }
+  { name_bn: 'বার্ষিক পরীক্ষা', name_en: 'Annual Examination', exam_type: 'বার্ষিক পরীক্ষা' },
+  { name_bn: 'মডেল টেস্ট / ক্লাস টেস্ট', name_en: 'Model Test / Class Assessment', exam_type: 'মডেল টেস্ট / ক্লাস টেস্ট' }
 ];
 
 const STANDARD_YEAR_PRESETS = [
@@ -287,6 +287,17 @@ export function ResultPanel({ sub, userRole }) {
 
   useEffect(() => {
     loadMasterData();
+    const handleSync = (e) => {
+      if (!e.detail || e.detail.key === 'magra_db_exams' || e.detail.key === 'magra_db_marks') {
+        loadMasterData();
+      }
+    };
+    window.addEventListener('magra_data_sync', handleSync);
+    window.addEventListener('magra_exams_updated', loadMasterData);
+    return () => {
+      window.removeEventListener('magra_data_sync', handleSync);
+      window.removeEventListener('magra_exams_updated', loadMasterData);
+    };
   }, []);
 
   const isSSC = ['9', '10', '৯', '১০'].includes(String(className));
@@ -4409,10 +4420,12 @@ export function ResultPanel({ sub, userRole }) {
                     onChange={(e) => setExamForm(f => ({ ...f, exam_type: e.target.value }))}
                   >
                     <option value="সাময়িক পরীক্ষা">সাময়িক পরীক্ষা (Terminal)</option>
-                    <option value="অর্ধবার্ষিক পরীক্ষা">অর্ধবার্ষিক পরীক্ষা (Half Yearly)</option>
+                    <option value="অর্ধবার্ষিক পরীক্ষা">অর্ধ-বার্ষিক পরীক্ষা (Half Yearly)</option>
                     <option value="বার্ষিক পরীক্ষা">বার্ষিক পরীক্ষা (Annual)</option>
+                    <option value="চূড়ান্ত পরীক্ষা">চূড়ান্ত পরীক্ষা</option>
                     <option value="প্রাক-নির্বাচনী পরীক্ষা">প্রাক-নির্বাচনী পরীক্ষা (Pre-Test)</option>
-                    <option value="নির্বাচনী পরীক্ষা (Test)">নির্বাচনী পরীক্ষা (Test - SSC)</option>
+                    <option value="নির্বাচনী পরীক্ষা">নির্বাচনী পরীক্ষা (Test - SSC)</option>
+                    <option value="নির্বাচনী পরীক্ষা (Test)">নির্বাচনী পরীক্ষা (Test)</option>
                     <option value="মডেল টেস্ট / ক্লাস টেস্ট">মডেল টেস্ট / ক্লাস টেস্ট</option>
                   </select>
                 </div>

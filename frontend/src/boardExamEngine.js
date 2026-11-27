@@ -10,6 +10,7 @@ export function areExamsEquivalent(id1, id2, exams = []) {
   const STANDARD_FALLBACK_EXAMS = [
     { id: 'ex-test-2026', name_bn: 'নির্বাচনী পরীক্ষা' },
     { id: 'ex-test-10', name_bn: 'নির্বাচনী পরীক্ষা' },
+    { id: 'ex-pre-test-2026', name_bn: 'প্রাক-নির্বাচনী পরীক্ষা' },
     { id: 'ex-pre-test-10', name_bn: 'প্রাক-নির্বাচনী পরীক্ষা' },
     { id: 'ex-half-yearly-2026', name_bn: 'অর্ধ-বার্ষিক পরীক্ষা' },
     { id: 'ex-annual-2026', name_bn: 'বার্ষিক পরীক্ষা' },

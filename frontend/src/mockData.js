@@ -14196,6 +14196,15 @@ export const MOCK_EXAMS = [
     remarks: 'চলমান শিক্ষাবর্ষের অর্ধ-বার্ষিক পরীক্ষা'
   },
   {
+    id: 'ex-pre-test-2026',
+    academic_year: '2026',
+    name_bn: 'প্রাক-নির্বাচনী পরীক্ষা',
+    name_en: 'Pre-Test Examination',
+    exam_type: 'প্রাক-নির্বাচনী পরীক্ষা',
+    status: 'active',
+    remarks: 'চলমান শিক্ষাবর্ষের প্রাক-নির্বাচনী পরীক্ষা'
+  },
+  {
     id: 'ex-annual-2026',
     academic_year: '2026',
     name_bn: 'বার্ষিক পরীক্ষা',

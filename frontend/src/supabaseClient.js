@@ -370,6 +370,66 @@ export async function pullAllFromCloud() {
           return;
         }
 
+        // Smart union merge for exams so custom exams are NEVER erased by cloud
+        if (r.key === 'magra_db_exams' && Array.isArray(r.value)) {
+          let localArr = [];
+          try {
+            if (cur) localArr = JSON.parse(cur);
+          } catch { }
+          if (!Array.isArray(localArr)) localArr = [];
+
+          const cloudArr = r.value;
+          const cloudIdMap = new Map();
+          const cloudNameMap = new Map();
+          cloudArr.forEach(x => {
+            if (x && x.id) cloudIdMap.set(String(x.id).toLowerCase(), x);
+            if (x && x.name_bn) cloudNameMap.set(String(x.name_bn).trim() + '_' + String(x.academic_year || '2026'), x);
+          });
+
+          let localHasUnsynced = false;
+          const merged = [...cloudArr];
+
+          localArr.forEach(localItem => {
+            if (!localItem) return;
+            const idKey = localItem.id ? String(localItem.id).toLowerCase() : null;
+            const nameKey = localItem.name_bn ? String(localItem.name_bn).trim() + '_' + String(localItem.academic_year || '2026') : null;
+            const inCloud = (idKey && cloudIdMap.has(idKey)) || (nameKey && cloudNameMap.has(nameKey));
+
+            if (!inCloud) {
+              merged.push(localItem);
+              localHasUnsynced = true;
+            }
+          });
+
+          // Ensure pre-test is always present for 2026
+          if (!merged.some(e => e && e.name_bn && e.name_bn.includes('প্রাক'))) {
+            merged.push({
+              id: 'ex-pre-test-2026',
+              academic_year: '2026',
+              name_bn: 'প্রাক-নির্বাচনী পরীক্ষা',
+              name_en: 'Pre-Test Examination',
+              exam_type: 'প্রাক-নির্বাচনী পরীক্ষা',
+              status: 'active',
+              remarks: 'চলমান শিক্ষাবর্ষের প্রাক-নির্বাচনী পরীক্ষা',
+              created_at: new Date().toISOString()
+            });
+            localHasUnsynced = true;
+          }
+
+          const mergedStr = JSON.stringify(merged);
+          if (cur !== mergedStr) {
+            localStorage.setItem(r.key, mergedStr);
+            updatedAny = true;
+            window.dispatchEvent(new CustomEvent('magra_data_sync', { detail: { key: r.key } }));
+            window.dispatchEvent(new CustomEvent('magra_exams_updated'));
+          }
+
+          if (localHasUnsynced || merged.length !== cloudArr.length) {
+            pushKeyToCloud(r.key, merged);
+          }
+          return;
+        }
+
         const valStr = typeof r.value === 'string' ? r.value : JSON.stringify(r.value);
         if (cur !== valStr) {
           localStorage.setItem(r.key, valStr);
