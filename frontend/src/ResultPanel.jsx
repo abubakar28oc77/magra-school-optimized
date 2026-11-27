@@ -167,7 +167,15 @@ export function ResultPanel({ sub, userRole }) {
 
   // Filters
   const [selectedYear, setSelectedYear] = useState('2026');
-  const [selectedExam, setSelectedExam] = useState('');
+  const [selectedExam, setSelectedExam] = useState(() => {
+    try {
+      return localStorage.getItem('magra_selected_exam_id') || '';
+    } catch {
+      return '';
+    }
+  });
+  const selectedExamRef = useRef(selectedExam);
+  selectedExamRef.current = selectedExam;
   const [className, setClassName] = useState('6');
   const [department, setDepartment] = useState('all'); // 'all' | 'বিজ্ঞান' | 'মানবিক' | 'ব্যবসায় শিক্ষা'
 
@@ -267,12 +275,21 @@ export function ResultPanel({ sub, userRole }) {
           }
         } catch(e){}
 
+        const activeChoice = selectedExamRef.current || localStorage.getItem('magra_selected_exam_id');
         if (targetExam) {
           setSelectedExam(targetExam.id);
-        } else if (cleanList.length && !selectedExam) {
+          selectedExamRef.current = targetExam.id;
+          try { localStorage.setItem('magra_selected_exam_id', targetExam.id); } catch {}
+        } else if (activeChoice && cleanList.some(e => String(e.id) === String(activeChoice))) {
+          setSelectedExam(activeChoice);
+          selectedExamRef.current = activeChoice;
+        } else if (cleanList.length && !activeChoice) {
           setSelectedExam(cleanList[0].id);
+          selectedExamRef.current = cleanList[0].id;
+          try { localStorage.setItem('magra_selected_exam_id', cleanList[0].id); } catch {}
         } else if (!cleanList.length) {
           setSelectedExam('');
+          selectedExamRef.current = '';
         }
       }
 
@@ -323,10 +340,19 @@ export function ResultPanel({ sub, userRole }) {
 
   useEffect(() => {
     if (examsForSelectedYear.length > 0) {
-      const match = examsForSelectedYear.find(e => String(e.id) === String(selectedExam));
-      if (!match) setSelectedExam(examsForSelectedYear[0].id);
+      const activeChoice = selectedExamRef.current || localStorage.getItem('magra_selected_exam_id') || selectedExam;
+      const match = examsForSelectedYear.find(e => String(e.id) === String(activeChoice));
+      if (match) {
+        if (selectedExam !== match.id) setSelectedExam(match.id);
+        selectedExamRef.current = match.id;
+      } else {
+        setSelectedExam(examsForSelectedYear[0].id);
+        selectedExamRef.current = examsForSelectedYear[0].id;
+        try { localStorage.setItem('magra_selected_exam_id', examsForSelectedYear[0].id); } catch {}
+      }
     } else {
       setSelectedExam('');
+      selectedExamRef.current = '';
     }
   }, [selectedYear, examsForSelectedYear]);
 
@@ -3799,6 +3825,8 @@ export function ResultPanel({ sub, userRole }) {
         showNotification('নতুন পরীক্ষা সফলভাবে তৈরি হয়েছে।', 'success');
         if (created && created.id) {
           setSelectedExam(created.id);
+          selectedExamRef.current = created.id;
+          try { localStorage.setItem('magra_selected_exam_id', created.id); } catch {}
         }
       }
       setEditingExamId(null);
@@ -3834,6 +3862,8 @@ export function ResultPanel({ sub, userRole }) {
 
   const jumpToMarkEntry = (exId) => {
     setSelectedExam(exId);
+    selectedExamRef.current = exId;
+    try { localStorage.setItem('magra_selected_exam_id', exId); } catch {}
     setTab('marks');
   };
 
@@ -3986,7 +4016,12 @@ export function ResultPanel({ sub, userRole }) {
             <label>পরীক্ষা:</label>
             <select
               value={selectedExam}
-              onChange={(e) => setSelectedExam(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedExam(val);
+                selectedExamRef.current = val;
+                try { localStorage.setItem('magra_selected_exam_id', val); } catch {}
+              }}
               disabled={!examsForSelectedYear.length}
             >
               {examsForSelectedYear.length === 0 ? (

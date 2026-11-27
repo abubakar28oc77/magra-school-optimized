@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MOCK_SCHOOL, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_STAFF, getStudentPhoto } from './mockData';
+import { MOCK_SCHOOL, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_STAFF, getStudentPhoto, AUTHENTIC_FEE_DEPOSITS } from './mockData';
 import schoolLogo from '../public/school-logo.png';
 import { pushKeyToCloud } from './supabaseClient';
 
@@ -949,36 +949,36 @@ export function FinancePanel({ sub }) {
 
   const [feeDeposits, setFeeDeposits] = useState(() => {
     try {
-      const cleanKey = 'magra_finance_deposits_clean_v9';
-      if (!localStorage.getItem(cleanKey)) {
-        localStorage.setItem(cleanKey, 'true');
-        localStorage.removeItem('magra_finance_deposits');
-        return [];
-      }
       const saved = localStorage.getItem('magra_finance_deposits');
-      let records = saved ? JSON.parse(saved) : [];
-      // Strictly purge any obsolete ghost deposits
-      records = records.filter(d => d && d.id !== 'DEP-1732100000001' && d.id !== 'DEP-1732104500000');
-      return records;
+      let records = saved ? JSON.parse(saved) : null;
+      if (Array.isArray(records) && records.length > 0) {
+        let hasAll = true;
+        (AUTHENTIC_FEE_DEPOSITS || []).forEach(ad => {
+          if (!records.some(d => d.id === ad.id || d.deposit_no === ad.deposit_no)) {
+            records.push(ad);
+            hasAll = false;
+          }
+        });
+        if (!hasAll) {
+          try { localStorage.setItem('magra_finance_deposits', JSON.stringify(records)); } catch { }
+        }
+        return records;
+      }
+      try { localStorage.setItem('magra_finance_deposits', JSON.stringify(AUTHENTIC_FEE_DEPOSITS)); } catch { }
+      return AUTHENTIC_FEE_DEPOSITS || [];
     } catch {
-      return [];
+      return AUTHENTIC_FEE_DEPOSITS || [];
     }
   });
 
   const [incomes, setIncomes] = useState(() => {
     try {
-      const cleanKey = 'magra_finance_clean_v9_incomes';
-      if (!localStorage.getItem(cleanKey)) {
-        localStorage.setItem(cleanKey, 'true');
-        localStorage.setItem('magra_finance_incomes', JSON.stringify([]));
-        return [];
-      }
       const saved = localStorage.getItem('magra_finance_incomes');
       let records = saved ? JSON.parse(saved) : null;
       if (!Array.isArray(records)) {
         records = [];
       } else {
-        records = records.filter(r => !r.is_auto_deposit && !r.deposit_id && !String(r.id).startsWith('INC-DEP-DEP-17321') && !String(r.id).startsWith('INC-2026-'));
+        records = records.filter(r => !r.is_auto_deposit && !r.deposit_id);
       }
       return records;
     } catch {

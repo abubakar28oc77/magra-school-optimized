@@ -1,5 +1,6 @@
 // Supabase Client & Real-time Cloud Sync Engine for Magra School Management ERP V118
 import { saveTeacherCustomPhoto, isAssistantHeadPhoto } from './photoStorage.js';
+import { AUTHENTIC_FEE_DEPOSITS } from './mockData.js';
 
 const DEFAULT_URL = 'https://iyznvucpjubelabwsiba.supabase.co';
 const DEFAULT_KEY = 'sb_publishable_bIhO90sDYYb5Wi5pqlrAdg_G4TUov22';
@@ -121,18 +122,13 @@ export async function supabaseRequest(table, options = {}) {
   return await res.json();
 }
 
-// Filter helper to permanently reject any legacy mock/synthetic receipts (1070 / 1065 / মপাউইবি)
+// Filter helper to reject obsolete dummy test mock receipts
 export const isLegacyMockReceipt = (x) => {
   if (!x) return true;
   const id = String(x.id || '');
   const rno = String(x.receipt_no || x.receiptNo || '');
-  const depId = String(x.deposit_id || x.depositId || '');
-  const amt = Number(x.paid_amount || x.paidAmount || 0);
-  const date = String(x.date || '');
-  if (id.startsWith('FEE-17320') || id.startsWith('FEE-17321')) return true;
-  if (depId.startsWith('DEP-173210')) return true;
-  if (rno.includes('মপাউইবি')) return true;
-  if (date === '2026-11-20' && (amt === 1070 || amt === 1065)) return true;
+  if (rno.includes('মপাউইবি') && !rno.includes('মপাইউবি')) return true;
+  if (id === 'mock-fee-1' || id === 'mock-fee-2') return true;
   return false;
 };
 
@@ -154,7 +150,7 @@ export function pushKeyToCloud(key, value) {
       value = value.filter(x => !isLegacyMockReceipt(x));
     }
     if (key === 'magra_finance_deposits') {
-      value = value.filter(d => d && d.id !== 'DEP-1732100000001' && d.id !== 'DEP-1732104500000');
+      value = Array.isArray(value) ? value : [];
     }
   }
 
@@ -269,7 +265,7 @@ export async function pullAllFromCloud() {
           return;
         }
 
-        // Smart union merge for deposits, filtering out obsolete ghost deposits
+        // Smart union merge for deposits, strictly preserving all authentic deposits
         if (r.key === 'magra_finance_deposits' && Array.isArray(r.value)) {
           let localArr = [];
           try {
@@ -277,15 +273,22 @@ export async function pullAllFromCloud() {
           } catch { }
           if (!Array.isArray(localArr)) localArr = [];
 
-          const cloudArr = r.value.filter(d => d.id !== 'DEP-1732100000001' && d.id !== 'DEP-1732104500000');
+          const cloudArr = r.value;
           const cloudIdMap = new Map(cloudArr.map(x => [x.id, x]));
           let localHasUnsynced = false;
           const merged = [...cloudArr];
 
           localArr.forEach(localItem => {
             if (localItem && localItem.id && !cloudIdMap.has(localItem.id)) {
-              if (localItem.id === 'DEP-1732100000001' || localItem.id === 'DEP-1732104500000') return;
               merged.push(localItem);
+              localHasUnsynced = true;
+            }
+          });
+
+          // Ensure authentic deposits are always present
+          AUTHENTIC_FEE_DEPOSITS.forEach(ad => {
+            if (!merged.some(d => d.id === ad.id || d.deposit_no === ad.deposit_no)) {
+              merged.push(ad);
               localHasUnsynced = true;
             }
           });
