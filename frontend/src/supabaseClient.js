@@ -166,7 +166,7 @@ export function pushKeyToCloud(key, value) {
     try {
       let payload = value;
       if (typeof payload === 'string') {
-        try { payload = JSON.parse(payload); } catch {}
+        try { payload = JSON.parse(payload); } catch { }
       }
       await supabaseRequest('app_sync_store', {
         method: 'POST',
@@ -211,18 +211,30 @@ export async function pullAllFromCloud() {
           let localArr = [];
           try {
             if (cur) localArr = JSON.parse(cur);
-          } catch {}
+          } catch { }
           if (!Array.isArray(localArr)) localArr = [];
 
           // STRICTLY PURGE ALL LEGACY MOCK RECEIPTS (1070/1065) FROM BOTH CLOUD AND LOCAL
           const cloudArr = r.value.filter(x => !isLegacyMockReceipt(x));
           const cleanLocal = localArr.filter(x => !isLegacyMockReceipt(x));
-          const cloudIdMap = new Map(cloudArr.map(x => [x.id, x]));
+          const cloudIdMap = new Map();
+          const cloudReceiptMap = new Map();
+          cloudArr.forEach(x => {
+            if (x && x.id) cloudIdMap.set(String(x.id), x);
+            const rno = x?.receipt_no || x?.receiptNo;
+            if (rno) cloudReceiptMap.set(String(rno).trim(), x);
+          });
           let localHasUnsynced = false;
           const merged = [...cloudArr];
 
           cleanLocal.forEach(localItem => {
-            if (localItem && localItem.id && !cloudIdMap.has(localItem.id)) {
+            if (!localItem) return;
+            const idStr = localItem.id ? String(localItem.id) : null;
+            const rnoStr = (localItem.receipt_no || localItem.receiptNo) ? String(localItem.receipt_no || localItem.receiptNo).trim() : null;
+            const inCloudById = idStr && cloudIdMap.has(idStr);
+            const inCloudByReceipt = rnoStr && cloudReceiptMap.has(rnoStr);
+
+            if (!inCloudById && !inCloudByReceipt) {
               merged.push(localItem);
               localHasUnsynced = true;
             }
@@ -262,7 +274,7 @@ export async function pullAllFromCloud() {
           let localArr = [];
           try {
             if (cur) localArr = JSON.parse(cur);
-          } catch {}
+          } catch { }
           if (!Array.isArray(localArr)) localArr = [];
 
           const cloudArr = r.value.filter(d => d.id !== 'DEP-1732100000001' && d.id !== 'DEP-1732104500000');
@@ -296,7 +308,7 @@ export async function pullAllFromCloud() {
           let localArr = [];
           try {
             if (cur) localArr = JSON.parse(cur);
-          } catch {}
+          } catch { }
           if (!Array.isArray(localArr)) localArr = [];
 
           const localMap = new Map();
@@ -313,7 +325,7 @@ export async function pullAllFromCloud() {
 
             let photo = cloudT.photo_url || cloudT.photo || '';
             const isHeadT = (
-              cloudT.id === 't-1' || 
+              cloudT.id === 't-1' ||
               (cloudT.employee_id || '').toUpperCase() === 'EMP-001' ||
               ((cloudT.designation || '').includes('প্রধান শিক্ষক') && !(cloudT.designation || '').includes('সহকারী')) ||
               (cloudT.name_bn || '').includes('শফিকুল')
@@ -382,7 +394,7 @@ export async function pushAllLocalToCloud() {
     const raw = localStorage.getItem(k);
     if (raw !== null) {
       let parsed = raw;
-      try { parsed = JSON.parse(raw); } catch {}
+      try { parsed = JSON.parse(raw); } catch { }
       if (k === 'magra_db_marks' && Array.isArray(parsed) && parsed.length < 500) continue;
       if (k === 'magra_db_teachers' && Array.isArray(parsed) && parsed.length < 15) continue;
       try {
@@ -395,7 +407,7 @@ export async function pushAllLocalToCloud() {
           },
           headers: { Prefer: 'resolution=merge-duplicates' }
         });
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 }
@@ -424,16 +436,16 @@ export function startRealtimeCloudSync() {
       if (document.visibilityState === 'visible') {
         await pullAllFromCloud();
       }
-    } catch {}
+    } catch { }
   }, 10000);
 
   // 3. Listen to page focus or visibility change
   window.addEventListener('focus', () => {
-    pullAllFromCloud().catch(() => {});
+    pullAllFromCloud().catch(() => { });
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      pullAllFromCloud().catch(() => {});
+      pullAllFromCloud().catch(() => { });
     }
   });
 }

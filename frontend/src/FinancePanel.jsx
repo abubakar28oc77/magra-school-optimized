@@ -71,6 +71,38 @@ export const generateClassReceiptNo = (className, feeRecordsList, year = null) =
   return `মপাইউবি/${classLabel}/${yearBn}/${paddedSeq}`;
 };
 
+// Detect missing receipt gaps in sequence (যেমন: ০৬৫ এর পর ০৭০ থাকলে মাঝের ০৬৬, ০৬৭, ০৬৮, ০৬৯ মিসিং নির্ণয়)
+export const getMissingReceiptSerials = (className, feeRecordsList, year = null) => {
+  const normClass = normalizeClass(className);
+  const classLabel = getClassBnOrdinal(className);
+  const yearBn = toBnDigits(year || new Date().getFullYear());
+
+  const presentNums = new Set();
+  (feeRecordsList || []).forEach(r => {
+    if (normalizeClass(r.class_name) === normClass) {
+      const str = String(r.receipt_no || '');
+      const parts = str.split('/');
+      const lastPart = parts[parts.length - 1];
+      const num = parseRollNumber(lastPart);
+      if (num) presentNums.add(num);
+    }
+  });
+
+  const max = Math.max(0, ...Array.from(presentNums));
+  const missing = [];
+  for (let i = 1; i < max; i++) {
+    if (!presentNums.has(i)) {
+      const padded = toBnDigits(String(i).padStart(3, '0'));
+      missing.push({
+        num: i,
+        receiptNo: `মপাইউবি/${classLabel}/${yearBn}/${padded}`,
+        label: `${padded}`
+      });
+    }
+  }
+  return missing;
+};
+
 // Extract numeric serial from receipt number (যেমন: মপাইউবি/৮ম/২০২৬/০৪০ => 40)
 export const parseReceiptSequence = (receiptNo) => {
   if (!receiptNo) return 0;
@@ -103,7 +135,7 @@ export const generateClassDepositNo = (className, feeDepositsList, year = null) 
   let maxSeq = 0;
   (feeDepositsList || []).forEach(d => {
     const isThisClass = (d.class_name && normalizeClass(d.class_name) === normClass) ||
-                        (d.deposit_no && (d.deposit_no.includes(`/${classLabel}/`) || d.deposit_no.includes(`/${normClass}/`)));
+      (d.deposit_no && (d.deposit_no.includes(`/${classLabel}/`) || d.deposit_no.includes(`/${normClass}/`)));
     if (isThisClass) {
       const parts = String(d.deposit_no || '').split('/');
       const lastPart = parts[parts.length - 1];
@@ -119,7 +151,6 @@ export const generateClassDepositNo = (className, feeDepositsList, year = null) 
 
   return `মপাইউবি/${classLabel}/${yearBn}/${paddedSeq}`;
 };
-
 
 export const getStudentDepartment = (s) => {
   if (!s) return 'সাধারণ';
@@ -251,7 +282,7 @@ export const getAvailableOfficeAssistants = () => {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) list = [...parsed];
     }
-  } catch (e) {}
+  } catch (e) { }
 
   if (!list.length && Array.isArray(MOCK_STAFF)) {
     list = [...MOCK_STAFF];
@@ -269,7 +300,7 @@ export const getAvailableOfficeAssistants = () => {
         });
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   const active = list.filter(s => {
     if (!s) return false;
@@ -282,13 +313,13 @@ export const getAvailableOfficeAssistants = () => {
     const desig = (s.designation || '').toLowerCase();
     const sub = (s.subject || '').toLowerCase();
     return role === 'office_assistant' ||
-           desig.includes('অফিস সহকারী') ||
-           desig.includes('অফিস') ||
-           desig.includes('সহকারী কাম') ||
-           desig.includes('হিসাব সহকারী') ||
-           desig.includes('সহকারী') ||
-           sub.includes('অফিস') ||
-           sub.includes('হিসাব');
+      desig.includes('অফিস সহকারী') ||
+      desig.includes('অফিস') ||
+      desig.includes('সহকারী কাম') ||
+      desig.includes('হিসাব সহকারী') ||
+      desig.includes('সহকারী') ||
+      sub.includes('অফিস') ||
+      sub.includes('হিসাব');
   };
 
   const officeMatches = active.filter(isOfficeMatch);
@@ -309,7 +340,7 @@ export const resolveDefaultOfficeAssistant = () => {
         designation: match ? match[1] : 'অফিস সহকারী'
       };
     }
-  } catch (e) {}
+  } catch (e) { }
 
   const staffList = getAvailableOfficeAssistants();
 
@@ -327,7 +358,7 @@ export const resolveDefaultOfficeAssistant = () => {
     if (n && !n.includes('আলমগীর')) {
       leadershipOffice = { name_bn: n, designation: 'অফিস সহকারী' };
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // 4. Check logged in user
   let sessionStaff = null;
@@ -336,7 +367,7 @@ export const resolveDefaultOfficeAssistant = () => {
     if ((u.role_name === 'staff' || u.login_id === 'office') && u.full_name && !u.full_name.includes('আলমগীর')) {
       sessionStaff = { name_bn: u.full_name, designation: u.role_label || 'অফিস সহকারী' };
     }
-  } catch (e) {}
+  } catch (e) { }
 
   const chosen = userStaff || leadershipOffice || sessionStaff || staffList[0] || (Array.isArray(MOCK_STAFF) ? MOCK_STAFF[0] : null) || { name_bn: 'অফিস সহকারী', designation: 'অফিস সহকারী' };
   const rawName = (chosen.name_bn || chosen.name_en || 'অফিস সহকারী').trim();
@@ -358,7 +389,7 @@ export function getClassTeacher(className, groupName, config = null) {
     try {
       const saved = localStorage.getItem('magra_class_teachers_config');
       if (saved) cfg = JSON.parse(saved);
-    } catch (e) {}
+    } catch (e) { }
   }
   if (!cfg) cfg = DEFAULT_CLASS_TEACHERS;
 
@@ -759,7 +790,7 @@ export function FinancePanel({ sub }) {
         merged['10'].class_name_en = 'Class 10';
         return merged;
       }
-    } catch (e) {}
+    } catch (e) { }
     return DEFAULT_CLASS_TEACHERS;
   });
 
@@ -771,7 +802,7 @@ export function FinancePanel({ sub }) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch (e) {}
+    } catch (e) { }
     return MOCK_TEACHERS;
   }, []);
 
@@ -793,7 +824,7 @@ export function FinancePanel({ sub }) {
           phone: t.phone || ''
         }
       };
-      try { localStorage.setItem('magra_class_teachers_config', JSON.stringify(next)); } catch (e) {}
+      try { localStorage.setItem('magra_class_teachers_config', JSON.stringify(next)); } catch (e) { }
       return next;
     });
   };
@@ -822,7 +853,7 @@ export function FinancePanel({ sub }) {
   const handleResetDefaultClassTeachers = () => {
     if (window.confirm('আপনি কি নিশ্চিত যে সকল শ্রেণির জন্য ডিফল্ট শ্রেণি শিক্ষক রিসেট করতে চান?')) {
       setClassTeachers(DEFAULT_CLASS_TEACHERS);
-      try { localStorage.setItem('magra_class_teachers_config', JSON.stringify(DEFAULT_CLASS_TEACHERS)); } catch (e) {}
+      try { localStorage.setItem('magra_class_teachers_config', JSON.stringify(DEFAULT_CLASS_TEACHERS)); } catch (e) { }
       setTeacherSuccessMsg('ডিফল্ট শ্রেণি শিক্ষক তালিকা সফলভাবে কার্যকর করা হয়েছে।');
       setTimeout(() => setTeacherSuccessMsg(''), 4000);
     }
@@ -909,7 +940,7 @@ export function FinancePanel({ sub }) {
       } else {
         records = [];
       }
-      try { localStorage.setItem('magra_finance_fees', JSON.stringify(records)); } catch {}
+      try { localStorage.setItem('magra_finance_fees', JSON.stringify(records)); } catch { }
       return records;
     } catch {
       return [];
@@ -982,7 +1013,7 @@ export function FinancePanel({ sub }) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) list = parsed;
       }
-    } catch {}
+    } catch { }
     if (!list) list = MOCK_STUDENTS;
 
     let changed = false;
@@ -1019,7 +1050,7 @@ export function FinancePanel({ sub }) {
     if (changed) {
       try {
         localStorage.setItem('magra_db_students', JSON.stringify(healed));
-      } catch {}
+      } catch { }
     }
     return healed;
   }, []);
@@ -1029,21 +1060,21 @@ export function FinancePanel({ sub }) {
     try {
       localStorage.setItem('magra_finance_fees', JSON.stringify(feeRecords));
       pushKeyToCloud('magra_finance_fees', feeRecords);
-    } catch {}
+    } catch { }
   }, [feeRecords]);
 
   useEffect(() => {
     try {
       localStorage.setItem('magra_finance_deposits', JSON.stringify(feeDeposits));
       pushKeyToCloud('magra_finance_deposits', feeDeposits);
-    } catch {}
+    } catch { }
   }, [feeDeposits]);
 
   useEffect(() => {
     try {
       localStorage.setItem('magra_finance_incomes', JSON.stringify(incomes));
       pushKeyToCloud('magra_finance_incomes', incomes);
-    } catch {}
+    } catch { }
   }, [incomes]);
 
   // Realtime Cloud Sync listener - updates UI when new payments arrive from Mobile or other devices
@@ -1058,17 +1089,17 @@ export function FinancePanel({ sub }) {
             const clean = Array.isArray(parsed) ? parsed.filter(x => !isLegacyMockReceipt(x)) : [];
             setFeeRecords(clean);
           }
-        } catch {}
+        } catch { }
       } else if (k === 'magra_finance_deposits') {
         try {
           const saved = localStorage.getItem('magra_finance_deposits');
           if (saved) setFeeDeposits(JSON.parse(saved));
-        } catch {}
+        } catch { }
       } else if (k === 'magra_finance_incomes') {
         try {
           const saved = localStorage.getItem('magra_finance_incomes');
           if (saved) setIncomes(JSON.parse(saved));
-        } catch {}
+        } catch { }
       }
     };
     window.addEventListener('magra_data_sync', handleCloudSync);
@@ -1128,11 +1159,11 @@ export function FinancePanel({ sub }) {
   }, [feeDeposits]);
 
   useEffect(() => {
-    try { localStorage.setItem('magra_finance_expenses', JSON.stringify(expenses)); } catch {}
+    try { localStorage.setItem('magra_finance_expenses', JSON.stringify(expenses)); } catch { }
   }, [expenses]);
 
   useEffect(() => {
-    try { localStorage.setItem('magra_finance_rates', JSON.stringify(classRates)); } catch {}
+    try { localStorage.setItem('magra_finance_rates', JSON.stringify(classRates)); } catch { }
   }, [classRates]);
 
   // ==========================================
@@ -1172,9 +1203,11 @@ export function FinancePanel({ sub }) {
           if (['6', '7', '8', '9', '10'].includes(norm)) return norm;
         }
       }
-    } catch {}
+    } catch { }
     return '8';
   });
+
+  const [customReceiptNo, setCustomReceiptNo] = useState('');
 
   useEffect(() => {
     if (assignedClass) {
@@ -1229,7 +1262,7 @@ export function FinancePanel({ sub }) {
 
     if (normC === '9' || normC === '10') {
       const activeDept = (selectedGroup === 'humanities' || selectedGroup === 'মানবিক') ? 'মানবিক' :
-                         (selectedGroup === 'business' || selectedGroup === 'ব্যবসা' || selectedGroup === 'ব্যবসায় শিক্ষা') ? 'ব্যবসায় শিক্ষা' : 'বিজ্ঞান';
+        (selectedGroup === 'business' || selectedGroup === 'ব্যবসা' || selectedGroup === 'ব্যবসায় শিক্ষা') ? 'ব্যবসায় শিক্ষা' : 'বিজ্ঞান';
       list = list.filter(s => getStudentDepartment(s) === activeDept);
     }
 
@@ -1269,7 +1302,7 @@ export function FinancePanel({ sub }) {
   const handleSearchStudent = (customRoll = null) => {
     const query = customRoll !== null ? customRoll : searchRoll;
     const targetRoll = parseRollNumber(query);
-    
+
     if (targetRoll === null) {
       setSearchFeedback({
         type: 'error',
@@ -1291,7 +1324,7 @@ export function FinancePanel({ sub }) {
     }
 
     // 2. Fallback: search by student_id or name in current classStudents
-    const fuzzy = classStudents.find(s => 
+    const fuzzy = classStudents.find(s =>
       String(s.student_id || '').toLowerCase() === String(query).trim().toLowerCase() ||
       String(s.name_bn || '').includes(String(query).trim())
     );
@@ -1550,7 +1583,9 @@ export function FinancePanel({ sub }) {
       return;
     }
 
-    const receiptNo = generateClassReceiptNo(selectedStudent.class_name, feeRecords);
+    const receiptNo = (customReceiptNo && customReceiptNo.trim())
+      ? customReceiptNo.trim()
+      : generateClassReceiptNo(selectedStudent.class_name, feeRecords);
 
     const alloc = allocateReceiptHeadDiscounts(
       activeFeeItems.map(i => ({ name: i.label, amount: i.amount, is_free: i.is_free, note: i.note })),
@@ -1614,7 +1649,7 @@ export function FinancePanel({ sub }) {
       nextFees = [newTransaction, ...Array.from(combinedMap.values())];
       localStorage.setItem('magra_finance_fees', JSON.stringify(nextFees));
       pushKeyToCloud('magra_finance_fees', nextFees);
-    } catch {}
+    } catch { }
 
     setFeeRecords(nextFees);
     // Ensure the new payment is immediately visible in "ফি জমার হিসাব ও ইতিহাস" (Pending list)
@@ -1627,6 +1662,7 @@ export function FinancePanel({ sub }) {
     setDiscountAmount(0);
     setPaymentRemarks('');
     setSelectedMonths([]);
+    setCustomReceiptNo('');
     setFeeHeads(prev => {
       const reset = {};
       Object.keys(prev).forEach(k => {
@@ -1659,7 +1695,7 @@ export function FinancePanel({ sub }) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch {}
+    } catch { }
     return INSTITUTIONAL_INCOME_HEADS;
   });
 
@@ -1670,16 +1706,16 @@ export function FinancePanel({ sub }) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch {}
+    } catch { }
     return INSTITUTIONAL_EXPENSE_HEADS;
   });
 
   useEffect(() => {
-    try { localStorage.setItem('magra_finance_income_categories', JSON.stringify(incomeCategories)); } catch {}
+    try { localStorage.setItem('magra_finance_income_categories', JSON.stringify(incomeCategories)); } catch { }
   }, [incomeCategories]);
 
   useEffect(() => {
-    try { localStorage.setItem('magra_finance_expense_categories', JSON.stringify(expenseCategories)); } catch {}
+    try { localStorage.setItem('magra_finance_expense_categories', JSON.stringify(expenseCategories)); } catch { }
   }, [expenseCategories]);
 
   // Category Manager Modal State
@@ -1702,12 +1738,12 @@ export function FinancePanel({ sub }) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') return { ...DEFAULT_ANNUAL_BUDGET, ...parsed };
       }
-    } catch {}
+    } catch { }
     return DEFAULT_ANNUAL_BUDGET;
   });
 
   useEffect(() => {
-    try { localStorage.setItem('magra_finance_annual_budget', JSON.stringify(budgetMap)); } catch {}
+    try { localStorage.setItem('magra_finance_annual_budget', JSON.stringify(budgetMap)); } catch { }
   }, [budgetMap]);
 
   const [budgetSuccessMsg, setBudgetSuccessMsg] = useState('');
@@ -2759,9 +2795,9 @@ export function FinancePanel({ sub }) {
           </thead>
           <tbody>
             ${Array.from({ length: maxRows }).map((_, idx) => {
-              const inc = incHeads[idx];
-              const exp = expHeads[idx];
-              return `
+      const inc = incHeads[idx];
+      const exp = expHeads[idx];
+      return `
                 <tr>
                   <td style="text-align: center; color: #64748b;">${inc ? toBnDigits(idx + 1) : ''}</td>
                   <td>${inc ? `<b>${inc.category}</b>${inc.note ? `<br/><small style="color:#64748b">${inc.note}</small>` : ''}` : ''}</td>
@@ -2771,7 +2807,7 @@ export function FinancePanel({ sub }) {
                   <td class="amt amt-exp">${exp ? formatMoney(exp.budgeted_amount) : ''}</td>
                 </tr>
               `;
-            }).join('')}
+    }).join('')}
           </tbody>
           <tfoot>
             <tr class="tot-row">
@@ -3069,7 +3105,7 @@ export function FinancePanel({ sub }) {
   const handleDeleteReceipt = (receipt) => {
     if (!receipt) return;
     const confirmMsg = `আপনি কি নিশ্চিতভাবে এই রসিদটি ডিলিট করতে চান?\n\n• রশিদ নং: ${receipt.receipt_no}\n• শিক্ষার্থী: ${receipt.student_name} (${toBnDigits(receipt.class_name)}ম শ্রেণি, রোল: ${toBnDigits(receipt.roll_no)})\n• তারিখ: ${formatDateBn(receipt.date)}\n• আদায়কৃত টাকা: ${formatMoney(receipt.paid_amount)}`;
-    
+
     if (!window.confirm(confirmMsg)) return;
 
     // If this receipt is already part of a deposit batch, warn and update/remove from deposit
@@ -3120,7 +3156,7 @@ export function FinancePanel({ sub }) {
     try {
       localStorage.setItem('magra_finance_fees', JSON.stringify(nextFees));
       pushKeyToCloud('magra_finance_fees', nextFees);
-    } catch {}
+    } catch { }
     setSelectedReceiptIds(prev => prev.filter(id => id !== receipt.id));
     setSelectedReceiptIdsForDeposit(prev => prev.filter(id => id !== receipt.id));
 
@@ -3166,7 +3202,7 @@ export function FinancePanel({ sub }) {
         return prevDeps.map(dep => {
           if (dep.id === updatedReceipt.deposit_id || (dep.receipt_ids || []).includes(updatedReceipt.id)) {
             const depReceipts = feeRecords.map(r => r.id === updatedReceipt.id ? updatedReceipt : r)
-                                          .filter(r => (dep.receipt_ids || []).includes(r.id));
+              .filter(r => (dep.receipt_ids || []).includes(r.id));
             const newTotal = depReceipts.reduce((sum, r) => sum + (Number(r.paid_amount) || 0), 0);
             const newHeads = {
               'বেতন খাত': 0,
@@ -3225,7 +3261,7 @@ export function FinancePanel({ sub }) {
 
       const isSSC = ['9', '10'].includes(String(r.class_name));
       const studentDept = isSSC ? (r.group || (getStudentDepartment ? getStudentDepartment(r) : 'বিজ্ঞান বিভাগ')) : 'সাধারণ';
-      const formattedGroup = isSSC 
+      const formattedGroup = isSSC
         ? (studentDept.includes('বিভাগ') || studentDept.includes('শাখা') ? studentDept : `${studentDept} বিভাগ`)
         : (r.section ? `${r.section} শাখা` : 'সাধারণ');
 
@@ -3612,7 +3648,7 @@ export function FinancePanel({ sub }) {
     const w = window.open('', '_blank', 'width=1000,height=850');
     if (!w) return;
     const school = MOCK_SCHOOL;
-    
+
     // Sort all records chronologically
     const combined = [
       ...feeRecords.map(f => ({ ...f, type: 'fee', title: `শিক্ষার্থী ফি: ${f.student_name} (${f.class_name}ম, রোল: ${f.roll_no})`, in: f.paid_amount, out: 0 })),
@@ -4111,8 +4147,8 @@ export function FinancePanel({ sub }) {
           </thead>
           <tbody>
             ${includedRecords.map((r, idx) => {
-              const alloc = allocateReceiptHeadDiscounts(r);
-              return `
+      const alloc = allocateReceiptHeadDiscounts(r);
+      return `
                 <tr>
                   <td class="center">${toBnDigits(idx + 1)}</td>
                   <td class="center">${formatDateBn(r.date)}</td>
@@ -4135,7 +4171,7 @@ export function FinancePanel({ sub }) {
                   <td class="right" style="font-weight:700; color:#047857;">${formatMoney(r.paid_amount)}</td>
                 </tr>
               `;
-            }).join('')}
+    }).join('')}
           </tbody>
           <tfoot>
             <tr class="highlight">
@@ -4399,7 +4435,7 @@ export function FinancePanel({ sub }) {
       {/* ========================================================= */}
       {activeTab === 'collect' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 340px) 1fr', gap: '20px', alignItems: 'start' }}>
-          
+
           {/* LEFT COLUMN: Student Picker & Student Profile Card */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Filter & Selector Box */}
@@ -4407,7 +4443,7 @@ export function FinancePanel({ sub }) {
               <h3 style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>🎯</span> ১. শিক্ষার্থী নির্বাচন করুন
               </h3>
-              
+
               {/* Class Selection Buttons */}
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '5px' }}>
@@ -4634,7 +4670,7 @@ export function FinancePanel({ sub }) {
                   <div><b>Student ID:</b> <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>{selectedStudent.student_id || selectedStudent.id}</span></div>
                   <div>
                     <b>শাখা / গ্রুপ:</b> {
-                      (['9','10'].includes(String(selectedStudent.class_name)))
+                      (['9', '10'].includes(String(selectedStudent.class_name)))
                         ? (getStudentDepartment(selectedStudent) === 'ব্যবসায় শিক্ষা' ? 'ব্যবসায় শিক্ষা শাখা' : `${getStudentDepartment(selectedStudent)} বিভাগ`)
                         : (selectedStudent.section ? `${selectedStudent.section} শাখা` : 'সাধারণ শাখা')
                     }
@@ -4652,7 +4688,7 @@ export function FinancePanel({ sub }) {
                   <div style={{ fontSize: '12.5px', fontWeight: 800, color: isTuitionFree ? '#047857' : '#334155', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🎁</span> উপবৃত্তি ও বৃত্তি সংক্রান্ত সুবিধা
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: isStipend ? 700 : 500, color: isStipend ? '#047857' : '#334155' }}>
                       <input
@@ -4695,7 +4731,7 @@ export function FinancePanel({ sub }) {
 
           {/* RIGHT COLUMN: Fee Categories, Months, Calculations, and Payment */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            
+
             {/* 1. Monthly Tuition Fee & Months Grid */}
             <div style={{
               background: '#ffffff', borderRadius: '12px', border: '1px solid #cbd5e1',
@@ -4818,7 +4854,7 @@ export function FinancePanel({ sub }) {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '10px' }}>
-                
+
                 {/* 1. ভর্তি ফি */}
                 <div style={{ border: feeHeads.admission.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.admission.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
@@ -5052,7 +5088,7 @@ export function FinancePanel({ sub }) {
               </h3>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-                
+
                 {/* মোট পাওনা */}
                 <div style={{ background: '#ffffff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
                   <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: '4px' }}>
@@ -5194,13 +5230,86 @@ export function FinancePanel({ sub }) {
                 </div>
               </div>
 
+              {/* Missing Receipts Detection & Gap Fill Assistance */}
+              {(() => {
+                const targetCls = selectedStudent ? selectedStudent.class_name : selectedClass;
+                const missingList = getMissingReceiptSerials(targetCls, feeRecords);
+                if (!missingList || !missingList.length) return null;
+                return (
+                  <div style={{
+                    background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: '8px',
+                    padding: '10px 14px', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#92400e', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>⚠️</span> {getClassBnOrdinal(targetCls)} শ্রেণিতে পূর্বে বাদ পড়া মিসিং রশিদ সনাক্ত হয়েছে ({missingList.length} টি):
+                      </span>
+                      {customReceiptNo && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomReceiptNo('')}
+                          style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '5px', padding: '3px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          ✕ স্বাভাবিক ক্রমিকে ফেরত যান
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '11.5px', color: '#78350f', fontWeight: 600 }}>এক-ক্লিকে মিসিং রশিদটি এন্ট্রি করতে চাপুন:</span>
+                      {missingList.map(m => {
+                        const isSelected = customReceiptNo === m.receiptNo;
+                        return (
+                          <button
+                            key={m.num}
+                            type="button"
+                            onClick={() => setCustomReceiptNo(isSelected ? '' : m.receiptNo)}
+                            style={{
+                              background: isSelected ? '#b45309' : '#ffffff',
+                              color: isSelected ? '#ffffff' : '#b45309',
+                              border: isSelected ? '1.5px solid #92400e' : '1px solid #f59e0b',
+                              borderRadius: '6px',
+                              padding: '4px 10px',
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              boxShadow: isSelected ? '0 2px 4px rgba(180,83,9,0.3)' : '0 1px 2px rgba(0,0,0,0.05)',
+                              transition: 'all 0.15s ease'
+                            }}
+                            title={`রশিদ নং ${m.receiptNo} দিয়ে আদায় এন্ট্রি করুন`}
+                          >
+                            {isSelected ? '✓ ' : ''}{m.receiptNo.split('/').pop()} পূরণ
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Submit Payment Button & Next Receipt No Badge */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ecfdf5', padding: '6px 14px', borderRadius: '8px', border: '1.5px solid #a7f3d0' }}>
-                  <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>🧾 প্রস্তুতকৃত রশিদ নং:</span>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 900, color: '#047857', fontSize: '13.5px' }}>
-                    {generateClassReceiptNo(selectedStudent ? selectedStudent.class_name : selectedClass, feeRecords)}
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: customReceiptNo ? '#fef3c7' : '#ecfdf5',
+                  padding: '6px 14px', borderRadius: '8px',
+                  border: customReceiptNo ? '1.5px solid #f59e0b' : '1.5px solid #a7f3d0'
+                }}>
+                  <span style={{ fontSize: '12px', color: customReceiptNo ? '#92400e' : '#065f46', fontWeight: 700 }}>
+                    🧾 {customReceiptNo ? 'নির্বাচিত মিসিং রশিদ নং:' : 'প্রস্তুতকৃত রশিদ নং:'}
                   </span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 900, color: customReceiptNo ? '#b45309' : '#047857', fontSize: '14px' }}>
+                    {customReceiptNo || generateClassReceiptNo(selectedStudent ? selectedStudent.class_name : selectedClass, feeRecords)}
+                  </span>
+                  {customReceiptNo && (
+                    <button
+                      type="button"
+                      onClick={() => setCustomReceiptNo('')}
+                      style={{ background: 'transparent', border: 'none', color: '#b91c1c', cursor: 'pointer', fontSize: '12px', fontWeight: 900, padding: 0 }}
+                      title="স্বাভাবিক ক্রমিকে ফেরত যান"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -5335,10 +5444,10 @@ export function FinancePanel({ sub }) {
                 gap: '8px'
               }}>
                 <div style={{ fontSize: '12.5px', color: '#166534', fontWeight: 700 }}>
-                  ✓ তালিকা থেকে ২ জন শিক্ষার্থী নির্বাচিত: 
+                  ✓ তালিকা থেকে ২ জন শিক্ষার্থী নির্বাচিত:
                   <span style={{ marginLeft: '4px', textDecoration: 'underline' }}>
                     {feeRecords.find(x => x.id === selectedReceiptIds[0])?.student_name}
-                  </span> ও 
+                  </span> ও
                   <span style={{ marginLeft: '4px', textDecoration: 'underline' }}>
                     {feeRecords.find(x => x.id === selectedReceiptIds[1])?.student_name}
                   </span>
@@ -6238,7 +6347,7 @@ export function FinancePanel({ sub }) {
 
               {/* Main Workspace Grid: Selection Table (Left) + Live Calculator & Handover Form (Right) */}
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.45fr) minmax(360px, 1fr)', gap: '18px', alignItems: 'start' }}>
-                
+
                 {/* Left: Interactive Collection Selection Table */}
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                   <div style={{ background: '#f8fafc', padding: '10px 14px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -6377,7 +6486,7 @@ export function FinancePanel({ sub }) {
                 {/* Right: Live Calculation & Handover Submission Card (Sticky) */}
                 <div style={{ position: 'sticky', top: '16px' }}>
                   <div style={{ background: '#ffffff', borderRadius: '10px', border: '1.5px solid #047857', boxShadow: '0 4px 14px rgba(4,120,87,0.12)', overflow: 'hidden' }}>
-                    
+
                     {/* Card Header */}
                     <div style={{ background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)', color: '#fff', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '13.5px' }}>
@@ -6547,7 +6656,7 @@ export function FinancePanel({ sub }) {
                             onChange={e => {
                               const val = e.target.value;
                               setNewReceivedBy(val);
-                              try { localStorage.setItem('magra_fee_received_by', val); } catch (_) {}
+                              try { localStorage.setItem('magra_fee_received_by', val); } catch (_) { }
                             }}
                             required
                             placeholder="অফিস সহকারীর নাম ও পদবি লিখুন বা সিলেক্ট করুন..."
@@ -7154,7 +7263,7 @@ export function FinancePanel({ sub }) {
       {/* ========================================================= */}
       {activeTab === 'income' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) 1fr', gap: '20px', alignItems: 'start' }}>
-          
+
           {/* Left Form: Add Institutional Income */}
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1.5px solid #0284c7', padding: '18px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: 800, color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -7451,7 +7560,7 @@ export function FinancePanel({ sub }) {
       {/* ========================================================= */}
       {activeTab === 'expense' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) 1fr', gap: '20px', alignItems: 'start' }}>
-          
+
           {/* Left Form: Add Institutional Expense */}
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1.5px solid #dc2626', padding: '18px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: 800, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -7706,7 +7815,7 @@ export function FinancePanel({ sub }) {
       {/* ========================================================= */}
       {activeTab === 'budget' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
+
           {/* Top Control Bar */}
           <div style={{
             background: '#ffffff', borderRadius: '12px', border: '1.5px solid #047857',
@@ -7856,7 +7965,7 @@ export function FinancePanel({ sub }) {
 
           {/* Two-Column Side-by-Side Budget Workspaces */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))', gap: '20px', alignItems: 'start' }}>
-            
+
             {/* LEFT COLUMN: INCOME BUDGET HEADS */}
             <div style={{
               background: '#ffffff', borderRadius: '12px', border: '1.5px solid #047857',
@@ -8705,7 +8814,7 @@ export function FinancePanel({ sub }) {
                               <b>{it.name}</b>
                               {it.discount_amount > 0 && (
                                 <div style={{ fontSize: '10.5px', color: '#b45309', marginTop: '2px' }}>
-                                  নির্ধারিত: {formatMoney(it.original_amount)} &nbsp;|&nbsp; 
+                                  নির্ধারিত: {formatMoney(it.original_amount)} &nbsp;|&nbsp;
                                   <span style={{ color: '#dc2626', fontWeight: 700 }}>মওকুফ: -{formatMoney(it.discount_amount)}</span>
                                 </div>
                               )}

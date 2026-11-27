@@ -418,22 +418,24 @@ export function getLeadershipData(teachersListInput) {
 
   // Find live teachers for Head Teacher & Assistant Head Teacher
   const liveHead = tList.find(t => 
-    t && (
+    t && !t.name_bn?.includes('তাপসী') && !(t.designation && t.designation.includes('সহকারী')) && (
+      (t.designation && t.designation.includes('প্রধান শিক্ষক')) ||
       t.public_contact_role === 'head_teacher' || 
-      (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) ||
       t.id === 't-1' ||
+      (t.employee_id && String(t.employee_id).toUpperCase() === 'EMP-001') ||
       (t.name_bn && t.name_bn.includes('শফিকুল'))
     )
-  );
+  ) || tList[0] || MOCK_TEACHERS[0];
 
   const liveAsst = tList.find(t => 
     t && (
       t.public_contact_role === 'assistant_head_teacher' || 
       (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) ||
       t.id === 't-2' ||
+      (t.employee_id && String(t.employee_id).toUpperCase() === 'EMP-002') ||
       (t.name_bn && t.name_bn.includes('তাপসী'))
     )
-  );
+  ) || tList[1] || MOCK_TEACHERS[1];
 
   const livePresidentTeacher = tList.find(t => 
     t && (

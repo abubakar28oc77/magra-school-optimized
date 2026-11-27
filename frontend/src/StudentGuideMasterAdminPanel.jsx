@@ -11,8 +11,6 @@ import {
   saveStoredDigitalLearning,
   getStoredNotes,
   saveStoredNotes,
-  getStoredQuestions,
-  saveStoredQuestions,
   getStoredAssignments,
   saveStoredAssignments,
   getStoredOnlineExams,
@@ -30,7 +28,6 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
     if (['syllabus'].includes(s)) return 'syllabus';
     if (['learning', 'content'].includes(s)) return 'learning';
     if (['notes', 'lecture'].includes(s)) return 'notes';
-    if (['question', 'generator', 'omr', 'bank'].includes(s)) return 'question';
     if (['assignment', 'manage', 'review'].includes(s)) return 'assignment';
     if (['online_exam', 'setup'].includes(s)) return 'online_exam';
     if (['ai', 'tutor', 'analytics'].includes(s)) {
@@ -145,25 +142,7 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
     file_size: ''
   });
 
-  // 6. QUESTION BANK STATE
-  const [questions, setQuestions] = useState(getStoredQuestions);
-  const [qbFilterClass, setQbFilterClass] = useState('all');
-  const [qbFilterType, setQbFilterType] = useState('all');
-  const [editingQbId, setEditingQbId] = useState(null);
-  const [qbForm, setQbForm] = useState({
-    class_name: '১০',
-    subject_name: 'সাধারণ গণিত',
-    chapter: '',
-    question_type: 'সৃজনশীল (CQ)',
-    stem: '',
-    question_text: '',
-    options: ['', '', '', ''],
-    answer: '',
-    difficulty: 'বোর্ড স্ট্যান্ডার্ড',
-    year_tag: '২০২৬'
-  });
-
-  // 7. ASSIGNMENTS STATE
+  // 6. ASSIGNMENTS STATE
   const [assignments, setAssignments] = useState(getStoredAssignments);
   const [asFilterClass, setAsFilterClass] = useState('all');
   const [editingAsId, setEditingAsId] = useState(null);
@@ -354,22 +333,6 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
     setNotes(updated);
     saveStoredNotes(updated);
     setEditingNoteId(null);
-  };
-
-  // Question Bank CRUD
-  const saveQuestion = (e) => {
-    e.preventDefault();
-    let updated;
-    if (editingQbId) {
-      updated = questions.map(q => q.id === editingQbId ? { ...qbForm, id: editingQbId } : q);
-      showToast('প্রশ্নব্যাংক আইটেম আপডেট হয়েছে!');
-    } else {
-      updated = [{ ...qbForm, id: 'qb-' + Date.now() }, ...questions];
-      showToast('নতুন সৃজনশীল/MCQ প্রশ্ন প্রশ্নব্যাংকে যুক্ত হয়েছে!');
-    }
-    setQuestions(updated);
-    saveStoredQuestions(updated);
-    setEditingQbId(null);
   };
 
   // Assignment CRUD
@@ -571,9 +534,8 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
           { key: 'syllabus', label: '৩. সিলেবাস', icon: '📚', badge: 'বোর্ড কারিকুলাম' },
           { key: 'learning', label: '৪. ডিজিটাল লার্নিং', icon: '💻', badge: 'মাল্টিমিডিয়া ক্লাস' },
           { key: 'notes', label: '৫. নোট/লেকচার', icon: '📝', badge: 'শিক্ষকের হ্যান্ডনোট' },
-          { key: 'question', label: '৬. প্রশ্নব্যাংক ও মডেল প্রশ্ন', icon: '❓', badge: 'CQ ও MCQ' },
-          { key: 'assignment', label: '৭. অ্যাসাইনমেন্ট ও মক টেস্ট', icon: '📘', badge: 'মূল্যায়ন' },
-          { key: 'online_exam', label: '৮. অনলাইন পরীক্ষা', icon: '🧪', badge: 'লাইভ কুইজ' }
+          { key: 'assignment', label: '৬. অ্যাসাইনমেন্ট ও মক টেস্ট', icon: '📘', badge: 'মূল্যায়ন' },
+          { key: 'online_exam', label: '৭. অনলাইন পরীক্ষা', icon: '🧪', badge: 'লাইভ কুইজ' }
         ].map(item => {
           const isActive = activeTab === item.key;
           return (
@@ -1322,92 +1284,7 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
       )}
 
       {/* ========================================================
-          TAB 6: প্রশ্নব্যাংক ও মডেল প্রশ্ন (Question Bank)
-      ======================================================== */}
-      {activeTab === 'question' && (
-        <div className="module-grid">
-          <div className="form-card">
-            <div className="toolbar">
-              <h2>{editingQbId ? 'প্রশ্ন সম্পাদনা' : 'নতুন প্রশ্ন এন্ট্রি (CQ/MCQ/মডেল)'}</h2>
-              {editingQbId && <button type="button" className="mini" onClick={() => setEditingQbId(null)}>বাতিল</button>}
-            </div>
-            <form onSubmit={saveQuestion} className="form-grid">
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 700 }}>শ্রেণি *</label>
-                <select value={qbForm.class_name} onChange={e => setQbForm({ ...qbForm, class_name: e.target.value })}>
-                  <option value="৬">৬ষ্ঠ</option><option value="৭">৭ম</option><option value="৮">৮ম</option><option value="৯">৯ম</option><option value="১০">১০ম</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 700 }}>বিষয় *</label>
-                <input placeholder="যেমন: সাধারণ গণিত" value={qbForm.subject_name} onChange={e => setQbForm({ ...qbForm, subject_name: e.target.value })} required />
-              </div>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 700 }}>প্রশ্নের ধরন *</label>
-                <select value={qbForm.question_type} onChange={e => setQbForm({ ...qbForm, question_type: e.target.value })}>
-                  <option value="সৃজনশীল (CQ)">সৃজনশীল (CQ)</option>
-                  <option value="বহুনির্বাচনী (MCQ)">বহুনির্বাচনী (MCQ)</option>
-                  <option value="সংক্ষিপ্ত প্রশ্ন">সংক্ষিপ্ত প্রশ্ন</option>
-                  <option value="মডেল প্রশ্ন">মডেল প্রশ্ন</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 700 }}>মান / স্ট্যান্ডার্ড</label>
-                <input placeholder="যেমন: বোর্ড স্ট্যান্ডার্ড / সহজ / মাঝারি" value={qbForm.difficulty} onChange={e => setQbForm({ ...qbForm, difficulty: e.target.value })} />
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ fontSize: '12px', fontWeight: 700 }}>উদ্দীপক (Stem) - CQ এর ক্ষেত্রে</label>
-                <textarea rows="2" placeholder="উদ্দীপক লিখুন (প্রযোজ্য ক্ষেত্রে)..." value={qbForm.stem} onChange={e => setQbForm({ ...qbForm, stem: e.target.value })} />
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ fontSize: '12px', fontWeight: 700 }}>প্রশ্নের বিবরণ (ক, খ, গ, ঘ অথবা প্রশ্ন) *</label>
-                <textarea rows="3" placeholder="প্রশ্নের সম্পূর্ণ বিবরণ লিখুন..." value={qbForm.question_text} onChange={e => setQbForm({ ...qbForm, question_text: e.target.value })} required />
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ fontSize: '12px', fontWeight: 700 }}>সঠিক উত্তর বা সমাধান হিন্ট</label>
-                <input placeholder="সঠিক উত্তর লিখুন..." value={qbForm.answer} onChange={e => setQbForm({ ...qbForm, answer: e.target.value })} />
-              </div>
-              <button type="submit" className="btn full" style={{ gridColumn: '1 / -1', background: '#0284c7', color: '#fff', fontWeight: 800 }}>
-                {editingQbId ? 'প্রশ্ন আপডেট করুন' : '➕ প্রশ্নব্যাংকে যুক্ত করুন'}
-              </button>
-            </form>
-          </div>
-
-          <div className="table-card">
-            <div className="toolbar">
-              <h2>প্রশ্নভাণ্ডার ({questions.length} টি)</h2>
-            </div>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>শ্রেণি ও বিষয়</th>
-                    <th>ধরন</th>
-                    <th>প্রশ্ন বিবরণ</th>
-                    <th style={{ textAlign: 'right' }}>অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {questions.map(q => (
-                    <tr key={q.id}>
-                      <td><b>{q.class_name}ম শ্রেণি</b><br/><span style={{ color: '#0369a1', fontWeight: 700 }}>{q.subject_name}</span></td>
-                      <td><span style={{ background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', fontWeight: 700 }}>{q.question_type}</span></td>
-                      <td>{q.stem && <div style={{ fontSize: '12px', color: '#64748b' }}>উদ্দীপক: {q.stem}</div>}<b>{q.question_text}</b>{q.answer && <div style={{ fontSize: '12px', color: '#047857' }}>উত্তর: {q.answer}</div>}</td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button type="button" className="mini" onClick={() => { setEditingQbId(q.id); setQbForm(q); window.scrollTo({ top: 100, behavior: 'smooth' }); }}>এডিট</button>
-                        <button type="button" className="mini danger" onClick={() => { if(confirm('মুছে ফেলবেন?')){ const up = questions.filter(x => x.id !== q.id); setQuestions(up); saveStoredQuestions(up); } }}>মুছুন</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================
-          TAB 7: অ্যাসাইনমেন্ট ও মক টেস্ট (Assignments)
+          TAB 6: অ্যাসাইনমেন্ট ও মক টেস্ট (Assignments)
       ======================================================== */}
       {activeTab === 'assignment' && (
         <div className="module-grid">
