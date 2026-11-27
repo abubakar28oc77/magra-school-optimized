@@ -2519,9 +2519,8 @@ function Login() {
       };
     }
     if (!userObj) {
-      userObj = MOCK_USERS.find(u => u.login_id === item.id);
+      userObj = MOCK_USERS.find(u => u.login_id === item.id) || MOCK_USERS[0];
     }
-    if (!userObj) return;
     userObj = sanitizeStoredUser(userObj);
     const role = userObj?.role_name || userObj?.role || '';
     const desk = getRoleDefaultDesk(role);
@@ -2536,7 +2535,8 @@ function Login() {
 
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    nav('/admin');
+    try { nav('/admin'); } catch { }
+    window.location.hash = '#/admin';
   };
 
   const selectSubjectTeacherAndLogin = (teacher) => {
@@ -2566,7 +2566,8 @@ function Login() {
     setShowSubjectTeacherModal(false);
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    nav('/admin');
+    try { nav('/admin'); } catch { }
+    window.location.hash = '#/admin';
   };
 
   async function submit(e) {
@@ -2611,7 +2612,8 @@ function Login() {
       } catch { }
       window.dispatchEvent(new Event('magra_auth_change'));
       window.dispatchEvent(new Event('magra_role_changed'));
-      nav(targetRoute);
+      try { nav(targetRoute); } catch { }
+      window.location.hash = '#' + targetRoute;
     } catch (err) {
       const cleanId = loginId.trim().toLowerCase();
       const matched = sanitizeStoredUser(MOCK_USERS.find(u => u.login_id.toLowerCase() === cleanId) || MOCK_USERS[0]);
@@ -2649,7 +2651,8 @@ function Login() {
       } catch { }
       window.dispatchEvent(new Event('magra_auth_change'));
       window.dispatchEvent(new Event('magra_role_changed'));
-      nav(targetRoute);
+      try { nav(targetRoute); } catch { }
+      window.location.hash = '#' + targetRoute;
     } finally {
       setLoading(false);
     }
@@ -2684,10 +2687,20 @@ function Login() {
           <div className="login-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 try {
                   localStorage.clear();
                   sessionStorage.clear();
+                  if ('caches' in window) {
+                    const cacheKeys = await caches.keys();
+                    await Promise.all(cacheKeys.map(k => caches.delete(k)));
+                  }
+                  if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const reg of registrations) {
+                      await reg.unregister();
+                    }
+                  }
                 } catch { }
                 const base = window.location.href.split('?')[0].split('#')[0];
                 window.location.replace(base + '?v=' + Date.now() + '#/login');
@@ -3399,6 +3412,16 @@ function Admin() {
             setSub(subTab || null);
             return;
           }
+        }
+      } catch { }
+      try {
+        const token = localStorage.getItem('magra_token');
+        if (token) {
+          const fallbackUser = sanitizeStoredUser(MOCK_USERS[0]);
+          localStorage.setItem('magra_user', JSON.stringify(fallbackUser));
+          setMe(fallbackUser);
+          setActive('dashboard');
+          return;
         }
       } catch { }
       nav('/login');
@@ -9566,12 +9589,15 @@ function App() {
     };
   }, []);
 
+  const rawPath = location.pathname || '/';
+  const path = (rawPath === '/' ? '/' : rawPath.replace(/\/+$/, '')) || '/';
+
   return (
     <>
-      {location.pathname === "/admin" && <Admin key={'admin-' + roleStamp} />}
-      {location.pathname === "/portal" && <Portal key={'portal-' + roleStamp} />}
-      {location.pathname === "/login" && <div className="login-page"><Header /><Login /></div>}
-      {location.pathname !== "/admin" && location.pathname !== "/portal" && location.pathname !== "/login" && <Home />}
+      {path === "/admin" && <Admin key={'admin-' + roleStamp} />}
+      {path === "/portal" && <Portal key={'portal-' + roleStamp} />}
+      {path === "/login" && <div className="login-page"><Header /><Login /></div>}
+      {path !== "/admin" && path !== "/portal" && path !== "/login" && <Home />}
     </>
   );
 }

@@ -213,6 +213,8 @@ import {
   MOCK_BOOKS,
   MOCK_ADMISSIONS,
   getStudentPhoto,
+  getTeacherPhoto,
+  sanitizeStoredUser,
   saveStudentCustomPhoto,
   MOCK_SCHOLARSHIPS,
   MOCK_PUBLIC_CONTENT,
