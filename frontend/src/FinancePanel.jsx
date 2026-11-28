@@ -495,33 +495,8 @@ export const INSTITUTIONAL_EXPENSE_HEADS = [
 // Standard School Annual Budget Default Seed (বিদ্যালয়ের বার্ষিক প্রস্তাবিত আয়-ব্যয় বাজেট)
 export const DEFAULT_ANNUAL_BUDGET = {
   '2026': {
-    incomeHeads: [
-      { id: 'b-inc-1', category: 'শিক্ষার্থী নিয়মিত মাসিক বেতন ও টিউশন ফি', budgeted_amount: 1450000, note: '৬ষ্ঠ-১০ম শ্রেণি শিক্ষার্থী' },
-      { id: 'b-inc-2', category: 'ভর্তি ফি ও বার্ষিক সেশন চার্জ', budgeted_amount: 380000, note: 'নতুন ও পুরাতন ভর্তি' },
-      { id: 'b-inc-3', category: 'পরীক্ষার ফি (অর্ধ-বার্ষিক, বার্ষিক ও টেস্ট)', budgeted_amount: 420000, note: 'সকল শ্রেণির পরীক্ষা' },
-      { id: 'b-inc-4', category: 'সরকারি অনুদান ও উন্নয়ন থোক বরাদ্দ', budgeted_amount: 500000, note: 'শিক্ষা মন্ত্রণালয় ও জেলা পরিষদ' },
-      { id: 'b-inc-5', category: 'মার্কেট ও দোকান ভাড়া বাবদ আয়', budgeted_amount: 180000, note: 'বিদ্যালয় মার্কেট' },
-      { id: 'b-inc-6', category: 'জমি ও পুকুর ইজারা বাবদ আয়', budgeted_amount: 75000, note: 'বাৎসরিক ডাক ও ইজারা' },
-      { id: 'b-inc-7', category: 'বিজ্ঞান ল্যাব, স্কাউট ও কম্পিউটার ব্যবহার ফি', budgeted_amount: 95000, note: 'ব্যবহারিক ও আইসিটি ফি' },
-      { id: 'b-inc-8', category: 'সহশিক্ষা, সাংস্কৃতিক ও ক্রীড়া চাঁদা', budgeted_amount: 60000, note: 'বার্ষিক ক্রীড়া ও সাংস্কৃতিক অনুষ্ঠান' },
-      { id: 'b-inc-9', category: 'ম্যানেজিং কমিটি ও দাতা সদস্যের অনুদান', budgeted_amount: 120000, note: 'বিশেষ উন্নয়ন তহবিল' },
-      { id: 'b-inc-10', category: 'অন্যান্য বিবিধ প্রাতিষ্ঠানিক ও ব্যাংক মুনাফা', budgeted_amount: 40000, note: 'সঞ্চয়ী ব্যাংক সুদ ও বিবিধ' }
-    ],
-    expenseHeads: [
-      { id: 'b-exp-1', category: 'শিক্ষক-কর্মচারী বেতন-ভাতা (নন-এমপিও অংশ)', budgeted_amount: 1250000, note: 'নন-এমপিও শিক্ষক ও কর্মচারীবৃন্দ' },
-      { id: 'b-exp-2', category: 'উৎসব বোনাস ও বৈশাখী ভাতা (প্রাতিষ্ঠানিক অংশ)', budgeted_amount: 220000, note: 'ধর্মীয় উৎসব ও বাংলা নববর্ষ' },
-      { id: 'b-exp-3', category: 'দৈনিক মজুরি ও পরিচ্ছন্নতাকর্মীর মজুরি', budgeted_amount: 110000, note: 'ক্যাম্পাস নিরাপত্তা ও পরিচ্ছন্নতা' },
-      { id: 'b-exp-4', category: 'পরীক্ষা পরিচালনা, খাতা-কলম ও প্রশ্নপত্র মুদ্রণ খরচ', budgeted_amount: 320000, note: 'সকল সাময়িক ও অভ্যন্তরীণ পরীক্ষা' },
-      { id: 'b-exp-5', category: 'বিদ্যুৎ বিল, গ্যাস ও পানির ইউটিলিটি বিল', budgeted_amount: 140000, note: 'মাসিক ইউটিলিটি বিল' },
-      { id: 'b-exp-6', category: 'ইন্টারনেট, সফটওয়্যার ও ডিজিটাল ক্লাসরুম মেইনটেন্যান্স', budgeted_amount: 75000, note: 'আইসিটি ল্যাব ও ব্রডব্যান্ড বিল' },
-      { id: 'b-exp-7', category: 'দাপ্তরিক স্টেশনারি ও রেজিস্টার খাতা ক্রয়', budgeted_amount: 60000, note: 'অফিস রেজিস্টার ও খাতা-কলম' },
-      { id: 'b-exp-8', category: 'ভবন মেরামত, সংস্কার ও চুনকাম', budgeted_amount: 380000, note: 'অবকাঠামো উন্নয়ন ও সংস্কার' },
-      { id: 'b-exp-9', category: 'জাতীয় দিবস উদযাপন ও বার্ষিক মিলাদ মাহফিল ব্যয়', budgeted_amount: 150000, note: 'জাতীয় ও ধর্মীয় অনুষ্ঠানাদি' },
-      { id: 'b-exp-10', category: 'দরিদ্র শিক্ষার্থী কল্যাণ ও চিকিৎসা সহায়তা', budgeted_amount: 55000, note: 'অসচ্ছল শিক্ষার্থীদের ফি সহায়তা' },
-      { id: 'b-exp-11', category: 'আপ্যায়ন ও ম্যানেজিং কমিটির সভা ব্যয়', budgeted_amount: 45000, note: 'এসএমসি মিটিং ও অতিথি আপ্যায়ন' },
-      { id: 'b-exp-12', category: 'বোর্ড ও সরকারি পরিদর্শন/নবায়ন ফি', budgeted_amount: 35000, note: 'শিক্ষা বোর্ড ও সরকারি নবায়ন' },
-      { id: 'b-exp-13', category: 'বিবিধ জরুরি আকস্মিক ব্যয়', budgeted_amount: 80000, note: 'দুর্যোগ ও জরুরি পরিস্থিতি' }
-    ]
+    incomeHeads: [],
+    expenseHeads: []
   }
 };
 
@@ -702,56 +677,7 @@ const SEED_FEE_DEPOSITS = [];
 const SEED_INCOMES = [];
 
 // Initial Sample Institutional Expenses
-const SEED_EXPENSES = [
-  {
-    id: 'EXP-2026-001',
-    voucher_no: 'ব্যয়-ভাউচার-২০২৬-১',
-    date: '2026-10-06',
-    category: 'বিদ্যুৎ বিল, গ্যাস ও পানির ইউটিলিটি বিল',
-    title: 'পল্লী বিদ্যুৎ সমিতি - সেপ্টেম্বর মাসের বিদ্যুৎ বিল',
-    payee_name: 'টাঙ্গাইল পল্লী বিদ্যুৎ সমিতি',
-    amount: 5420,
-    method: 'bkash',
-    approved_by: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)',
-    note: 'মিটার নং: PU-4920'
-  },
-  {
-    id: 'EXP-2026-002',
-    voucher_no: 'ব্যয়-ভাউচার-২০২৬-২',
-    date: '2026-10-08',
-    category: 'পরীক্ষা পরিচালনা, খাতা-কলম ও প্রশ্নপত্র মুদ্রণ খরচ',
-    title: 'নির্বাচনী ও প্রাক-নির্বাচনী পরীক্ষার প্রশ্নপত্র কম্পোজ ও মুদ্রণ',
-    payee_name: 'কালিহাতি মডার্ন প্রেস',
-    amount: 14500,
-    method: 'cash',
-    approved_by: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)',
-    note: 'সকল বিষয়ের প্রশ্নপত্র সরবরাহ'
-  },
-  {
-    id: 'EXP-2026-003',
-    voucher_no: 'ব্যয়-ভাউচার-২০২৬-৩',
-    date: '2026-10-12',
-    category: 'শিক্ষক-কর্মচারী বেতন-ভাতা (নন-এমপিও অংশ)',
-    title: 'নন-এমপিও খণ্ডকালীন শিক্ষকবৃন্দের সেপ্টেম্বর মাসের সম্মানী',
-    payee_name: 'সংশ্লিষ্ট শিক্ষকবৃন্দ',
-    amount: 22000,
-    method: 'bank',
-    approved_by: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)',
-    note: 'ম্যানেজিং কমিটির অনুমোদনক্রমে'
-  },
-  {
-    id: 'EXP-2026-004',
-    voucher_no: 'ব্যয়-ভাউচার-২০২৬-৪',
-    date: '2026-10-15',
-    category: 'দাপ্তরিক স্টেশনারি ও রেজিস্টার খাতা ক্রয়',
-    title: 'অফিস রেজিস্টার খাতা, এ৪ কাগজ ও প্রিন্টার কালি ক্রয়',
-    payee_name: 'টাঙ্গাইল বুক ডিপো ও স্টেশনারি',
-    amount: 4200,
-    method: 'cash',
-    approved_by: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)',
-    note: 'ক্যাশ মেমো নং: ৮৪১৯'
-  }
-];
+const SEED_EXPENSES = [];
 
 export function FinancePanel({ sub }) {
   // Map sub navigation
@@ -1005,9 +931,16 @@ export function FinancePanel({ sub }) {
   const [expenses, setExpenses] = useState(() => {
     try {
       const saved = localStorage.getItem('magra_finance_expenses');
-      return saved ? JSON.parse(saved) : SEED_EXPENSES;
+      let records = saved ? JSON.parse(saved) : [];
+      if (Array.isArray(records)) {
+        records = records.filter(x => x && !String(x.id).startsWith('EXP-2026-') && !String(x.id).startsWith('exp-'));
+      } else {
+        records = [];
+      }
+      try { localStorage.setItem('magra_finance_expenses', JSON.stringify(records)); } catch { }
+      return records;
     } catch {
-      return SEED_EXPENSES;
+      return [];
     }
   });
 
@@ -1774,9 +1707,20 @@ export function FinancePanel({ sub }) {
       const saved = localStorage.getItem('magra_finance_annual_budget');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') return { ...DEFAULT_ANNUAL_BUDGET, ...parsed };
+        if (parsed && typeof parsed === 'object') {
+          const cleaned = {};
+          Object.keys(parsed).forEach(yr => {
+            const yrData = parsed[yr] || {};
+            const cleanInc = (yrData.incomeHeads || []).filter(h => h && !String(h.id).startsWith('b-inc-'));
+            const cleanExp = (yrData.expenseHeads || []).filter(h => h && !String(h.id).startsWith('b-exp-'));
+            cleaned[yr] = { incomeHeads: cleanInc, expenseHeads: cleanExp };
+          });
+          try { localStorage.setItem('magra_finance_annual_budget', JSON.stringify(cleaned)); } catch { }
+          return cleaned;
+        }
       }
     } catch { }
+    try { localStorage.setItem('magra_finance_annual_budget', JSON.stringify(DEFAULT_ANNUAL_BUDGET)); } catch { }
     return DEFAULT_ANNUAL_BUDGET;
   });
 
@@ -1793,11 +1737,11 @@ export function FinancePanel({ sub }) {
   const activeYearBudget = useMemo(() => {
     if (!budgetMap[selectedBudgetYear]) {
       return {
-        incomeHeads: (DEFAULT_ANNUAL_BUDGET['2026']?.incomeHeads || []).map(h => ({ ...h, id: `b-inc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}` })),
-        expenseHeads: (DEFAULT_ANNUAL_BUDGET['2026']?.expenseHeads || []).map(h => ({ ...h, id: `b-exp-${Date.now()}-${Math.random().toString(36).substring(2, 6)}` }))
+        incomeHeads: [],
+        expenseHeads: []
       };
     }
-    return budgetMap[selectedBudgetYear];
+    return budgetMap[selectedBudgetYear] || { incomeHeads: [], expenseHeads: [] };
   }, [budgetMap, selectedBudgetYear]);
 
   const totalBudgetIncome = useMemo(() => {
@@ -2154,15 +2098,13 @@ export function FinancePanel({ sub }) {
     });
     setBudgetSuccessMsg('বাজেট খাত সফলভাবে মুছে ফেলা হয়েছে।');
     setTimeout(() => setBudgetSuccessMsg(''), 3500);
-  };
-
-  const handleResetBudgetToDefault = () => {
-    if (!window.confirm(`আপনি কি নিশ্চিত যে ${toBnDigits(selectedBudgetYear)} শিক্ষাবর্ষের বাজেট প্রমিত (Default) আকারে রিসেট করতে চান?`)) return;
+  };  const handleResetBudgetToDefault = () => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে ${toBnDigits(selectedBudgetYear)} শিক্ষাবর্ষের বাজেট খালি করতে চান?`)) return;
     setBudgetMap(prev => ({
       ...prev,
-      [selectedBudgetYear]: DEFAULT_ANNUAL_BUDGET['2026']
+      [selectedBudgetYear]: { incomeHeads: [], expenseHeads: [] }
     }));
-    setBudgetSuccessMsg(`${toBnDigits(selectedBudgetYear)} সালের বাজেট সফলভাবে প্রমিত আকারে রিসেট করা হয়েছে।`);
+    setBudgetSuccessMsg(`${toBnDigits(selectedBudgetYear)} সালের বাজেট তালিকা সফলভাবে খালি করা হয়েছে।`);
     setTimeout(() => setBudgetSuccessMsg(''), 3500);
   };
 

@@ -15800,12 +15800,7 @@ export const AUTHENTIC_INCOMES = [
   }
 ];
 
-export const MOCK_EXPENSES = [
-  { id: 'exp-1', title: 'বিজ্ঞান ল্যাব রাসায়নিক ও কাঁচামাল ক্রয়', category: 'একাডেমিক সরঞ্জাম', amount: 15400, expense_date: '2026-01-20' },
-  { id: 'exp-2', title: 'বার্ষিক ক্রীড়া ও পুরস্কার ক্রয়', category: 'ক্রীড়া ও সহশিক্ষা', amount: 28500, expense_date: '2026-01-28' },
-  { id: 'exp-3', title: 'লাইব্রেরির নতুন বই সংযোজন (৮০টি)', category: 'লাইব্রেরি', amount: 12800, expense_date: '2026-01-15' },
-  { id: 'exp-4', title: 'ইন্টারনেট ও বিদ্যুৎ বিল (জানুয়ারি)', category: 'ইউটিলিটি', amount: 8200, expense_date: '2026-02-02' }
-];
+export const MOCK_EXPENSES = [];
 
 export const MOCK_BOOKS = [
   { id: 'b-1', title: 'আমার বন্ধু রাশেদ', author: 'মুহম্মদ জাফর ইকবাল', isbn: '978-984-401-123-1', category: 'কিশোর উপন্যাস', quantity: 8, available_quantity: 6 },
