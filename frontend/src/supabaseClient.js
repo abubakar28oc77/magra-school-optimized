@@ -211,8 +211,18 @@ export async function pullAllFromCloud() {
           if (!Array.isArray(localArr)) localArr = [];
 
           // STRICTLY PURGE ALL LEGACY MOCK RECEIPTS (1070/1065) FROM BOTH CLOUD AND LOCAL
-          const cloudArr = r.value.filter(x => !isLegacyMockReceipt(x));
-          const cleanLocal = localArr.filter(x => !isLegacyMockReceipt(x));
+          const cloudArr = r.value.filter(x => !isLegacyMockReceipt(x)).map(x => {
+            if (x && (x.deposit_id === 'DEP-1795846752608' || x.deposit_id === 'DEP-1732104500000')) {
+              return { ...x, deposit_id: 'DEP-1795584131154' };
+            }
+            return x;
+          });
+          const cleanLocal = localArr.filter(x => !isLegacyMockReceipt(x)).map(x => {
+            if (x && (x.deposit_id === 'DEP-1795846752608' || x.deposit_id === 'DEP-1732104500000')) {
+              return { ...x, deposit_id: 'DEP-1795584131154' };
+            }
+            return x;
+          });
           const cloudIdMap = new Map();
           const cloudReceiptMap = new Map();
           cloudArr.forEach(x => {
@@ -265,7 +275,7 @@ export async function pullAllFromCloud() {
           return;
         }
 
-        // Smart union merge for deposits, strictly preserving all authentic deposits
+        // Smart union merge for deposits, strictly preserving all authentic deposits and purging duplicate/obsolete ones
         if (r.key === 'magra_finance_deposits' && Array.isArray(r.value)) {
           let localArr = [];
           try {
@@ -273,12 +283,13 @@ export async function pullAllFromCloud() {
           } catch { }
           if (!Array.isArray(localArr)) localArr = [];
 
-          const cloudArr = r.value;
+          const cloudArr = r.value.filter(d => d && d.id !== 'DEP-1732104500000' && d.id !== 'DEP-1795846752608');
+          const cleanLocal = localArr.filter(d => d && d.id !== 'DEP-1732104500000' && d.id !== 'DEP-1795846752608');
           const cloudIdMap = new Map(cloudArr.map(x => [x.id, x]));
           let localHasUnsynced = false;
           const merged = [...cloudArr];
 
-          localArr.forEach(localItem => {
+          cleanLocal.forEach(localItem => {
             if (localItem && localItem.id && !cloudIdMap.has(localItem.id)) {
               merged.push(localItem);
               localHasUnsynced = true;
@@ -300,13 +311,13 @@ export async function pullAllFromCloud() {
             window.dispatchEvent(new CustomEvent('magra_data_sync', { detail: { key: r.key } }));
           }
 
-          if (localHasUnsynced) {
+          if (localHasUnsynced || cloudArr.length !== r.value.length || cleanLocal.length !== localArr.length) {
             pushKeyToCloud(r.key, merged);
           }
           return;
         }
 
-        // Smart union merge for incomes, strictly preserving authentic income vouchers
+        // Smart union merge for incomes, strictly preserving authentic income vouchers and purging duplicate/obsolete ones
         if (r.key === 'magra_finance_incomes' && Array.isArray(r.value)) {
           let localArr = [];
           try {
@@ -314,12 +325,13 @@ export async function pullAllFromCloud() {
           } catch { }
           if (!Array.isArray(localArr)) localArr = [];
 
-          const cloudArr = r.value;
+          const cloudArr = r.value.filter(inc => inc && inc.id !== 'INC-DEP-DEP-1732104500000' && inc.id !== 'INC-DEP-DEP-1795846752608' && inc.deposit_id !== 'DEP-1732104500000' && inc.deposit_id !== 'DEP-1795846752608');
+          const cleanLocal = localArr.filter(inc => inc && inc.id !== 'INC-DEP-DEP-1732104500000' && inc.id !== 'INC-DEP-DEP-1795846752608' && inc.deposit_id !== 'DEP-1732104500000' && inc.deposit_id !== 'DEP-1795846752608');
           const cloudIdMap = new Map(cloudArr.map(x => [x.id, x]));
           let localHasUnsynced = false;
           const merged = [...cloudArr];
 
-          localArr.forEach(localItem => {
+          cleanLocal.forEach(localItem => {
             if (localItem && localItem.id && !cloudIdMap.has(localItem.id)) {
               merged.push(localItem);
               localHasUnsynced = true;
@@ -341,7 +353,7 @@ export async function pullAllFromCloud() {
             window.dispatchEvent(new CustomEvent('magra_data_sync', { detail: { key: r.key } }));
           }
 
-          if (localHasUnsynced) {
+          if (localHasUnsynced || cloudArr.length !== r.value.length || cleanLocal.length !== localArr.length) {
             pushKeyToCloud(r.key, merged);
           }
           return;

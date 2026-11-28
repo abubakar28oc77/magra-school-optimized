@@ -936,7 +936,12 @@ export function FinancePanel({ sub }) {
       const saved = localStorage.getItem('magra_finance_fees');
       let records = saved ? JSON.parse(saved) : [];
       if (Array.isArray(records)) {
-        records = records.filter(x => !isLegacyMockReceipt(x));
+        records = records.filter(x => !isLegacyMockReceipt(x)).map(x => {
+          if (x && (x.deposit_id === 'DEP-1795846752608' || x.deposit_id === 'DEP-1732104500000')) {
+            return { ...x, deposit_id: 'DEP-1795584131154' };
+          }
+          return x;
+        });
       } else {
         records = [];
       }
@@ -952,6 +957,7 @@ export function FinancePanel({ sub }) {
       const saved = localStorage.getItem('magra_finance_deposits');
       let records = saved ? JSON.parse(saved) : null;
       if (Array.isArray(records) && records.length > 0) {
+        records = records.filter(d => d && d.id !== 'DEP-1732104500000' && d.id !== 'DEP-1795846752608');
         let hasAll = true;
         (AUTHENTIC_FEE_DEPOSITS || []).forEach(ad => {
           if (!records.some(d => d.id === ad.id || d.deposit_no === ad.deposit_no)) {
@@ -959,7 +965,7 @@ export function FinancePanel({ sub }) {
             hasAll = false;
           }
         });
-        if (!hasAll) {
+        if (!hasAll || records.length !== (saved ? JSON.parse(saved).length : 0)) {
           try { localStorage.setItem('magra_finance_deposits', JSON.stringify(records)); } catch { }
         }
         return records;
@@ -976,6 +982,7 @@ export function FinancePanel({ sub }) {
       const saved = localStorage.getItem('magra_finance_incomes');
       let records = saved ? JSON.parse(saved) : null;
       if (Array.isArray(records) && records.length > 0) {
+        records = records.filter(r => r && r.id !== 'INC-DEP-DEP-1732104500000' && r.id !== 'INC-DEP-DEP-1795846752608' && r.deposit_id !== 'DEP-1732104500000' && r.deposit_id !== 'DEP-1795846752608');
         let hasAll = true;
         (AUTHENTIC_INCOMES || []).forEach(ai => {
           if (!records.some(r => r.id === ai.id || (r.deposit_id && r.deposit_id === ai.deposit_id))) {
@@ -983,7 +990,7 @@ export function FinancePanel({ sub }) {
             hasAll = false;
           }
         });
-        if (!hasAll) {
+        if (!hasAll || records.length !== (saved ? JSON.parse(saved).length : 0)) {
           try { localStorage.setItem('magra_finance_incomes', JSON.stringify(records)); } catch { }
         }
         return records;
@@ -1805,7 +1812,9 @@ export function FinancePanel({ sub }) {
 
   // Institutional Income Display Memo: guaranteed union of user incomes, authentic vouchers and deposit batches
   const displayIncomes = useMemo(() => {
-    const list = Array.isArray(incomes) ? [...incomes] : [];
+    let list = Array.isArray(incomes) ? [...incomes] : [];
+    // Strictly filter out any obsolete duplicate income vouchers and deposit references
+    list = list.filter(inc => inc && inc.id !== 'INC-DEP-DEP-1732104500000' && inc.id !== 'INC-DEP-DEP-1795846752608' && inc.deposit_id !== 'DEP-1732104500000' && inc.deposit_id !== 'DEP-1795846752608');
     // 1. Ensure authentic vouchers (চালান ০০১ ও ০০২) are always included
     (AUTHENTIC_INCOMES || []).forEach(ai => {
       if (!list.some(inc => inc.id === ai.id || (inc.deposit_id && inc.deposit_id === ai.deposit_id))) {
@@ -1813,7 +1822,7 @@ export function FinancePanel({ sub }) {
       }
     });
     // 2. Ensure every deposit in feeDeposits has a corresponding voucher
-    (feeDeposits || []).forEach(dep => {
+    (feeDeposits || []).filter(dep => dep && dep.id !== 'DEP-1732104500000' && dep.id !== 'DEP-1795846752608').forEach(dep => {
       if (!list.some(inc => inc.deposit_id === dep.id)) {
         list.push({
           id: `INC-DEP-${dep.id}`,
@@ -3912,7 +3921,7 @@ export function FinancePanel({ sub }) {
 
   // Filtered Deposit Batches in History
   const displayedDepositBatches = useMemo(() => {
-    let list = [...feeDeposits].sort((a, b) => new Date(b.deposit_date || 0) - new Date(a.deposit_date || 0));
+    let list = [...feeDeposits].filter(d => d && d.id !== 'DEP-1732104500000' && d.id !== 'DEP-1795846752608').sort((a, b) => new Date(b.deposit_date || 0) - new Date(a.deposit_date || 0));
 
     if (depositHistoryDateFilter !== 'all') {
       const todayStr = new Date().toISOString().slice(0, 10);
